@@ -1,2 +1,3 @@
 <?php
-SOMUSIC_CLASS_EventHandler::getInstance()->init();
+SOMUSIC_CLASS_EventHandler::getInstance ()->init ();
+

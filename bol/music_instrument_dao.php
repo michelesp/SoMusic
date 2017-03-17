@@ -1,5 +1,5 @@
 <?php
-class SOMUSIC_BOL_SomusicDao extends OW_BaseDao {
+class SOMUSIC_BOL_MusicInstrumentDao extends OW_BaseDao {
 	/**
 	 * Constructor.
 	 */
@@ -9,38 +9,38 @@ class SOMUSIC_BOL_SomusicDao extends OW_BaseDao {
 	/**
 	 * Singleton instance.
 	 *
-	 * @var SOMUSIC_BOL_SomusicDao
+	 * @var SOMUSIC_BOL_MusicInstrumentDao
 	 */
 	private static $classInstance;
-	
+
 	/**
 	 * Returns an instance of class (singleton pattern implementation).
 	 *
-	 * @return SOMUSIC_BOL_SomusicDao
+	 * @return SOMUSIC_BOL_MusicInstrumentDao
 	 */
 	public static function getInstance() {
 		if (self::$classInstance === null) {
 			self::$classInstance = new self ();
 		}
-		
+
 		return self::$classInstance;
 	}
-	
+
 	/**
 	 *
 	 * @see OW_BaseDao::getDtoClassName()
 	 *
 	 */
 	public function getDtoClassName() {
-		return 'SOMUSIC_BOL_Somusic';
+		return 'SOMUSIC_BOL_MusicInstrument';
 	}
-	
+
 	/**
 	 *
 	 * @see OW_BaseDao::getTableName()
 	 *
 	 */
 	public function getTableName() {
-		return OW_DB_PREFIX . 'somusic';
+		return OW_DB_PREFIX . 'music_instrument';
 	}
 }

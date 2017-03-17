@@ -1,0 +1,71 @@
+@CHARSET "UTF-8";
+
+
+#prevContainer {
+    overflow: hidden;
+  	height: 470px;
+  	overflow: auto;
+  	border: 1px solid #DDDDDD;
+}
+
+#scoreDiv {
+	overflow: hidden;
+  	height: 250px;
+  	overflow: auto;
+  	border: 1px solid #DDDDDD;
+}
+
+
+#tabInstruments {
+	height: 200px;
+}
+
+
+#tabInstruments thead,
+#tabInstruments tbody,
+#tabInstruments tr,
+#tabInstruments td,
+#tabInstruments th { display: block; }
+
+#tabInstruments th {
+	width: 50%;
+}
+
+#tabInstruments tr td:first-child {
+	width: 50%;
+}
+
+#tabInstruments tr td:NTH-CHILD(2) {
+	width: 40%;
+}
+
+#tabInstruments tr td:LAST-CHILD {
+	width: 10%;
+}
+
+#tabInstruments tr:after {
+            content: ' ';
+            display: block;
+            visibility: hidden;
+            clear: both;
+        }
+
+#tabInstruments thead th {
+            height: 30px;
+           	weight: 50%;
+        }
+
+#tabInstruments tbody {
+            height: 170px;
+            overflow-y: auto;
+        }
+
+#tabInstruments thead {
+            /* fallback */
+        }
+
+
+#tabInstruments tbody td,
+#tabInstruments thead th {
+            float: left;
+        }

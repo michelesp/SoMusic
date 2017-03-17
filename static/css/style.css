@@ -1,14 +1,16 @@
 #secondTable {
-    display: none;
+	display: none;
 }
+
 .noteImg {
-    width: 20px;
-    height: 20px;
+	width: 20px;
+	height: 20px;
 }
+
 .descr {
-    margin-top: 20px;
+	margin-top: 20px;
 }
 
 .row {
-    padding-bottom: 50px;
+	padding-bottom: 50px;
 }

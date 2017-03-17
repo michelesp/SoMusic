@@ -19,12 +19,13 @@ vmRenderer.prototype.drawMeasureLines = function () {
     var width = 0;
     this.ctx.setLineDash([5, 2]);
     for (var i = 0; i < this.measures.length; i++) {
-        var x = this.measures[i].bassStave.end_x;
+        //var x = this.measures[i].bassStave.end_x;
+    	var x = this.measures[i].staves[0].end_x;
         this.ctx.beginPath();
         this.ctx.moveTo(x, 0);
         this.ctx.lineTo(x, 130);
         this.ctx.stroke();
-        width += this.measures[i].bassStave.width;
+        width += this.measures[i].staves[0].width;
     }
     this.ctx.beginPath();
     this.ctx.moveTo(0, 62.5);
@@ -39,7 +40,10 @@ vmRenderer.prototype.createTrajectories = function () {
         "alto": new trajectory("alto", this.ctx),
         "soprano": new trajectory("soprano", this.ctx)
     };
-    for (var i in this.measures) {
+	/*this.trajectories = [];
+	for(var i=0; i<this.measures[0].voicesName.length; i++)
+		this.trajectories.push(new trajectory(this.measures[0].voicesName[i], this.ctx));
+    */for (var i in this.measures) {
         for (var voiceName in this.measures[i].voices) {
             var count = 0, firstX, firstY;
             var notes = this.measures[i].voices[voiceName].getTickables();
@@ -202,15 +206,15 @@ vmRenderer.prototype.findLastNote = function (k, voiceName) {
 }
 
 vmRenderer.prototype.update = function () {
-    this.ctx.clearRect(0, 0, this.vmCanvas.width, this.vmCanvas.height);
+	this.ctx.clearRect(0, 0, this.vmCanvas.width, this.vmCanvas.height);
     this.vmCanvas.width = this.canvas.width;
     this.drawVoiceNames();
     this.drawMeasureLines();
     this.ctx.setLineDash([5, 0]);
-    this.createTrajectories();
-    this.drawTrajectories();
-    this.calcIntersections();
-    this.createEllipses();
+    //this.createTrajectories();
+    //this.drawTrajectories();
+    //this.calcIntersections();
+    //this.createEllipses();
 }
 
 vmRenderer.prototype.drawTrajectories = function () {
@@ -341,8 +345,11 @@ trajectory.prototype.draw = function () {
         case "soprano":
             this.ctx.strokeStyle = "#019117";
             break;
+            default:
+            	this.ctx.strokeStyle = "#019117";
     }
     for (var i in this.segments)
         this.segments[i].draw();
 }
+
 

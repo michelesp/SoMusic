@@ -21,10 +21,10 @@ Renderer.prototype.init = function () {
     r.beatNum = r.timeSign.split("/")[0];
     r.beatValue = r.timeSign.split("/")[1];
     r.keySign = $("#ks :selected").text();
-    r.measures.push(new Measure(0, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign));
-    r.measures.push(new Measure(1, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign));
-    r.measures.push(new Measure(2, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign));
-    r.measures.push(new Measure(3, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign));
+    r.measures.push(new Measure(0, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign, getInstrumentsUsed().instruments));
+    r.measures.push(new Measure(1, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign, getInstrumentsUsed().instruments));
+    r.measures.push(new Measure(2, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign, getInstrumentsUsed().instruments));
+    r.measures.push(new Measure(3, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign, getInstrumentsUsed().instruments));
     r.renderMeasures();
     r.vmRenderer.update(); //notify the observers that the measures array has changed
     r.canvas.addEventListener("click", function (e) {
@@ -44,16 +44,19 @@ Renderer.prototype.init = function () {
 //renders all the measures
 Renderer.prototype.renderMeasures = function () {
     var r = this;
+	var totNScores = getInstrumentsUsed().totNScores;
     r.size = 0;
     for (var i = 0; i < r.measures.length; i++)
         r.size += r.measures[i].width;
-    r.VFRenderer.resize(r.size + 1500, 250);
+    r.VFRenderer.resize(r.size + 1500, (totNScores*80>250?totNScores*83:250));
+    r.VFRenderer.getContext().clear();
     for (var i = 0; i < r.measures.length; i++) {
         if (i == 0)
-            r.measures[i].render(10);
+            r.measures[i].render(100);
         else
             r.measures[i].render(r.measures[i - 1].getEndX());
     }
+    r.measures[r.measures.length-1].renderEndLine();
 }
 
 Renderer.prototype.processClick = function (e, r) {
@@ -133,7 +136,7 @@ Renderer.prototype.isSelected = function isSelected(note, x, y, voiceName) {
 Renderer.prototype.getMeasureIndex = function (x) {
     var r = this;
     for (var i = 0; i < r.measures.length; i++)
-        if (x >= r.measures[i].bassStave.getX() && x <= r.measures[i].bassStave.getNoteEndX())
+        if (x >= r.measures[i].staves[0].getX() && x <= r.measures[i].staves[0].getNoteEndX())
             return i;
 }
 
@@ -287,11 +290,15 @@ Renderer.prototype.areTied = function (firstNote, secondNote, index, sameMeasure
 //add the note to the stave
 Renderer.prototype.addNote = function (e) {
     var r = this;
+    //console.log(e);
     var pitch;
     var duration = getRadioSelected("notes");
     var accidental = getRadioSelected("accidental");
-    var voice = getRadioSelected("voice");
-    if(duration.indexOf('r') != -1) {
+    //var voice = getRadioSelected("voice");
+    console.log(duration);
+    console.log(accidental);
+    //console.log(voice);
+    /*if(duration.indexOf('r') != -1) {
         if(duration == 'wr') {
             if (voice == 'basso' || voice == 'tenore')
                 pitch = 'f/3';
@@ -322,11 +329,19 @@ Renderer.prototype.addNote = function (e) {
         newNote = new Vex.Flow.StaveNote({clef: "bass", keys: [pitch], duration: duration});
     else
         newNote = new Vex.Flow.StaveNote({clef: "treble", keys: [pitch], duration: duration});
+    */
+    pitch = r.calculatePitch(e);
+    var staveIndex = r.measures[0].getStaveIndex(this.getYFromClickEvent(e));
+    var newNote = new Vex.Flow.StaveNote({clef: r.measures[0].staves[staveIndex].clef, keys: [pitch], duration: duration});
     if (accidental != "clear" && !newNote.isRest())
         newNote.addAccidental(0, new Vex.Flow.Accidental(accidental));
     var i = r.getMeasureIndex(e.clientX - r.canvas.getBoundingClientRect().left);
+    console.log(r.measures[i].voicesName);
+    console.log(staveIndex);
+    var voice = r.measures[i].voicesName[staveIndex];
+    console.log(voice);
     if (r.measures[i].isEmpty()) {
-        var message = r.measures[i].addNote(newNote, voice, 0);
+        var message = r.measures[i].addNote(newNote, r.measures[i].getVoiceName(staveIndex), 0);
         if (message == 'err')
             r.shakeScore('Measure duration exceeded!');
     }
@@ -338,12 +353,13 @@ Renderer.prototype.addNote = function (e) {
     }
     //add new measures
     if (i >= r.measures.length - 2)
-        r.measures.push(new Measure(i + 2, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign));
+        r.measures.push(new Measure(i + 2, r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign, getInstrumentsUsed().instruments));
     r.renderAndDraw();
 }
 
 Renderer.prototype.renderAndDraw = function () {
     var r = this;
+    var totNScores = getInstrumentsUsed().totNScores;
     r.ctx.clear();
     r.renderMeasures();
     for (var i = 0; i < r.measures.length; i++) {
@@ -370,10 +386,8 @@ Renderer.prototype.checkTiesBetweenMeasures = function () {
     }
 }
 
-//calculate the pitch based on the mouse y position
-Renderer.prototype.calculatePitch = function (e, tone) {
-    var r = this;
-    var rect = r.canvas.getBoundingClientRect();
+Renderer.prototype.getYFromClickEvent = function (e) {
+	var rect = this.canvas.getBoundingClientRect();
     var y = e.clientY - rect.top;
     y = y.toFixed();
     var diff = y % 5;
@@ -381,7 +395,14 @@ Renderer.prototype.calculatePitch = function (e, tone) {
         y = y - diff;
     else
         y = y * 1 + (5 - diff);
-    var trebleBottom = r.measures[0].getStaveBottom("treble");
+    return y;
+}
+
+//calculate the pitch based on the mouse y position
+Renderer.prototype.calculatePitch = function (e) {
+    var y = this.getYFromClickEvent(e);
+    return this.getNote(y, this.measures[0].staves[this.measures[0].getStaveIndex(y)]);
+    /*var trebleBottom = r.measures[0].getStaveBottom("treble");
     var bassBottom = r.measures[0].getStaveBottom("bass");
     if (tone == "basso") {
         if (y <= bassBottom && y >= bassBottom - 60) {
@@ -410,25 +431,25 @@ Renderer.prototype.calculatePitch = function (e, tone) {
             return r.getNote(y, trebleBottom, "treble");
         }
         return;
-    }
+    }*/
 }
 
-Renderer.prototype.getNote = function (y, staveBottom, stave) {
+Renderer.prototype.getNote = function (y, stave) {
     var octave;
     var note;
     var bottom;
-    var diff = y % 5;
+    /*var diff = y % 5;
     if (diff <= 2)
         y = y - diff;
     else
-        y += Number((5 - diff));
-    if (stave == "treble") {
-        bottom = staveBottom + 15;
+        y += Number((5 - diff));*/
+    if (stave.clef == "treble") {
+        bottom = stave.getBottomLineY() + 15;
         note = 4; //c is 0, b is 6
         octave = 3;
     }
-    else if (stave == "bass") {
-        bottom = staveBottom;
+    else if (stave.clef == "bass") {
+        bottom = stave.getBottomLineY();
         note = 2; //c is 0, b is 6
         octave = 2;
     }
@@ -482,7 +503,7 @@ Renderer.prototype.restoreData = function (data) {
     r.selectedNotes.splice(0, r.selectedNotes.length)
     for (var i in data["measures"]) {
         var measure = data["measures"][i];
-        r.measures.push(new Measure(measure["index"], r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign));
+        r.measures.push(new Measure(measure["index"], r.ctx, r.beatNum, r.beatValue, r.keySign, r.timeSign, getInstrumentsUsed().instruments));
         for (var voiceName in measure["notesArr"]) {
             for (var j in measure["notesArr"][voiceName]) {
                 var note = measure["notesArr"][voiceName][j];
