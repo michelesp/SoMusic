@@ -47,13 +47,14 @@ class SOMUSIC_CMP_UpdateStatus extends NEWSFEED_CMP_UpdateStatus {
 					scoreTitle: document.getElementsByName("scoreTitle")[0].value
 				};
 				console.log(dataToSend);
+				
 				$.ajax({
 					type: \'post\',
 					url: VISUALMELODY.ajax_update_status,
 					data: dataToSend,
 					dataType: \'JSON\',
 					success: function(data){
-						location.reload();
+						setTimeout(function(){ location.reload(); }, 50);
 					},
 					error: function( XMLHttpRequest, textStatus, errorThrown ){
 						console.log(textStatus);

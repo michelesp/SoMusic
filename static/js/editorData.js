@@ -1,8 +1,9 @@
-function EditorData(keySign, timeSign) {
+function EditorData(keySign, timeSign, instrumentsUsed) {
     this.keySign = keySign;
     this.timeSign = timeSign;
     this.measures = [];
-    this.tiesBetweenMeasures = [];
+    this.ties = [];
+    this.instrumentsUsed = instrumentsUsed;
 }
 
 function NoteData(duration, isRest, keys, accidental) {
@@ -12,18 +13,17 @@ function NoteData(duration, isRest, keys, accidental) {
     this.accidental = accidental;
 }
 
-function TieData(firstParam, lastParam) {
-    this.firstParam = firstParam;
-    this.lastParam = lastParam;
+function TieData(voiceName, firstIndex, firstNote, lastIndex, lastNote) {
+    this.voiceName = voiceName;
+	this.firstIndex = firstIndex;
+	this.firstNote = firstNote;
+    this.lastIndex = lastIndex;
+    this.lastNote = lastNote;
 }
 
-function MeasureData(index) {
+function MeasureData(index, voicesName) {
     this.index = index;
-    this.notesArr = {
-        "basso": [],
-        "tenore": [],
-        "alto": [],
-        "soprano": []
-    };
-    this.ties = [];
+    this.notesArr = {};
+    for(var i=0; i<voicesName.length; i++)
+    	this.notesArr[voicesName[i]] = [];
 }

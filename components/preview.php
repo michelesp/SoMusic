@@ -7,8 +7,8 @@ class SOMUSIC_CMP_Preview extends OW_Component {
 		OW::getDocument ()->addScript ( "http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js", 'text/javascript' );
 		OW::getDocument ()->addStyleSheet ( "http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css", 'text/css' );
 		OW::getDocument ()->addStyleSheet ( "http://pingendo.github.io/pingendo-bootstrap/themes/default/bootstrap.css", 'text/css' );
-		OW::getDocument ()->addStyleSheet ( "ow_static/plugins/somusic/css/preview.css", 'text/css' );
-		OW::getDocument ()->addScript("ow_static/plugins/somusic/js/preview.js", "text/javascript");
+		//OW::getDocument ()->addStyleSheet ( "ow_static/plugins/somusic/css/preview.css", 'text/css' );
+		//OW::getDocument ()->addScript("ow_static/plugins/somusic/js/preview.js", "text/javascript");
 		
 		$this->assign ( "instrumentGroups", $this->getInstrumentGroups() );
 		$this->assign ( "instruments", json_encode($this->getInstruments()) );

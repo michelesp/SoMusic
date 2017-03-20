@@ -51,6 +51,19 @@ class SOMUSIC_BOL_Service {
 		$dbo->query ( $query );
 	}
 	
+	public function updateScorePost($idPost, $scores) {
+		$dbo = OW::getDbo ();
+		$query = "SELECT id_melody FROM ow_somusic_post WHERE id_post=".$idPost;
+		$row = $dbo->queryForRow ( $query );
+		if(count($row)==0)
+			return false;
+		$query = "UPDATE ow_somusic
+                  SET data = '".$scores."', timestamp_m = CURRENT_TIMESTAMP
+                  WHERE ow_somusic.id = " . $row["id_melody"] . ';';
+		$dbo->query ( $query );
+		return true;
+	}
+	
 	public function getMusicInstruments() {
 		return SOMUSIC_BOL_MusicInstrumentDao::getInstance()->findAll();
 	}

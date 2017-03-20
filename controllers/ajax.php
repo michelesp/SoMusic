@@ -146,4 +146,34 @@ OW::getUser ()->getId (),
 		) );
 		exit ();
 	}
+	
+	public function updateScore() {
+		$clean = $_REQUEST;
+		
+		$errorMessage = false;
+		/*$isMobile = ! empty ( $clean ['isMobile'] ) && ( bool ) $clean ['isMobile'];
+		$params = $this->getParamsObject ();
+		
+		if (empty ( $clean ['idPost'] ) && empty ( $clean ['scores'] )) {
+			$errorMessage = OW::getLanguage ()->text ( 'base', 'comment_required_validator_message' );
+		}  else if (BOL_UserService::getInstance ()->isBlocked ( OW::getUser ()->getId (), $params->getOwnerId () )) {
+			$errorMessage = OW::getLanguage ()->text ( 'base', 'user_block_message' );
+		}
+		
+		if ($errorMessage) {
+			exit ( json_encode ( array (
+					'error' => $errorMessage
+			) ) );
+		}*/
+		
+		$idPost = $clean ['idPost'];
+		$scores = $clean ['scores'];
+		
+		$res = SOMUSIC_BOL_Service::getInstance ()->updateScorePost($idPost, $scores);
+		echo json_encode ( array (
+				"status" => $res
+		) );
+		exit ();
+	}
+	
 }

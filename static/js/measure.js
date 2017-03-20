@@ -10,24 +10,6 @@ function Measure(index, ctx, beatNum, beatValue, keySign, timeSign, instrumentsU
 	this.instrumentsUsed = instrumentsUsed;
 	/*setMode(3) allows to insert notes inside the measure even if the measure is not complete, but
      throws an exception if the duration of the inserted notes exceeds the time signature*/
-	/*this.voices = {
-        "basso": new Vex.Flow.Voice({
-            num_beats: this.beatNum, beat_value: this.beatValue,
-            resolution: Vex.Flow.RESOLUTION
-        }).setMode(3),
-        "tenore": new Vex.Flow.Voice({
-            num_beats: this.beatNum, beat_value: this.beatValue,
-            resolution: Vex.Flow.RESOLUTION
-        }).setMode(3),
-        "alto": new Vex.Flow.Voice({
-            num_beats: this.beatNum, beat_value: this.beatValue,
-            resolution: Vex.Flow.RESOLUTION
-        }).setMode(3),
-        "soprano": new Vex.Flow.Voice({
-            num_beats: this.beatNum, beat_value: this.beatValue,
-            resolution: Vex.Flow.RESOLUTION
-        }).setMode(3)
-    };*/
 	this.voicesName = this.getVoicesName(this.instrumentsUsed);
 	this.voices = [];
 	for(var i=0; i<this.voicesName.length; i++) {
@@ -38,14 +20,19 @@ function Measure(index, ctx, beatNum, beatValue, keySign, timeSign, instrumentsU
 		});
 		this.voices[this.voicesName[i]].setMode(3);
 	}
-	console.log(this.voices);
 	//array of ties inside the measure
 	this.ctx = ctx;
-	this.ties = [];
 	this.formatter = new Vex.Flow.Formatter();
 	this.minNote = 1; //1 is w, 2 is h, 3 is q, 4 is 8, 5 is 16
 	this.width;
 	this.computeScale();
+}
+
+Measure.prototype.getNoteIndex = function(voice, note) {
+	var notesArr = this.notesArr[voice];
+	for(var i=0; i<notesArr.length; i++)
+		if(notesArr[i]==note)
+			return i;
 }
 
 Measure.prototype.getVoicesName = function(instrumentsUsed) {
@@ -64,9 +51,6 @@ Measure.prototype.getIndex = function () {
 }
 
 Measure.prototype.getVoiceName = function (scoreIndex) {
-	console.log("scoreIndex");
-	console.log(scoreIndex);
-	console.log(this.voicesName);
 	return this.voicesName[scoreIndex];
 }
 
@@ -74,14 +58,11 @@ Measure.prototype.getVoiceName = function (scoreIndex) {
  in case adding the note generates an error (the new inserted note exceeds the time signature),
  the voice is restored to the previous state*/
 Measure.prototype.addNote = function (note, voiceName, index) {
-	console.log(this.notesArr);
-	console.log(voiceName);
-	console.log(this.notesArr[voiceName]);
 	this.notesArr[voiceName].splice(index, 0, note);
 	var toReturn = 'success';
 	try {
-		if (voiceName == "basso" || voiceName == "alto")
-			note.setStemDirection(-1);
+		//if (voiceName == "basso" || voiceName == "alto")
+		//	note.setStemDirection(-1);
 		this.voices[voiceName] = new Vex.Flow.Voice({
 			num_beats: this.beatNum, beat_value: this.beatValue,
 			resolution: Vex.Flow.RESOLUTION
@@ -105,14 +86,12 @@ Measure.prototype.addNote = function (note, voiceName, index) {
 //Renderer the measure. the x param is the start of the previous measure
 Measure.prototype.render = function (x) {
 	this.computeScale();
-	var instrumentsUsed = getInstrumentsUsed();
 	var k=0;
 	this.staves = [];
 	var braces = [];
 	var lines = [];
-	for(var i=0; i<instrumentsUsed.instruments.length; i++){
-		var inst = instrumentsUsed.instruments[i];
-		console.log(inst);
+	for(var i=0; i<this.instrumentsUsed.length; i++){
+		var inst = this.instrumentsUsed[i];
 		var start = k*80+130;
 		var end = start;
 		for(var j=0; j<inst.scoresClef.length; j++, k++) {
@@ -128,27 +107,10 @@ Measure.prototype.render = function (x) {
 				braces.push(new Vex.Flow.StaveConnector(this.staves[k-inst.scoresClef.length+inst.braces[j][0]], this.staves[k-inst.scoresClef.length+inst.braces[j][1]]).setType(3));
 		}
 	}
-	// for(var i=0; i<instrumentsUsed.totNScores; i++)
-	//	this.scores.push(new Vex.Flow.Stave(x, i*70, this.width).addClef(instruments[]).addTimeSignature(this.timeSign).addKeySignature(this.keySign));
-	/*this.trebleStave = new Vex.Flow.Stave(x, 20, this.width);
-    this.bassStave = new Vex.Flow.Stave(x, this.trebleStave.getBottomLineY() + 10, this.width);
-    if (this.index == 0) {
-    	this.trebleStave.addClef("treble").addTimeSignature(this.timeSign);
-        this.bassStave.addClef("bass").addTimeSignature(this.timeSign);
-        this.trebleStave.addKeySignature(this.keySign);
-        this.bassStave.addKeySignature(this.keySign);
-        this.bassStave.setNoteStartX(this.trebleStave.getNoteStartX());
-        this.bassStave.setWidth(this.bassStave.getNoteStartX()
-            - this.bassStave.getX() + this.width);
-        this.trebleStave.setWidth(this.trebleStave.getNoteStartX() - this.trebleStave.getX() + this.width);
-    }
-    this.trebleStave.setContext(this.ctx).draw();
-    this.bassStave.setContext(this.ctx).draw();*/
 	this.staves[0].setContext(this.ctx).draw();
 	for(var i=1; i< this.staves.length; i++) {
 		this.staves[i].setContext(this.ctx).draw();
 		lines.push(new Vex.Flow.StaveConnector(this.staves[i-1], this.staves[i]).setType(1));
-		//lines.push(new Vex.Flow.StaveConnector(this.staves[i-1], this.staves[i]).setType(6));
 	}
 	for(var i=0; i<braces.length; i++)
 		braces[i].setContext(this.ctx).draw();
@@ -177,12 +139,9 @@ Measure.prototype.computeScale = function () {
 
 //check if the given voice is full or not
 Measure.prototype.isComplete = function (voiceName) {
-	/*this.restoreVoices();
-     return this.voices[voiceName].isComplete();*/
 	for (var i in this.voices[voiceName].getTickables())
 		if (this.voices[voiceName].getTickables()[i] instanceof Vex.Flow.GhostNote)
 			return false;
-	return this.voices[voiceName].isComplete();
 }
 
 //check if the note is the first of the stave(used for tiesBetweenMeasures)
@@ -206,7 +165,6 @@ Measure.prototype.isLastNote = function (voiceName, note) {
 }
 
 Measure.prototype.getEndX = function () {
-	//return this.trebleStave.getX() + this.trebleStave.getWidth();
 	return this.staves[0].getX() + this.staves[0].getWidth();
 }
 
@@ -217,56 +175,19 @@ Measure.prototype.drawNotes = function () {
 	for (var voice in this.voices)
 		toFormat.push(this.voices[voice]);
 	this.formatter.format(toFormat, this.width);
-	for (var voice in this.voices) {
-		/*if (voice == "basso" || voice == "tenore")
-            this.voices[voice].draw(this.ctx, this.bassStave);
-        else
-            this.voices[voice].draw(this.ctx, this.trebleStave);*/
+	for (var voice in this.voices) 
 		this.voices[voice].draw(this.ctx, this.getStaveToDraw(voice));
-	}
 }
 
 Measure.prototype.getStaveToDraw = function (voice) {
 	var str = voice.split("#score");
+	var n = 0;
 	for(var i=0; i<this.instrumentsUsed.length; i++) {
 		var instrument = this.instrumentsUsed[i];
 		if(str[0]==instrument.labelName)
-			return this.staves[i+parseInt(str[1])];
+			return this.staves[n+parseInt(str[1])];
+		n += instrument.scoresClef.length;
 	}
-}
-
-//Renderer the ties inside the measure
-Measure.prototype.renderTies = function () {
-	for (var i = 0; i < this.ties.length; i++) {
-		var hasFirst = false;
-		var hasLast = false;
-		var cont = 0;
-		loop:
-			for (var voiceName in this.notesArr) {
-				for (var j in this.notesArr[voiceName]) {
-					if (hasFirst)
-						cont++;
-					if (this.notesArr[voiceName][j] === this.ties[i][0].first_note)
-						hasFirst = true;
-					if (this.notesArr[voiceName][j] === this.ties[i][0].last_note) {
-						hasLast = true;
-						if (!hasFirst || cont > 1) {
-							this.ties.splice(Number(i), 1);
-							i--;
-						}
-						break loop;
-					}
-				}
-			}
-		if (!hasLast || !hasFirst) {
-			this.ties.splice(Number(i), 1);
-			i--;
-		}
-	}
-	var ctx = this.ctx;
-	this.ties.forEach(function (t) {
-		t[0].setContext(ctx).draw()
-	})
 }
 
 Measure.prototype.getStaveIndex = function (height) {		//individuare posizione spartito
@@ -281,19 +202,6 @@ Measure.prototype.getStaveIndex = function (height) {		//individuare posizione s
 		}
 	}
 	return scoreClose;
-}
-
-Measure.prototype.getStaveBottom = function (stave) {
-	switch (stave) {
-	case "bass":
-		return this.bassStave.getBottomLineY();
-	case "treble":
-		return this.trebleStave.getBottomLineY();
-	}
-}
-
-Measure.prototype.getWidth = function () {
-	return this.trebleStave.getWidth();
 }
 
 //add ghostNotes to the voice until it's complete (allows proper formatting)
@@ -322,16 +230,3 @@ Measure.prototype.isEmpty = function () {
 	return true;
 }
 
-Measure.prototype.updateTiesIndex = function () {
-	for (var i in this.ties) {
-		loop:
-			for (var voiceName in this.notesArr) {
-				for (var j in this.notesArr[voiceName]) {
-					if (this.ties[i][0].first_note == this.notesArr[voiceName][j]) {
-						this.ties[i][2] = j;
-						break loop;
-					}
-				}
-			}
-	}
-}

@@ -9,8 +9,6 @@
 }
 
 #scoreDiv {
-	overflow: hidden;
-  	height: 250px;
   	overflow: auto;
   	border: 1px solid #DDDDDD;
 }

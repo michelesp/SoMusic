@@ -9,12 +9,12 @@ background-repeat:repeat; } .noteImg { width: 20px; height: 20px; }
 <script type="text/javascript">
 	var instruments = {$instruments};
 
-	VISUALMELODY.initEditor();
+	VISUALMELODY.init();
 	
-	function addInstrument(){
+	function addInstrument() {
 		$('#tabInstrumentsBody').append("<tr>"
-				+"<td><input type='text' class='form-control' value='Accordion' onkeyup='VISUALMELODY.preview()'/></td>"
-				+"<td><select name='type0' class='form-control selectpicker' onchange='changeType(this.parentNode.parentNode, value)'>"
+				+"<td><input type='text' class='form-control' value='Accordion' onkeyup='VISUALMELODY.preview.update()'/></td>"
+				+"<td><select name='type0' class='form-control selectpicker' onchange='VISUALMELODY.preview.changeType(this.parentNode.parentNode, value)'>"
 				{foreach from=$instrumentGroups item=$group}
 				+"<optgroup label='{$group['name']}'>"
 					{foreach from=$group['instruments'] item=$instrument}
@@ -23,9 +23,9 @@ background-repeat:repeat; } .noteImg { width: 20px; height: 20px; }
 				+"</optgroup>"
 				{/foreach}
 				+"</select></td>"
-				+"<td><a name='remove0' class='form-control btn btn-default pull-left' onclick='deleteInstrument(this.parentNode.parentNode)'>X</a></td></tr>");
-		updateInstrumentsLabel();
-		VISUALMELODY.preview();
+				+"<td><a name='remove0' class='form-control btn btn-default pull-left' onclick='VISUALMELODY.preview.deleteInstrument(this.parentNode.parentNode)'>X</a></td></tr>");
+		VISUALMELODY.preview.updateInstrumentsLabel();
+		VISUALMELODY.preview.update();
 	}
 </script>
  <div class="section fadeIn animated" id="firstDiv">
@@ -73,9 +73,9 @@ background-repeat:repeat; } .noteImg { width: 20px; height: 20px; }
 							<tbody id="tabInstrumentsBody">
 								<tr>
 									<td><input type="text" class="form-control"
-										value="Accordion" onkeyup="VISUALMELODY.preview()" /></td>
+										value="Accordion" onkeyup="VISUALMELODY.preview.update()" /></td>
 									<td><select class="form-control selectpicker"
-										onchange="changeType(this.parentNode.parentNode, value)">
+										onchange="VISUALMELODY.preview.changeType(this.parentNode.parentNode, value)">
 											{foreach from=$instrumentGroups item=$group}
 											<optgroup label="{$group['name']}">
 												{foreach from=$group['instruments'] item=$instrument}
@@ -86,7 +86,7 @@ background-repeat:repeat; } .noteImg { width: 20px; height: 20px; }
 									</select></td>
 									<td><a name='remove0'
 										class="form-control btn btn-default pull-left"
-										onclick="deleteInstrument(this.parentNode.parentNode)">X</a></td>
+										onclick="VISUALMELODY.preview.deleteInstrument(this.parentNode.parentNode)">X</a></td>
 								</tr>
 							</tbody>
 						</table>
