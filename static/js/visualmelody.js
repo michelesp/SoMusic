@@ -13,7 +13,7 @@ VISUALMELODY.init = function () {
 		document.getElementById("firstDiv").style.display = "none";
 		document.getElementById("secondDiv").style.display = "block";
 		var instrumentsUsed = VISUALMELODY.preview.getInstrumentsUsed();
-		VISUALMELODY.editor.init(instrumentsUsed.instruments, instrumentsUsed.totNScores, ks);
+		VISUALMELODY.editor.init(instrumentsUsed.instruments, instrumentsUsed.totNScores, ks, false);
 		VISUALMELODY.idPost = -1;
 	}, false);
 	document.getElementById("add").addEventListener("click", function () {
@@ -79,7 +79,7 @@ VISUALMELODY.commentSendMessage = function(message, context) {
 	self.$textarea.val('').keyup().trigger('input.autosize');
 };
 
-VISUALMELODY.loadScore = function (data, id, title) {
+VISUALMELODY.loadScore = function (data, id, title, instruments) {
 	var scoreDiv = document.getElementById(id);
 	scoreDiv.parentElement.style.display = "none";
 	var titleField = document.createElement("p");
@@ -100,7 +100,7 @@ VISUALMELODY.loadScore = function (data, id, title) {
 	scoreDiv.appendChild(scoreCanvas);
 	scoreDiv.appendChild(vmCanvas);
 	var renderer = new Renderer(scoreCanvas.id, id, vmCanvas.id);
-	renderer.restoreData(data);
+	renderer.restoreData(data, instruments);
 	scoreDiv.parentElement.style.display = "block";
 }
 
@@ -126,13 +126,29 @@ VISUALMELODY.modScore = function (vmData) {
 }
 
 VISUALMELODY.modPostScore = function (idPost, vmData) {
-	var instrumentsUsed = vmData.instrumentsUsed;
+	console.log(vmData);
 	var totNScores = 0;
-	for(var i=0; i<instrumentsUsed.length; i++)
-		totNScores += instrumentsUsed[i].scoresClef.length;
-	VISUALMELODY.editor.init(instrumentsUsed, totNScores, document.getElementById("ks"));
-	VISUALMELODY.editor.restoreData(vmData);
+	var instrumentsUsed = [];
+	instrumentsUsed.push({
+		labelName: vmData.instrumentsScore[0].name.split("#score")[0],
+		name: vmData.instrumentsScore[0].instrument,
+		braces: instruments[vmData.instrumentsScore[0].instrument]["braces"],
+		scoresClef: instruments[vmData.instrumentsScore[0].instrument]["scoresClef"]
+	});
+	for(var i=1; i<vmData.instrumentsScore.length; i++) {
+		var label = vmData.instrumentsScore[i].name.split("#score")[0];
+		if(label != instrumentsUsed[instrumentsUsed.length-1].labelName){
+			instrumentsUsed.push({
+				labelName: label,
+				name: vmData.instrumentsScore[i].instrument,
+				braces: instruments[vmData.instrumentsScore[i].instrument]["braces"],
+				scoresClef: instruments[vmData.instrumentsScore[i].instrument]["scoresClef"]
+			});
+		}
+		totNScores++;
+	}
 	VISUALMELODY.idPost = idPost;
+	VISUALMELODY.editor.init(instrumentsUsed, totNScores, document.getElementById("ks"), idPost);
 }
 
 VISUALMELODY.addListener = function (ren) {
@@ -143,16 +159,12 @@ VISUALMELODY.addListener = function (ren) {
 	});
 	document.getElementById('floatbox_overlay').style.display = 'none';
 	if(VISUALMELODY.idPost!=-1) {
-		var dataToSend = {
-				idPost: VISUALMELODY.idPost,
-				scores: JSON.stringify(VISUALMELODY.editor.saveData())
-		};
 		console.log(dataToSend);
 		console.log(VISUALMELODY.ajax_update_score);
 		$.ajax({
 			type: 'post',
 			url: VISUALMELODY.ajax_update_score,
-			data: dataToSend,
+			data: { idPost: VISUALMELODY.idPost },
 			dataType: 'JSON',
 			success: function(data){
 				if(data.status)
@@ -170,7 +182,11 @@ VISUALMELODY.addListener = function (ren) {
 	$('input[name=vmHidden]').val(JSON.stringify(vmData));
 	var ren2 = new Renderer("feed_score", "feed_scoreDiv", "feed_vmCanvas");
 	document.getElementById("vm_placeholder").style.display = "block";
-	ren2.restoreData(vmData);
+	//ren2.restoreData(vmData);
+	//ren2.reloadData();
+	var ks = document.getElementById("ks");
+	var instrumentsUsed = VISUALMELODY.preview.getInstrumentsUsed();
+	ren2.init(instrumentsUsed.instruments, instrumentsUsed.totNScores, ks, true);
 	document.getElementById('score_title_text').value = "";
 	$('input[name=scoreTitle]').val('');
 	document.getElementsByTagName("BODY")[0].classList.remove("floatbox_nooverflow");

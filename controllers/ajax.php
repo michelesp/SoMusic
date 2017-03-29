@@ -134,10 +134,15 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 		
 		/* SOMUSIC */
 		if (! empty ( $clean ['vmHidden'] )) {
-			SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost ( $clean ['vmHidden'], "", // $clean['description'],
+			$userId = OW::getUser()->getId();
+			$cache = new Memcached();
+			$cache->addServer("localhost", 11211);
+			$composition = $cache->get($userId);
+			SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost ( json_encode($composition), "", // $clean['description'],
 OW::getUser ()->getId (), 
 					// $clean['title'],
 					$clean ['scoreTitle'], $out ['entityId'] );
+			$cache->delete($userId);
 		}
 		/* SOMUSIC */
 		
@@ -166,8 +171,12 @@ OW::getUser ()->getId (),
 			) ) );
 		}*/
 		
+		$userId = OW::getUser()->getId();
+		$cache = new Memcached();
+		$cache->addServer("localhost", 11211);
+		
 		$idPost = $clean ['idPost'];
-		$scores = $clean ['scores'];
+		$scores = json_encode($cache->get($userId));
 		
 		$res = SOMUSIC_BOL_Service::getInstance ()->updateScorePost($idPost, $scores);
 		echo json_encode ( array (

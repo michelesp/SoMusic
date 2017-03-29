@@ -1,33 +1,21 @@
 function Renderer(canvasId, scoreDivId, vmCanvasId) {
 	this.canvas = document.getElementById(canvasId);
-	//this.scoreDiv = document.getElementById(scoreDivId);
-	//this.vmCanvas = document.getElementById(vmCanvasId);
 	this.VFRenderer = new Vex.Flow.Renderer(this.canvas, Vex.Flow.Renderer.Backends.CANVAS);
 	this.ctx = this.VFRenderer.getContext();
 	this.selectedNotes = [];
-	this.measures = []; //save
-	//this.vmRenderer = new vmRenderer(this.measures, this.canvas, document.getElementById(vmCanvasId));
-	//save
-	this.ties = []; //array of ties that connect notes belonging to different staves
-	//save $("#ks :selected").text() too
-	//this.connection = new FireBaseConnection();
-	//this.user;
-	//this.size;
+	this.measures = [];
+	this.ties = [];
 }
 
-Renderer.prototype.init = function (instrumentsUsed, totNScores, keySign) {
-	this.timeSign = getRadioSelected("time"); //save
+Renderer.prototype.init = function (instrumentsUsed, totNScores, keySign, reload) {
+	this.timeSign = getRadioSelected("time");
 	this.beatNum = this.timeSign.split("/")[0];
 	this.beatValue = this.timeSign.split("/")[1];
 	this.keySign = keySign.options[keySign.selectedIndex].text;
 	this.instrumentsUsed = instrumentsUsed;
 	this.totNScores = totNScores;
 	this.measures.push(new Measure(0, this.ctx, this.beatNum, this.beatValue, this.keySign, this.timeSign, instrumentsUsed));
-	this.measures.push(new Measure(1, this.ctx, this.beatNum, this.beatValue, this.keySign, this.timeSign, instrumentsUsed));
-	this.measures.push(new Measure(2, this.ctx, this.beatNum, this.beatValue, this.keySign, this.timeSign, instrumentsUsed));
-	this.measures.push(new Measure(3, this.ctx, this.beatNum, this.beatValue, this.keySign, this.timeSign, instrumentsUsed));
 	this.renderMeasures();
-	//this.vmRenderer.update(); //notify the observers that the measures array has changed
 	var r = this;
 	this.canvas.addEventListener("click", function(e) {r.processClick(e);}, false);
 	document.getElementById("del").addEventListener("click", function (e) {
@@ -36,16 +24,22 @@ Renderer.prototype.init = function (instrumentsUsed, totNScores, keySign) {
 	document.getElementById("tie").addEventListener("click", function (e) {
 		r.tie(e);
 	}, false);
-	/*document.getElementById("visualMelody").addEventListener("click", function(e) {
-        this.vmResize(e);
-    }, false);*/
+	if(typeof reload == "boolean" && !reload)
+		this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/initEditor", {
+			instrumentsUsed: instrumentsUsed,
+			timeSign: r.timeSign,
+			keySign: r.keySign
+		});
+	else this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/getComposition", {id:reload});
 }
 
 //renders all the measures
 Renderer.prototype.renderMeasures = function () {
 	var size = 0;
-	for (var i = 0; i < this.measures.length; i++)
+	for (var i = 0; i < this.measures.length; i++) {
+		this.measures[i].computeScale();
 		size += this.measures[i].width;
+	}
 	this.VFRenderer.resize(size + 1500, (this.totNScores*80>250?this.totNScores*83:250));
 	this.VFRenderer.getContext().clear();
 	this.measures[0].render(100);
@@ -60,69 +54,50 @@ Renderer.prototype.processClick = function (e) {
 	var y = e.clientY - rect.top;
 	var i = this.getMeasureIndex(x);
 	var found = false; //set to true if a note is clicked
-	if (this.measures[i].isEmpty())
-		this.addNote(e);
-	else {
-		loop:
-			for (var voiceName in this.measures[i].voices) {
-				for (var note in this.measures[i].voices[voiceName].getTickables()) {
-					if (this.measures[i].voices[voiceName].getTickables()[note] instanceof Vex.Flow.StaveNote &&
-							this.isSelected(this.measures[i].voices[voiceName].getTickables()[note], x, y, voiceName)) {
-						found = true; //the user clicked on a note
-						var foundNote = this.measures[i].voices[voiceName].getTickables()[note];
-						for (var n in this.selectedNotes) {
-							if (foundNote == this.selectedNotes[n]["note"]) {
-								//if the note was already selected, color it black and
-								//remove from the selected notes array
-								this.colorNote(foundNote, i, voiceName, "black");
-								this.selectedNotes.splice(Number(n), 1);
-								break loop;
-							}
-						}
-						//if the note was not selected color it red and add it to the selected notes array
-						this.selectedNotes.push({"note": foundNote, "voiceName": voiceName, "index": i});
-						this.colorNote(foundNote, i, voiceName, "red");
-						break loop;
+	var staveIndex = this.measures[0].getStaveIndex(y);
+	var measureIndex = this.getMeasureIndex(x);
+	var voice = this.measures[measureIndex].voicesName[staveIndex];
+	var notes = this.measures[measureIndex].notesArr[voice];
+	var noteIndex = this.getNoteIndex(x, notes);
+	var pitch = this.calculatePitch(e);
+	var found = false;
+	var note = notes[noteIndex];
+	if(note.noteType=="n"){
+		for(var j=0; j<note.keys.length; j++) {
+			if(pitch==note.keys[j]) {
+				found = true;
+				var isSelected = false;
+				for(var k=0; k<this.selectedNotes.length && !isSelected; k++) {
+					var sn = this.selectedNotes[k];
+					if(sn.note==note) {
+						this.selectedNotes.splice(k, 1);
+						note.setStyle({fillStyle: "balck"});
+						isSelected = true;
 					}
 				}
+				if(!isSelected) {
+					this.selectedNotes.push({"note": note, "voiceName": voice, "index": staveIndex, "measureIndex": measureIndex, "noteIndex": noteIndex});
+					note.setStyle({fillStyle: "red"});
+				}
 			}
-	//if the user didn't click on a note, add a new one
-	if (!found)
-		this.addNote(e);
-	}
-}
-
-//color the note red
-//index = the measure index
-Renderer.prototype.colorNote = function (note, index, voiceName, color) {
-	for (var n in this.measures[index].notesArr[voiceName]) {
-		if (this.measures[index].notesArr[voiceName][n] == note) {
-			//note.setStyle({strokeStyle: color, stemStyle: color, fillStyle: color});
-			note.setStyle({fillStyle: color});
-			this.measures[index].notesArr[voiceName][n] = note;
-			this.renderAndDraw();
-			break;
 		}
 	}
+	if(!found)
+		this.addNote(e, staveIndex, measureIndex, noteIndex);
+	this.renderAndDraw();
 }
 
-//check if the mouse has clicked the given note
-Renderer.prototype.isSelected = function isSelected(note, x, y, voiceName) {
-	var bb = note.getBoundingBox();
-	var offset = 0;
-	if (this.measures[0].voicesName.indexOf(voiceName)>=0) //if the stem is up the height must be lowered by 30
-		if (note.duration != "w" && !note.isRest())
-			offset = 30;
-		else if (note.isRest() && note.duration == "q")
-			offset = 10;
-		else if (note.isRest() && note.duration == "h")
-			offset = -10;
-		else if (note.isRest() && note.duration == "16")
-			offset = 5;
-	if (x >= bb.getX() && x <= bb.getX() + bb.getW())
-		if (y >= bb.getY() + offset && y <= bb.getY() + 10 + offset)
-			return true;
-	return false;
+Renderer.prototype.getNoteIndex = function (x, notes) {
+	var index = 0;
+	var difIndex = Math.abs(notes[index].getAbsoluteX()-x);
+	for(var i=1; i<notes.length; i++) {
+		var dif = Math.abs(notes[i].getAbsoluteX()-x);
+		if(dif<difIndex) {
+			index = i;
+			difIndex = dif;
+		}
+	}
+	return index;
 }
 
 //return the index of the measure clicked
@@ -132,60 +107,19 @@ Renderer.prototype.getMeasureIndex = function (x) {
 			return i;
 }
 
-//return the index of the new note
-Renderer.prototype.calcNoteIndex = function (index, voiceName, x) {
-	var notes = this.measures[index].voices[voiceName].getTickables();
-	var tmp = [];
-	for (var i in notes)
-		if (notes[i] instanceof Vex.Flow.StaveNote)
-			tmp.push(notes[i]);
-	for (var i = 0; i < tmp.length; i++) {
-		if (x < tmp[i].getBoundingBox().getX())
-			return i;
-	}
-	return i++;
-}
-
 //delete the selected notes
 Renderer.prototype.delNotes = function (e) {
 	if(this.selectedNotes.length == 0)
 		this.shakeScore('No note selected');
-	for (var i in this.selectedNotes) {
-		var notes = this.measures[this.selectedNotes[i]["index"]].notesArr[this.selectedNotes[i]["voiceName"]];
-		for (var j in notes)
-			if (notes[j] == this.selectedNotes[i]["note"]){
-				for(var k in this.ties) {
-					if(this.ties[k].first_note==notes[j]){
-						if(this.ties[k].last_note==notes[j+1])
-							this.ties.splice(k, 1);
-						else this.ties[k].setNotes({
-							first_note: notes[parseInt(j)+1],
-							last_note: this.ties[k].last_note
-						});
-					}
-					if(this.ties[k].last_note==notes[j]){
-						if(this.ties[k].first_note==notes[j-1])
-							this.ties.splice(k, 1);
-						else this.ties[k].setNotes({
-							first_note: this.ties[k].first_note,
-							last_note: notes[j-1]
-						});
-					}
-				}
-				notes.splice(Number(j), 1);
-				j--;
-			}
-		this.measures[this.selectedNotes[i]["index"]].minNote = 1; //reset the min note to resize the measure properly
-	}
-	var toUpdate = [];
-	for (var k in this.selectedNotes)
-		if (!(toUpdate.includes(this.selectedNotes[k]["index"])))
-			toUpdate.push(this.selectedNotes[k]["index"]);
-	for (var i in toUpdate)
-		this.measures[toUpdate[i]].updateTiesIndex();
-//	after deleting empty the selectedNotes array
-	this.selectedNotes.splice(0, this.selectedNotes.length)
-	this.renderAndDraw();
+	var r = this;
+	var toRemove = [];
+	for(var i=0; i<this.selectedNotes.length; i++) 
+		toRemove.push({
+			staveIndex: this.selectedNotes[i].index,
+			measureIndex: this.selectedNotes[i].measureIndex,
+			noteIndex: this.selectedNotes[i].noteIndex
+		});
+	this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/deleteNotes", {"toRemove":toRemove});
 }
 
 Renderer.prototype.tie = function (e) {
@@ -193,90 +127,75 @@ Renderer.prototype.tie = function (e) {
 		this.shakeScore('Tie error');
 		return;
 	}
-	var voice = this.selectedNotes[0]["voiceName"];
-	for(var i=1; i<this.selectedNotes.length; i++){
-		if(this.selectedNotes[i]["voiceName"] != voice) {
-			this.shakeScore('Tie error');
-			return;
-		}
-	}
-	var firstIndex = Number.POSITIVE_INFINITY, lastIndex = Number.NEGATIVE_INFINITY;
-	var firstNote, lastNote, firstNotePos, lastNotePos;
-	for(var i=0; i<this.selectedNotes.length; i++) {
-		if(this.selectedNotes[i]["index"]<firstIndex) {
-			firstIndex = this.selectedNotes[i]["index"];
-			firstNote = this.selectedNotes[i]["note"];
-			firstNotePos = this.measures[firstIndex].getNoteIndex(voice, firstNote);
-		}
-		else if(this.selectedNotes[i]["index"]==firstIndex) {
-			var pos = this.measures[firstIndex].getNoteIndex(voice, this.selectedNotes[i]["note"]);
-			if(pos<firstNotePos) {
-				firstNote = this.selectedNotes[i]["note"];
-				firstNotePos = pos;
-			}
-		}
-		if(this.selectedNotes[i]["index"]>lastIndex) {
-			lastIndex = this.selectedNotes[i]["index"];
-			lastNote = this.selectedNotes[i]["note"];
-			lastNotePos = this.measures[lastIndex].getNoteIndex(voice, lastNote);
-		}
-		else if(this.selectedNotes[i]["index"]==lastIndex) {
-			var pos = this.measures[lastIndex].getNoteIndex(voice, this.selectedNotes[i]["note"]);
-			if(pos>lastNotePos) {
-				lastNote = this.selectedNotes[i]["note"];
-				lastNotePos = pos;
-			}
-		}
-	}
-	if (!(this.areTied(firstNote, lastNote))[0])		//if the notes aren't tied yet
-		this.ties.push([new Vex.Flow.StaveTie({
-			first_note: firstNote,
-			last_note: lastNote
-		}), this.selectedNotes[0]["voiceName"], firstIndex, firstNotePos, lastIndex, lastNotePos]);
-	else { //otherwise remove the tie
-		var index = this.areTied(firstNote, lastNote)[1];
-		this.ties.splice(index, 1);
-	}
-	for(var i=0; i<this.selectedNotes.length; i++)
-		this.colorNote(this.selectedNotes[i]["note"], this.selectedNotes[i]["index"], voice, "black");
-	this.selectedNotes = [];
-	this.renderAndDraw();
-}
-
-//the sameMeasure variable is set to true when firstNote and secondNote belong to the same measure
-//return an array containing a boolean value and the index of the tie inside the ties array, if the tie exists.
-Renderer.prototype.areTied = function (firstNote, lastNote) {
-	for (var i in this.ties)
-		if (this.ties[i][0].first_note == firstNote && this.ties[i][0].last_note == lastNote)
-			return [true, i];
-	return [false, null];
+	var r = this;
+	var toTie = [];
+	for(var i=0; i<this.selectedNotes.length; i++) 
+		toTie.push({
+			voiceName: this.selectedNotes[i].voiceName,
+			staveIndex: this.selectedNotes[i].index,
+			measureIndex: this.selectedNotes[i].measureIndex,
+			noteIndex: this.selectedNotes[i].noteIndex
+		});
+	console.log(this.selectedNotes);
+	this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/addTie", {"toTie":toTie});
 }
 
 //TODO pass x and y from processClick
 //add the note to the stave
-Renderer.prototype.addNote = function (e) {
+Renderer.prototype.addNote = function (e, staveIndex, measureIndex, noteIndex) {
 	var duration = getRadioSelected("notes");
 	var accidental = getRadioSelected("accidental");
 	var pitch = this.calculatePitch(e);
-	var staveIndex = this.measures[0].getStaveIndex(this.getYFromClickEvent(e));
-	var newNote = new Vex.Flow.StaveNote({clef: this.measures[0].staves[staveIndex].clef, keys: [pitch], duration: duration});
-	if (accidental != "clear" && !newNote.isRest())
-		newNote.addAccidental(0, new Vex.Flow.Accidental(accidental));
-	var i = this.getMeasureIndex(e.clientX - this.canvas.getBoundingClientRect().left);
-	var voice = this.measures[i].voicesName[staveIndex];
-	if (this.measures[i].isEmpty()) {
-		var message = this.measures[i].addNote(newNote, this.measures[i].getVoiceName(staveIndex), 0);
-		if (message == 'err')
-			this.shakeScore('Measure duration exceeded!');
+	var noteLength = {"w":1, "h":2, "q":4, "8":8, "16":16, "32":32, "64":64, "wr":1, "hr":2, "qr":4, "8r":8, "16r":16, "32r":32, "64r":64};
+	this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/addNote", {
+		staveIndex: staveIndex,
+		measureIndex: measureIndex,
+		noteIndex: noteIndex,
+		newNote: pitch,
+		duration: noteLength[duration],
+		isPause: duration.indexOf("r")>=0
+	});
+}
+
+Renderer.prototype.updateComposition = function(data) {
+	console.log(data);
+	var instrumentsScore = data.instrumentsScore;
+	this.measures = [];
+	this.ties = [];
+	this.selectedNotes = [];
+	for(var i=0; i<instrumentsScore[0].measures.length; i++) {
+		var m = new Measure(i, this.ctx, this.beatNum, this.beatValue, this.keySign, this.timeSign, this.instrumentsUsed);
+		for(var j=0; j<instrumentsScore.length; j++) {
+			var m1 = instrumentsScore[j].measures[i];
+			var voice = m1.voices[0];
+			for(var k=0; k<voice.length; k++) {
+				var note = voice[k];
+				var keys = [];
+				for(var l=0; l<note.step.length; l++)
+					keys[l] = note.step[l]+"/"+note.octave[l];
+				if(note.step.length==0) {
+					if(m1.clef=="treble")
+						keys[0]= "b/4";
+					else if(m1.clef=="bass")
+						keys[0] = "d/3";
+					else if(m1.clef=="alto")
+						keys[0] = "c/4";
+				}
+				m.addNote(new Vex.Flow.StaveNote({clef: m1.clef, keys: keys, duration: (64/note.duration)+(note.isRest?"r":"") }), instrumentsScore[j].name, k);
+			}
+		}
+		this.measures.push(m);
 	}
-	else {
-		var pos = this.calcNoteIndex(i, voice, e.clientX - this.canvas.getBoundingClientRect().left);
-		if(this.measures[i].addNote(newNote, voice, pos) == 'err')
-			this.shakeScore('Measure duration exceeded!');
+	for(var i=0; i<instrumentsScore.length; i++) {
+		var instrumentScore = instrumentsScore[i];
+		for(var j=0; j<instrumentScore.ties.length; j++) {
+			var tie = instrumentScore.ties[j];
+			this.ties.push([new Vex.Flow.StaveTie({
+				first_note: this.measures[tie.firstMeasure].notesArr[instrumentScore.name][tie.firstNote],
+				last_note: this.measures[tie.lastMeasure].notesArr[instrumentScore.name][tie.lastNote]
+			}), instrumentScore.name, tie.firstMeasure, tie.firstNote, tie.lastMeasure, tie.lastNote]);
+		}
 	}
-	//add new measures
-	if (i >= this.measures.length - 2)
-		this.measures.push(new Measure(i + 2, this.ctx, this.beatNum, this.beatValue, this.keySign, this.timeSign, this.instrumentsUsed));
 	this.renderAndDraw();
 }
 
@@ -289,7 +208,6 @@ Renderer.prototype.renderAndDraw = function () {
 	this.ties.forEach(function (t) {
 		t[0].setContext(r.ctx).draw()
 	});
-	//this.vmRenderer.update(); //notify the observers that the measures array has changed
 }
 
 Renderer.prototype.getYFromClickEvent = function (e) {
@@ -376,48 +294,32 @@ Renderer.prototype.saveData = function () {
 	return data;
 }
 
-Renderer.prototype.restoreData = function (data) {
-	this.timeSign = data["timeSign"];
+Renderer.prototype.restoreData = function (data, instruments, isUsed) {
+	this.instrumentsUsed = [];
+	if(!isUsed) {
+		this.instrumentsUsed.push({
+			labelName: data.instrumentsScore[0].name.split("#score")[0],
+			name: data.instrumentsScore[0].instrument,
+			braces: instruments[data.instrumentsScore[0].instrument]["braces"],
+			scoresClef: instruments[data.instrumentsScore[0].instrument]["scoresClef"]
+		});
+		for(var i=1; i<data.instrumentsScore.length; i++) {
+			var label = data.instrumentsScore[i].name.split("#score")[0];
+			if(label != this.instrumentsUsed[this.instrumentsUsed.length-1].labelName)
+				this.instrumentsUsed.push({
+					labelName: label,
+					name: data.instrumentsScore[i].instrument,
+					braces: instruments[data.instrumentsScore[i].instrument]["braces"],
+					scoresClef: instruments[data.instrumentsScore[i].instrument]["scoresClef"]
+				});
+		}
+	}
+	else this.instrumentsUsed = instruments;
+	this.keySign = data.instrumentsScore[0].measures[0].keySignature;
+	this.timeSign = data.instrumentsScore[0].measures[0].timeSignature;
 	this.beatNum = this.timeSign.split("/")[0];
 	this.beatValue = this.timeSign.split("/")[1];
-	this.keySign = data["keySign"];
-	this.measures.splice(0, this.measures.length);
-	this.ties.splice(0, this.ties.length);
-	this.selectedNotes.splice(0, this.selectedNotes.length);
-	this.instrumentsUsed = data.instrumentsUsed;
-	this.totNScores = 0;
-	for(var i=0; i<this.instrumentsUsed.length; i++)
-		this.totNScores += this.instrumentsUsed[i].scoresClef.length;
-	for (var i in data["measures"]) {
-		var measure = data["measures"][i];
-		this.measures.push(new Measure(measure["index"], this.ctx, this.beatNum, this.beatValue, this.keySign, this.timeSign, data["instrumentsUsed"]));
-		for(var j=0; j<data["instrumentsUsed"].length; j++) {
-			var inst = data["instrumentsUsed"][j];
-			for(var k=0; k<inst.scoresClef.length; k++) {
-				var voiceName = inst.labelName+"#score"+k;
-				for (var l in measure["notesArr"][voiceName]) {
-					var note = measure["notesArr"][voiceName][l];
-					var vexNote, duration = note["duration"];
-					vexNote = new Vex.Flow.StaveNote({clef: inst.scoresClef[k], keys: [note["keys"][0]], duration: duration});
-					if (note["accidental"] != undefined)
-						vexNote.addAccidental(0, new Vex.Flow.Accidental(note["accidental"]));
-					this.measures[i].addNote(vexNote, voiceName, l);
-					this.measures[i].computeScale();
-				}
-			}
-		}
-	}
-	if (data["ties"] != undefined) {
-		for (var i in data["ties"]) {
-			var tie = data["ties"][i];
-			this.ties.push([new Vex.Flow.StaveTie({
-				first_note: this.measures[tie["firstIndex"]].notesArr[tie["voiceName"]][tie["firstNote"]],
-				last_note: this.measures[tie["lastIndex"]].notesArr[tie["voiceName"]][tie["lastNote"]]
-			}), tie["voiceName"], tie["firstIndex"], tie["firstNote"], tie["lastIndex"], tie["lastNote"]
-			]);
-		}
-	}
-	this.renderAndDraw();
+	this.updateComposition(data);
 }
 
 Renderer.prototype.shakeScore = function(err){
@@ -430,6 +332,22 @@ Renderer.prototype.shakeScore = function(err){
 	sweetAlert('Oops...', err, 'error');
 }
 
+Renderer.prototype.ajaxRequest = function(url, data) {
+	var r = this;
+	$.ajax({
+		type: 'post',
+		url: url,
+		data: data,
+		dataType: 'JSON',
+		success: function(data) { r.updateComposition(data); },
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		},
+		complete: function(){
+		}
+	});
+}
+
 //return the radio element selected with the given name
 function getRadioSelected(name) {
 	var elements = document.getElementsByName(name);
@@ -438,3 +356,4 @@ function getRadioSelected(name) {
 			return elements[i].id;
 	}
 }
+

@@ -20,7 +20,7 @@ Preview.prototype.update = function(e) {
 	var staves = [];
 	var braces = [];
 	var lines = [];
-	if(typeof e != "undefined")
+	if(typeof e != "undefined" && typeof e.target.children[0]!="undefined")
 		this.timeSign = e.target.children[0].id;
 	this.renderer.resize(400, (totNScores*70>400?totNScores*75:400));
 	ctx.clear();

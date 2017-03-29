@@ -126,15 +126,18 @@ Measure.prototype.renderEndLine = function () {
 //calculate the width of the stave based on the note with the minimum duration
 Measure.prototype.computeScale = function () {
 	this.restoreVoices();
-	var notes = {"w": 1, "h": 2, "q": 4, "8": 8, "16": 16, "wr": 1, "hr": 2, "qr": 4, "8r": 8, "16r": 16};
+	//var notes = {"w": 1, "h": 2, "q": 4, "8": 8, "16": 16, "wr": 1, "hr": 2, "qr": 4, "8r": 8, "16r": 16};
 	for (var voiceName in this.notesArr) {
 		for (var i = 0; i < this.notesArr[voiceName].length; i++) {
 			var noteDuration = this.notesArr[voiceName][i].duration;
-			if (notes[noteDuration] > this.minNote)
-				this.minNote = notes[noteDuration];
+			if(isNaN(noteDuration.charAt(noteDuration.length-1)))
+				noteDuration = parseInt(noteDuration.substring(0, noteDuration.length-1));
+			else noteDuration = parseInt(noteDuration);
+			if (noteDuration > this.minNote)
+				this.minNote = noteDuration;
 		}
 	}
-	this.width = 85 * this.minNote;
+	this.width = 90 * this.minNote+((this.index==0)?20:0);
 }
 
 //check if the given voice is full or not

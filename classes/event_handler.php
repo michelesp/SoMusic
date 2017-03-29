@@ -90,7 +90,7 @@ class SOMUSIC_CLASS_EventHandler {
 		if (! empty ( $scoreData )) {
 			$data ['content'] ['vars'] ['status'] .= '<span class = "zoomIn animated"><div class="score_placeholder" id="score_placeholder_' . $scoreData ['id_post'] . '" style = "overflow-x: auto; overflow-y: auto;' . '"></div></span>';
 			//eliminare tranne primo rigo
-			OW::getDocument ()->addOnloadScript ( 'VISUALMELODY.loadScore(' . $scoreData ['data'] . ',"score_placeholder_' . $scoreData ['id_post'] . '","' . $scoreData ['title'] . '");
+			OW::getDocument ()->addOnloadScript ( 'VISUALMELODY.loadScore(' . $scoreData ['data'] . ',"score_placeholder_' . $scoreData ['id_post'] . '","' . $scoreData ['title'] . '", '.json_encode($this->getInstruments()).');
 				document.getElementById("score_placeholder_' . $scoreData ['id_post'] . '").addEventListener("click", function(e) {
 					if(typeof previewFloatBox != "undefined" || document.getElementsByName("floatbox_canvas").length > 0) {
 	                    $(".floatbox_canvas").each(function(i, obj) {
@@ -119,5 +119,31 @@ class SOMUSIC_CLASS_EventHandler {
 		var_dump ( $event );
 		$params = $event->getParams ();
 		SOMUSIC_BOL_Service::getInstance ()->deleteScoreById ( $params ['entityId'] );
+	}
+	
+	private function getInstruments() {
+		$instruments = array();
+		$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstruments();
+		foreach ($musicIntruments as $mi) {
+			$instrumentScores = SOMUSIC_BOL_Service::getInstance()->getInstrumentScores($mi->id);
+			$scoresChelf = array();
+			$scoresChelfIndex = array();
+			$braces = array();
+			foreach ($instrumentScores as $i=>$is){
+				array_push($scoresChelf, $is["clef"]);
+				array_push($scoresChelfIndex, $is["id"]);
+			}
+			foreach ($scoresChelfIndex as $i) {
+				foreach ($scoresChelfIndex as $j) {
+					if($i!=$j) {
+						$instrumentScoreInBraces = SOMUSIC_BOL_Service::getInstance()->getInstrumentScoreInBraces($mi->id, $i, $j);
+						foreach ($instrumentScoreInBraces as $isib)
+							array_push($braces, array($isib["id_score_1"]-1, $isib["id_score_2"]-1));
+					}
+				}
+			}
+			$instruments[strtolower(str_replace(" ", "_", $mi->name))] = array("scoresClef"=>$scoresChelf, "braces"=>$braces);
+		}
+		return $instruments;
 	}
 }

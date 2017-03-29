@@ -44,7 +44,68 @@ CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'instrument_score_in_braces` (
 	`id_score_2` INT NOT NULL,
 	`id` INT NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY (`id_instrument`, `id_score_1`, `id_score_2`, `id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;';
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+	
+		
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'composition` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(64) NOT NULL,
+	`user_c` INT NOT NULL,
+	`timestamp_c` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`user_m` INT NOT NULL,
+	`timestamp_m` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`)) ENGINE = MyISAM;
+		
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'composition_instrument_score` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`composition_id` INT NOT NULL,
+	`instrument_id` INT NOT NULL,
+	`instrument_score_id` INT NOT NULL,
+	PRIMARY KEY (`id`, `composition_id`, `instrument_id`, `instrument_score_id`)) ENGINE = MyISAM;
+		
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'score_permits_modification` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`user_id` INT NOT NULL,
+	`composition_id` INT NOT NULL,
+	`instrument_id` INT NOT NULL,
+	`instrument_score_id` INT NOT NULL,
+	`composition_instrument_score_id` INT NOT NULL,
+	PRIMARY KEY (`id`)) ENGINE = MyISAM;
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'measure` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`composition_id` INT NOT NULL,
+	`instrument_id` INT NOT NULL,
+	`instrument_score_id` INT NOT NULL,
+	`composition_instrument_score_id` INT NOT NULL,
+	`clef` ENUM("treble","bass","tenor","alto","soprano","mezzo-soprano","baritone-c") NOT NULL,
+	`key_signature` VARCHAR(8) NOT NULL,
+	`time_signature` VARCHAR(8) NOT NULL,
+	PRIMARY KEY (`id`, `composition_id`, `instrument_id`, `instrument_score_id`, `composition_instrument_score_id`)) ENGINE = MyISAM;
+		
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'note` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`composition_id` INT NOT NULL,
+	`instrument_id` INT NOT NULL,
+	`instrument_score_id` INT NOT NULL,
+	`composition_instrument_score_id` INT NOT NULL,
+	`measure_id` INT NOT NULL,
+	`step` VARCHAR(8) NOT NULL,
+	`octave` INT NOT NULL,
+	`duration` INT NOT NULL,
+	`accidental` ENUM("sharp","natural","flat","double-sharp","flat-flat") NOT NULL,
+	PRIMARY KEY (`id`, `composition_id`, `instrument_id`, `instrument_score_id`, `composition_instrument_score_id`, `measure_id`)) ENGINE = MyISAM;
+	
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'tie` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`composition_id` INT NOT NULL,
+	`instrument_id` INT NOT NULL,
+	`instrument_score_id` INT NOT NULL,
+	`composition_instrument_score_id` INT NOT NULL,
+	`measure_start_id` INT NOT NULL,
+	`note_start_id` INT NOT NULL,
+	`measure_end_id` INT NOT NULL,
+	`note_end_id` INT NOT NULL,
+	PRIMARY KEY (`id`, `composition_id`, `instrument_id`, `instrument_score_id`, `composition_instrument_score_id`)) ENGINE = MyISAM;';
 
 OW::getDbo ()->query ( $sql );
 
