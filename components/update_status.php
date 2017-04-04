@@ -15,19 +15,18 @@ class SOMUSIC_CMP_UpdateStatus extends NEWSFEED_CMP_UpdateStatus {
 		$form->addElement ( $scoreTitle );
 		$script = "            
             $('#{$vmButton->getId()}').click(function(e){
-                if(typeof previewFloatBox != 'undefined' || document.getElementsByName('floatbox_canvas').length > 0) {
+                if(typeof  SoMusic.floatBox != 'undefined' || document.getElementsByName('floatbox_canvas').length > 0) {
                     $('.floatbox_canvas').each(function(i, obj) {
                         obj.style.display = 'block';
                     });
                     if(document.getElementById('floatbox_overlay') != null)
                         document.getElementById('floatbox_overlay').style.display = 'block';
-                    previewFloatBox.close();
-                    //delete previewFloatBox;
+                     SoMusic.floatBox.close();
                 }
-                previewFloatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {component:'map-controllet'} , {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
+                SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
+                SoMusic.idPost = -1;
                 document.getElementById('vm_placeholder').style.display = 'none';
-            });
-        ";
+            });";
 		OW::getDocument ()->addOnloadScript ( $script );
 		
 		// $form->setAction ( OW::getRequest ()->buildUrlQueryString ( OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_Ajax', 'statusUpdate' ) ) );
@@ -50,7 +49,7 @@ class SOMUSIC_CMP_UpdateStatus extends NEWSFEED_CMP_UpdateStatus {
 				
 				$.ajax({
 					type: \'post\',
-					url: VISUALMELODY.ajax_update_status,
+					url: SoMusic.ajax_update_status,
 					data: dataToSend,
 					dataType: \'JSON\',
 					success: function(data){

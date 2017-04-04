@@ -44,23 +44,27 @@ class SOMUSIC_CLASS_EventHandler {
 		return $ret;
 	}
 	public function onApplicationInit(OW_Event $event) {
+		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'somusic.js', 'text/javascript' );
+		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'renderer.js', 'text/javascript' );
 		OW::getDocument ()->addStyleSheet ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticCssUrl () . 'animate.css' );
 		OW::getDocument ()->addStyleSheet ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticCssUrl () . 'sweetalert.css' );
-		OW::getDocument ()->addStyleSheet ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticCssUrl () . "preview.css" );
+		//OW::getDocument ()->addStyleSheet ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticCssUrl () . "preview.css" );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'sweetalert.min.js', 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'vexflow-debug.js', 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'editorData.js', 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'visual-melody.js', 'text/javascript' );
+		//OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'preview.js', 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'preview.js', 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'measure.js', 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'editor.js', 'text/javascript' );
+		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'instruments_table.js', 'text/javascript' );
 		// if request is Ajax, we don't need to re-execute the same code again!
-		if (! OW::getRequest ()->isAjax ()) {
+		/*if (! OW::getRequest ()->isAjax ()) {
 			// Add ODE.JS script to all the Oxwall pages and set THEME_IMAGES_URL variable with theme image url
-			OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'visualmelody.js', 'text/javascript' );
-		}
+			OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'SoMusic.js', 'text/javascript' );
+		}*/
 		$js = UTIL_JsGenerator::composeJsString ( '
-                VISUALMELODY.ajax_add_comment = {$ajax_add_comment}
+                SoMusic.ajax_add_comment = {$ajax_add_comment}
             ', array (
 				'ajax_add_comment' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_Ajax', 'addComment' ) 
 		) );
@@ -68,7 +72,7 @@ class SOMUSIC_CLASS_EventHandler {
 		OW::getDocument ()->addOnloadScript ( $js );
 		
 		$js1 = UTIL_JsGenerator::composeJsString ( '
-                VISUALMELODY.ajax_update_status = {$ajax_update_status}
+                SoMusic.ajax_update_status = {$ajax_update_status}
             ', array (
 				'ajax_update_status' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_Ajax', 'statusUpdate' ) 
 		) );
@@ -76,7 +80,7 @@ class SOMUSIC_CLASS_EventHandler {
 		OW::getDocument ()->addOnloadScript ( $js1 );
 		
 		$js2 = UTIL_JsGenerator::composeJsString ( '
-                VISUALMELODY.ajax_update_score = {$ajax_update_score}
+                SoMusic.ajax_update_score = {$ajax_update_score}
             ', array (
 		            		'ajax_update_score' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_Ajax', 'updateScore' )
 		            ) );
@@ -90,7 +94,7 @@ class SOMUSIC_CLASS_EventHandler {
 		if (! empty ( $scoreData )) {
 			$data ['content'] ['vars'] ['status'] .= '<span class = "zoomIn animated"><div class="score_placeholder" id="score_placeholder_' . $scoreData ['id_post'] . '" style = "overflow-x: auto; overflow-y: auto;' . '"></div></span>';
 			//eliminare tranne primo rigo
-			OW::getDocument ()->addOnloadScript ( 'VISUALMELODY.loadScore(' . $scoreData ['data'] . ',"score_placeholder_' . $scoreData ['id_post'] . '","' . $scoreData ['title'] . '", '.json_encode($this->getInstruments()).');
+			OW::getDocument ()->addOnloadScript ( 'SoMusic.loadScore(' . $scoreData ['data'] . ',"score_placeholder_' . $scoreData ['id_post'] . '","' . $scoreData ['title'] . '");
 				document.getElementById("score_placeholder_' . $scoreData ['id_post'] . '").addEventListener("click", function(e) {
 					if(typeof previewFloatBox != "undefined" || document.getElementsByName("floatbox_canvas").length > 0) {
 	                    $(".floatbox_canvas").each(function(i, obj) {
@@ -98,19 +102,18 @@ class SOMUSIC_CLASS_EventHandler {
 	                    });
 	                    if(document.getElementById("floatbox_overlay") != null)
 	                        document.getElementById("floatbox_overlay").style.display = "block";
-	                    previewFloatBox.close();
+	                    SoMusic.floatBox.close();
 	                    //delete previewFloatBox;
 	                }
-	                previewFloatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Preview", {component:"map-controllet"}, {modPost:true}, {top:"calc(5vh)", width:"calc(80vw)", height:"calc(85vh)", iconClass: "ow_ic_add", title: ""});
-	                document.getElementById("vm_placeholder").style.display = "none";
-					var t=setInterval(function() {
-						if(document.getElementById("firstDiv")!=null && document.getElementById("secondDiv")!=null) {
-							document.getElementById("firstDiv").style.display = "none";
-							document.getElementById("secondDiv").style.display = "block";
-							VISUALMELODY.modPostScore('.$scoreData ['id_post'].', '.$scoreData ['data'].');
-							clearInterval(t);
-						}
-					},50);
+					var composition = '.$scoreData ['data'].';
+					var timeSignature = composition.instrumentsScore[0].measures[0].timeSignature;
+					var keySignature = composition.instrumentsScore[0].measures[0].keySignature;
+					var instrumentsUsed = composition.instrumentsUsed;
+					SoMusic.idPost = '.$scoreData ['id_post'].';
+					SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor",
+						{"timeSignature": timeSignature, "keySignature": keySignature, "instrumentsUsed": instrumentsUsed, "composition": composition},
+						{top:"calc(5vh)", width:"calc(80vw)", height:"calc(85vh)", iconClass: "ow_ic_add", title: ""});
+					document.getElementById("vm_placeholder").style.display = "none";
 				});' );
 		}
 		$event->setData ( $data );
@@ -121,29 +124,4 @@ class SOMUSIC_CLASS_EventHandler {
 		SOMUSIC_BOL_Service::getInstance ()->deleteScoreById ( $params ['entityId'] );
 	}
 	
-	private function getInstruments() {
-		$instruments = array();
-		$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstruments();
-		foreach ($musicIntruments as $mi) {
-			$instrumentScores = SOMUSIC_BOL_Service::getInstance()->getInstrumentScores($mi->id);
-			$scoresChelf = array();
-			$scoresChelfIndex = array();
-			$braces = array();
-			foreach ($instrumentScores as $i=>$is){
-				array_push($scoresChelf, $is["clef"]);
-				array_push($scoresChelfIndex, $is["id"]);
-			}
-			foreach ($scoresChelfIndex as $i) {
-				foreach ($scoresChelfIndex as $j) {
-					if($i!=$j) {
-						$instrumentScoreInBraces = SOMUSIC_BOL_Service::getInstance()->getInstrumentScoreInBraces($mi->id, $i, $j);
-						foreach ($instrumentScoreInBraces as $isib)
-							array_push($braces, array($isib["id_score_1"]-1, $isib["id_score_2"]-1));
-					}
-				}
-			}
-			$instruments[strtolower(str_replace(" ", "_", $mi->name))] = array("scoresClef"=>$scoresChelf, "braces"=>$braces);
-		}
-		return $instruments;
-	}
 }

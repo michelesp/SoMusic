@@ -1,73 +1,53 @@
 <?php
 
 class SOMUSIC_CMP_Preview extends OW_Component {
-	public function __construct($component = "data-sevc-controllet") {
-		$this->assign ( "component", $component );
-		//OW::getDocument ()->addScript ( "https://code.jquery.com/jquery-3.1.1.min.js", 'text/javascript' );
+	
+	public function __construct($multiUserMod = false, $groupId = -1) {
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'jquery-3.1.1.min.js', 'text/javascript' );
-		//OW::getDocument ()->addScript ( "http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js", 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'bootstrap.min.js', 'text/javascript' );
-		//OW::getDocument ()->addStyleSheet ( "http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css", 'text/css' );
 		OW::getDocument ()->addStyleSheet ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticCssUrl () . 'font-awesome.min.css' );
-		//OW::getDocument ()->addStyleSheet ( "http://pingendo.github.io/pingendo-bootstrap/themes/default/bootstrap.css", 'text/css' );
 		OW::getDocument ()->addStyleSheet ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticCssUrl () . 'bootstrap.css' );
+		OW::getDocument ()->addStyleSheet ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticCssUrl () . 'preview.css' );
 		
-		$instruments = $this->getInstruments();
-		$this->assign ( "instrumentGroups", $this->getInstrumentGroups() );
-		$this->assign ( "instruments", json_encode($instruments) );
+		$timeSignatures = array("2/2", "2/4", "3/4", "4/4", "3/8", "6/8");
+		$keysignatures = array("C", "Am", "F", "Dm", "Bb", "Gm", "Eb", "Cm", "Ab", "Fm",
+				"Db", "Bbm", "Gb", "Ebm", "Cb", "Abm", "G", "Em", "D", "Bm",
+				"A", "F#m", "E", "C#m", "B", "G#m", "F#", "D#m", "C#", "A#m");
 		
-		/*$cache = new Memcached();
-		$cache->addServer("localhost", 11211);
+		$form = new Form('preview_form');
+		$tsField = new Selectbox('timeSignature');
+		foreach($timeSignatures as $ts)
+			$tsField->addOption($ts, $ts);
+		$tsField->setLabel("Time signature:");
+		$tsField->setHasInvitation(false);
+		$form->addElement($tsField);
+		$ksField = new Selectbox('keySignature');
+		foreach($keysignatures as $ks)
+			$ksField->addOption($ks, $ks);
+		$ksField->setLabel("Key signature:");
+		$ksField->setHasInvitation(false);
+		$form->addElement($ksField);
+		$this->addForm($form);
+		$this->assign("form", $form);
+		
 		$userId = OW::getUser()->getId();
-		$composition = new SOMUSIC_CLASS_Composition(-1, "", $userId, -1, $userId, -1, array());
-		if(count($instruments)>0) {
-			$elm = reset($instruments);
-			$name = key($instruments);
-			for($i=0; $i<count($elm["scoresClef"]); $i++) {
-				$instrumentScore = new SOMUSIC_CLASS_InstrumentScore(-1, $elm["scoresClef"][$i], ucwords($name)." ".($i+1), array(), array());
-				array_push($composition->instrumentsScore, $instrumentScore);
-			}
+		$username = OW::getUser()->getUserObject()->username;
+		$users = array($userId=>$username);
+		if($multiUserMod && $groupId>=0) {
+			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($groupId);
+			foreach ($userIdList as $uid)
+				$users[$uid] = BOL_UserService::getInstance()->findByIdWithoutCache($uid)->username;			
 		}
-		$cache->set($userId, $composition);*/
-	}
-	
-	private function getInstrumentGroups() {
-		$instruments = array();
-		$groups = SOMUSIC_BOL_Service::getInstance()->getInstrumentGroups();
-		foreach ($groups as $group){
-			$groupOfInstruments = array("name"=>$group->name, "instruments"=>array());
-			$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstrumentsByGroup($group->id);
-			foreach ($musicIntruments as $mi) 
-				array_push($groupOfInstruments["instruments"], array("name"=>$mi["name"], "optionValue"=>strtolower(str_replace(" ", "_", $mi["name"]))));
-			array_push($instruments, $groupOfInstruments);
-		}
-		return $instruments;
-	}
-	
-	private function getInstruments() {
-		$instruments = array();
-		$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstruments();
-		foreach ($musicIntruments as $mi) {
-			$instrumentScores = SOMUSIC_BOL_Service::getInstance()->getInstrumentScores($mi->id);
-			$scoresChelf = array();
-			$scoresChelfIndex = array();
-			$braces = array();
-			foreach ($instrumentScores as $i=>$is){
-				array_push($scoresChelf, $is["clef"]);
-				array_push($scoresChelfIndex, $is["id"]);
-			}
-			foreach ($scoresChelfIndex as $i) {
-				foreach ($scoresChelfIndex as $j) {
-					if($i!=$j) {
-						$instrumentScoreInBraces = SOMUSIC_BOL_Service::getInstance()->getInstrumentScoreInBraces($mi->id, $i, $j);
-						foreach ($instrumentScoreInBraces as $isib)
-							array_push($braces, array($isib["id_score_1"]-1, $isib["id_score_2"]-1));
-					}
-				}
-			}
-			$instruments[strtolower(str_replace(" ", "_", $mi->name))] = array("scoresClef"=>$scoresChelf, "braces"=>$braces);
-		}
-		return $instruments;
+		
+		$instGroups = SOMUSIC_BOL_Service::getInstance()->getInstrumentGroups();
+		$firstInstrument = $instGroups[0]["instruments"][0];
+		$instTable = array(array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"]));
+		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTableContainer($users, $instTable);
+		
+		$preview = new SOMUSIC_CLASS_Preview($timeSignatures[0], $keysignatures[0], $instTable, $multiUserMod, $groupId);
+		OW::getSession()->set("preview", serialize($preview));
+		
+		$this->assign("instrumentsTable", $instrumentsTable->render());
 	}
 	
 }

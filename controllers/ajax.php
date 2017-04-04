@@ -153,7 +153,6 @@ OW::getUser ()->getId (),
 	}
 	
 	public function updateScore() {
-		$clean = $_REQUEST;
 		
 		$errorMessage = false;
 		/*$isMobile = ! empty ( $clean ['isMobile'] ) && ( bool ) $clean ['isMobile'];
@@ -175,7 +174,8 @@ OW::getUser ()->getId (),
 		$cache = new Memcached();
 		$cache->addServer("localhost", 11211);
 		
-		$idPost = $clean ['idPost'];
+		$idPost = $_REQUEST['idPost'];
+
 		$scores = json_encode($cache->get($userId));
 		
 		$res = SOMUSIC_BOL_Service::getInstance ()->updateScorePost($idPost, $scores);

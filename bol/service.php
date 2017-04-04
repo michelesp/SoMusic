@@ -94,7 +94,25 @@ class SOMUSIC_BOL_Service {
 		return $dbo->queryForList ( $query );
 	}
 	
-	public function getInstrumentGroups() {
-		return SOMUSIC_BOL_InstrumentGroupDao::getInstance()->findAll();
+	public function getAssignmentsByGroupId($groupId) {
+		$dbo = OW::getDbo ();
+		$query = "SELECT *
+                  FROM ow_assignment
+				  WHERE ow_assignment.group_id = " . $groupId . ";";
+		return $dbo->queryForList ( $query );
 	}
+	
+	public function getInstrumentGroups() {
+		$instruments = array();
+		$groups = SOMUSIC_BOL_InstrumentGroupDao::getInstance()->findAll();
+		foreach ($groups as $group){
+			$groupOfInstruments = array("name"=>$group->name, "instruments"=>array());
+			$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstrumentsByGroup($group->id);
+			foreach ($musicIntruments as $mi)
+				array_push($groupOfInstruments["instruments"], array("name"=>$mi["name"], "optionValue"=>strtolower(str_replace(" ", "_", $mi["name"]))));
+				array_push($instruments, $groupOfInstruments);
+		}
+		return $instruments;
+	}
+	
 }

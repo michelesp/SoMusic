@@ -1,0 +1,22 @@
+{style}
+button {
+    margin-top: 20px;
+}
+{/style}
+{form name="new_assignment_form"}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12 text-center">
+			{label name="name"} {input name="name"}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col text-center">
+			<button onclick="SoMusic.newAssignment({$groupId}, false);">Single-user</button>
+		</div>
+		<div class="col text-center">
+			<button onclick="SoMusic.newAssignment({$groupId}, true);">Multi-user</button>
+		</div>
+	</div>
+</div>
+{/form}

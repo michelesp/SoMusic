@@ -8,9 +8,10 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 	public $user_m;
 	public $timestamp_m;
 	public $instrumentsScore;
+	public $instrumentsUsed;
 	
 	
-	public function __construct($id, $name, $user_c, $timestamp_c, $user_m, $timestamp_m, $instrumentsScore) {
+	public function __construct($id, $name, $user_c, $timestamp_c, $user_m, $timestamp_m, $instrumentsScore, $instrumentsUsed) {
 		$this->id = $id;
 		$this->name = $name;
 		$this->user_c = $user_c;
@@ -18,6 +19,7 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 		$this->user_m = $user_m;
 		$this->timestamp_m = $timestamp_m;
 		$this->instrumentsScore = $instrumentsScore;
+		$this->instrumentsUsed = $instrumentsUsed;
 	}
 	
 	
@@ -35,12 +37,12 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 	
 	public function serialize() {
 		return serialize([$this->id, $this->user_c, $this->timestamp_c, $this->name,
-				$this->user_m, $this->timestamp_m, $this->instrumentsScore]);
+				$this->user_m, $this->timestamp_m, $this->instrumentsScore, $this->instrumentsUsed]);
 	}
 	
 	public function unserialize($data) {
 		list($this->id, $this->user_c, $this->timestamp_c, $this->name,$this->user_m,
-			$this->timestamp_m, $this->instrumentsScore) = unserialize($data);
+			$this->timestamp_m, $this->instrumentsScore, $this->instrumentsUsed) = unserialize($data);
 	}
 	
 	public function jsonSerialize () {

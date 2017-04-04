@@ -1,12 +1,10 @@
-//index represents the position of the measure inside the stave
-function Measure(index, ctx, beatNum, beatValue, keySign, timeSign, instrumentsUsed) {
+function Measure(index, beatNum, beatValue, keySign, instrumentsUsed) {
 	this.index = index;
 	this.notesArr = [];
 	this.staves = [];
 	this.beatNum = beatNum;
 	this.beatValue = beatValue;
 	this.keySign = keySign;
-	this.timeSign = timeSign;
 	this.instrumentsUsed = instrumentsUsed;
 	/*setMode(3) allows to insert notes inside the measure even if the measure is not complete, but
      throws an exception if the duration of the inserted notes exceeds the time signature*/
@@ -21,7 +19,6 @@ function Measure(index, ctx, beatNum, beatValue, keySign, timeSign, instrumentsU
 		this.voices[this.voicesName[i]].setMode(3);
 	}
 	//array of ties inside the measure
-	this.ctx = ctx;
 	this.formatter = new Vex.Flow.Formatter();
 	this.minNote = 1; //1 is w, 2 is h, 3 is q, 4 is 8, 5 is 16
 	this.width;
@@ -44,14 +41,6 @@ Measure.prototype.getVoicesName = function(instrumentsUsed) {
 			toReturn.push(label+"#score"+j);
 	}
 	return toReturn;
-}
-
-Measure.prototype.getIndex = function () {
-	return this.index;
-}
-
-Measure.prototype.getVoiceName = function (scoreIndex) {
-	return this.voicesName[scoreIndex];
 }
 
 /*adds a note in the measure
@@ -84,7 +73,7 @@ Measure.prototype.addNote = function (note, voiceName, index) {
 }
 
 //Renderer the measure. the x param is the start of the previous measure
-Measure.prototype.render = function (x) {
+Measure.prototype.render = function (ctx, x) {
 	this.computeScale();
 	var k=0;
 	this.staves = [];
@@ -98,35 +87,36 @@ Measure.prototype.render = function (x) {
 			end = k*80;
 			var stave = new Vex.Flow.Stave(x, end, this.width);
 			if(this.index==0)
-				stave.addClef(inst.scoresClef[j]).addTimeSignature(this.timeSign).addKeySignature(this.keySign);
+				stave.addClef(inst.scoresClef[j]).addTimeSignature(this.beatNum+"/"+this.beatValue).addKeySignature(this.keySign);
 			this.staves.push(stave);
 		}
 		if(this.index==0){
-			this.ctx.fillText(inst.labelName, 10, (start+end)/2);
-			for(var j=0; j<inst.braces.length; j++)
-				braces.push(new Vex.Flow.StaveConnector(this.staves[k-inst.scoresClef.length+inst.braces[j][0]], this.staves[k-inst.scoresClef.length+inst.braces[j][1]]).setType(3));
+			ctx.fillText(inst.labelName, 10, (start+end)/2);
+			if(typeof inst.braces !=="undefined")
+				for(var j=0; j<inst.braces.length; j++)
+					braces.push(new Vex.Flow.StaveConnector(this.staves[k-inst.scoresClef.length+parseInt(inst.braces[j][0])],
+							this.staves[k-inst.scoresClef.length+parseInt(inst.braces[j][1])]).setType(3));
 		}
 	}
-	this.staves[0].setContext(this.ctx).draw();
+	this.staves[0].setContext(ctx).draw();
 	for(var i=1; i< this.staves.length; i++) {
-		this.staves[i].setContext(this.ctx).draw();
+		this.staves[i].setContext(ctx).draw();
 		lines.push(new Vex.Flow.StaveConnector(this.staves[i-1], this.staves[i]).setType(1));
 	}
 	for(var i=0; i<braces.length; i++)
-		braces[i].setContext(this.ctx).draw();
+		braces[i].setContext(ctx).draw();
 	for(var i=0; i<lines.length; i++)
-		lines[i].setContext(this.ctx).draw();
+		lines[i].setContext(ctx).draw();
 }
 
-Measure.prototype.renderEndLine = function () {
+Measure.prototype.renderEndLine = function (ctx) {
 	for(var i=1; i<this.staves.length; i++) 
-		new Vex.Flow.StaveConnector(this.staves[i-1], this.staves[i]).setType(6).setContext(this.ctx).draw();
+		new Vex.Flow.StaveConnector(this.staves[i-1], this.staves[i]).setType(6).setContext(ctx).draw();
 }
 
 //calculate the width of the stave based on the note with the minimum duration
 Measure.prototype.computeScale = function () {
 	this.restoreVoices();
-	//var notes = {"w": 1, "h": 2, "q": 4, "8": 8, "16": 16, "wr": 1, "hr": 2, "qr": 4, "8r": 8, "16r": 16};
 	for (var voiceName in this.notesArr) {
 		for (var i = 0; i < this.notesArr[voiceName].length; i++) {
 			var noteDuration = this.notesArr[voiceName][i].duration;
@@ -147,39 +137,19 @@ Measure.prototype.isComplete = function (voiceName) {
 			return false;
 }
 
-//check if the note is the first of the stave(used for tiesBetweenMeasures)
-Measure.prototype.isFirstNote = function (voiceName, note) {
-	var cont = 0;
-	for (var i in this.notesArr[voiceName]) {
-		if (this.notesArr[voiceName][i] == note)
-			return cont == 0;
-		cont++;
-	}
-}
-
-//check if the note is the last of the stave (used for tiesBetweenMeasures)
-Measure.prototype.isLastNote = function (voiceName, note) {
-	var cont = 0;
-	for (var i in this.notesArr[voiceName]) {
-		cont++;
-		if (this.notesArr[voiceName][i] == note)
-			return cont == this.notesArr[voiceName].length;
-	}
-}
-
 Measure.prototype.getEndX = function () {
 	return this.staves[0].getX() + this.staves[0].getWidth();
 }
 
 //draw the notes on the staves
-Measure.prototype.drawNotes = function () {
+Measure.prototype.drawNotes = function (ctx) {
 	this.completeVoices();
 	var toFormat = [];
 	for (var voice in this.voices)
 		toFormat.push(this.voices[voice]);
 	this.formatter.format(toFormat, this.width);
 	for (var voice in this.voices) 
-		this.voices[voice].draw(this.ctx, this.getStaveToDraw(voice));
+		this.voices[voice].draw(ctx, this.getStaveToDraw(voice));
 }
 
 Measure.prototype.getStaveToDraw = function (voice) {
@@ -193,7 +163,7 @@ Measure.prototype.getStaveToDraw = function (voice) {
 	}
 }
 
-Measure.prototype.getStaveIndex = function (height) {		//individuare posizione spartito
+Measure.prototype.getStaveIndex = function (height) {
 	var scoreClose = -1;
 	var scoreCloseDist = Number.POSITIVE_INFINITY;
 	for(var i=0; i<this.staves.length; i++){
@@ -223,13 +193,5 @@ Measure.prototype.restoreVoices = function () {
 		}).setMode(3);
 		this.voices[voice].addTickables(this.notesArr[voice]);
 	}
-}
-
-//check if the measure is empty
-Measure.prototype.isEmpty = function () {
-	for (var voiceName in this.notesArr)
-		if (this.notesArr[voiceName].length > 0)
-			return false;
-	return true;
 }
 

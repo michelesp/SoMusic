@@ -1,0 +1,18 @@
+<div class="list-group">
+	{foreach $assignments as $assignment}
+   		<a href="#" class="list-group-item">{$assignment->name}</a>
+	{/foreach}
+</div>
+{if $isAdmin == true}
+		<!-- <span class="ow_button text-center">
+			<input value="New" name="vm_open_dialog" id="newAssignment" type="button">
+		</span>
+		 -->
+	<div class="ow_box_toolbar_cont clearfix">	
+		<ul class="ow_box_toolbar ow_remark ow_bl">    
+    		<li>
+				<a onclick="{literal}if(typeof SoMusic.floatBox!=='undefined') SoMusic.floatBox.close(); SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_NewAssignment', {'groupId':{/literal}{$groupId}{literal}}, {top:'calc(5vh)', width:'calc(30vw)', height:'calc(50vh)', iconClass: 'ow_ic_add', title: ''});{/literal}">Add</a>
+            </li>
+    	</ul>
+    </div>
+{/if}

@@ -1,0 +1,85 @@
+{style}
+#tabInstruments {
+	width: 100%;
+}
+#tabInstruments thead,
+#tabInstruments tbody,
+#tabInstruments tr,
+#tabInstruments td,
+#tabInstruments th {
+	display: block;
+}
+#tabInstruments tr:after {
+	content: ' ';
+    display: block;
+    visibility: hidden;
+    clear: both;
+}
+#tabInstruments thead th {
+	height: 30px;
+}
+#tabInstruments tbody {
+	height: calc(30vh);
+	overflow-y: auto;
+}
+#tabInstruments td:not(:last-child),
+#tabInstruments th:not(:last-child) {
+	width: {if $usersCount>1}30%{else}45%{/if};
+    float: left;
+}
+#tabInstruments td:last-child,
+#tabInstruments th:last-child {
+	width: 10%;
+    float: left;
+}
+{/style}
+<div id="instrumentsTableDiv">
+	<label class="descr">Instruments:</label> <br />
+	<table class="table table-hover table-striped"
+		id="tabInstruments">
+		<thead>
+			<tr>
+				{foreach from=$tableHeader item=$th}
+				<th class="text-center">{$th}</th>
+				{/foreach}
+				<th> &nbsp; </th>
+			</tr>
+		</thead>
+		<tbody id="tabInstrumentsBody">
+			{foreach from=$tableRows key=$i item=$row}
+			<tr>
+				<td><input type="text" class="form-control" name="instrumentName"
+					value="{$row['name']}" onkeyup="instrumentsTable.textEdited({$i}, value)" /></td>
+				<td><select class="form-control selectpicker" name="instrumentType"
+					onchange="instrumentsTable.changeType({$i}, value)">
+						{foreach from=$instrumentGroups item=$group}
+						<optgroup label="{$group['name']}">
+							{foreach from=$group['instruments'] item=$instrument}
+							<option value="{$instrument['optionValue']}"
+								{if $row["type"]==$instrument['optionValue']}selected{/if}>{$instrument['name']}</option>
+							{/foreach}
+						</optgroup> {/foreach}
+				</select></td>
+				{if $usersCount>1}
+				<td>
+					<select name="instrumentUser">
+						{foreach from=$users key=$uid item=$username}
+						<option value="{$uid}">{$username}</option>
+						{/foreach}
+					</select>
+				</td>
+				{else}
+				{foreach from=$users key=$uid item=$username}
+				<input name="instrumentUser" type="hidden" value="{$uid}"></input>
+				{/foreach}
+				{/if}
+				<td><a class="form-control btn btn-default pull-left"
+					onclick="instrumentsTable.deleteInstrument({$i})">X</a></td>
+			</tr>
+			{/foreach}
+		</tbody>
+	</table>
+	<a id="add_instrument" class="btn btn-default pull-left"
+		onclick="instrumentsTable.addInstrument()">Add Instrument</a>
+</div>
+

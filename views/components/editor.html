@@ -1,0 +1,80 @@
+{style}
+li {
+	width: auto !important;
+}
+label {
+	padding: 5px !important;
+}
+[type="radio"] + label::before, [type="radio"] + label::after {
+	opacity: 0.5 !important;
+	width: 35px !important;
+	height: 35px !important;
+	border: none !important;	
+}
+#scoreDiv {
+	overflow: auto;
+	border: 1px solid #DDDDDD;
+}
+{/style}
+{form name='editor_form'}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-3">
+			<div class="row">
+				<label>Duration: </label>
+			</div>
+			<div class="row">
+				{input name='notes'}
+			</div>
+			<div class="row">
+				{input name='rests'}
+			</div>
+		</div>
+		<div class="col-md-3"> &nbsp; </div>
+		<div class="col-md-3">
+			<div class="row">
+				<label>Accidental: </label>
+			</div>
+			<div class="row">
+				{input name='accidentals'}
+			</div>
+		</div>
+		<div class="col-md-3"> &nbsp; </div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div id="scoreDiv" style="overflow-x: auto; overflow-y: auto; width: 800px; cursor: pointer;">
+				<canvas id="score"></canvas>
+				<canvas id="vmCanvas" class="slideInRight animated" width="800" height="130" style="display: none;"></canvas>
+			</div>
+		</div>
+	</div>
+	<div class="row" style="padding-bottom: 0px">
+		<div class="container">
+			<button type="button" class="btn btn-danger" id="del">Delete</button>
+			<button type="button" class="btn btn-warning" id="visualMelody">Visual Melody</button>
+			<button type="button" class="btn btn-success" id="tie">Tie</button>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-4"> &nbsp; </div>
+		<div class="col-md-4"> &nbsp; </div>
+		<div class="col-md-4">
+			<span class="rounded_attachment_btn">
+				<span class="ow_button" style="margin-right: 30vw">
+					<input type="button" id="add" value="Add" />
+				</span>
+			</span>
+		</div>
+	</div>
+</div>
+{/form}
+<script>
+	SoMusic.editor = new Editor(SoMusic.floatBox,
+			document.getElementsByName("notes"),
+			document.getElementsByName("rests"),
+			document.getElementsByName("accidentals"),
+			document.getElementById("score"),
+			document.getElementById("add"),
+			{$composition});
+</script>

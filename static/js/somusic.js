@@ -1,36 +1,15 @@
-VISUALMELODY = {}
-if(document.getElementsByName("save").length > 0) {
-	document.getElementsByName("save")[0].addEventListener("click", function (e) {
-		document.getElementById("vm_placeholder").style.display = "none";
-	});
-}
 
-VISUALMELODY.init = function () {
-	var ks = document.getElementById("ks");
-	VISUALMELODY.preview = new Preview(ks, document.getElementById("prev"));
-	VISUALMELODY.editor = new Renderer("score", "scoreDiv", "vmCanvas");
-	document.getElementById("next").addEventListener("click", function () {
-		document.getElementById("firstDiv").style.display = "none";
-		document.getElementById("secondDiv").style.display = "block";
-		var instrumentsUsed = VISUALMELODY.preview.getInstrumentsUsed();
-		VISUALMELODY.editor.init(instrumentsUsed.instruments, instrumentsUsed.totNScores, ks, false);
-		VISUALMELODY.idPost = -1;
-	}, false);
-	document.getElementById("add").addEventListener("click", function () {
-		VISUALMELODY.addListener(VISUALMELODY.editor);			//TODO: ?
-	});
-	document.getElementById('feed_scoreDiv').addEventListener("click", VISUALMELODY.modScore);
-	document.getElementById("removeScore").addEventListener("click", VISUALMELODY.removeScore, false);
-	document.getElementById("ks").addEventListener("change", function(e){VISUALMELODY.preview.update();}, false);
+SoMusic = {}
+
+SoMusic.init = function () {
+	document.getElementById('feed_scoreDiv').addEventListener("click", SoMusic.modScore);
+	document.getElementById("removeScore").addEventListener("click", SoMusic.removeScore, false);
 	document.getElementById('score_title_text').addEventListener("change", function () {
 		$('input[name=scoreTitle]').val($('#score_title_text').val());
 	});
-	var elements = document.getElementsByName("timeLab");
-	for (var i = 0; i < elements.length; i++)
-		elements[i].addEventListener("click", function(e){VISUALMELODY.preview.update(e);}, false);
 }
 
-VISUALMELODY.commentSendMessage = function(message, context) {
+SoMusic.commentSendMessage = function(message, context) {
 	var self = context;
 	var dataToSend = {
 			entityType: self.entityType,
@@ -56,8 +35,7 @@ VISUALMELODY.commentSendMessage = function(message, context) {
 	}
 	$.ajax({
 		type: 'post',
-		//url: self.addUrl,
-		url: VISUALMELODY.ajax_add_comment,
+		url: SoMusic.ajax_add_comment,
 		data: dataToSend,
 		dataType: 'JSON',
 		success: function(data){
@@ -79,7 +57,7 @@ VISUALMELODY.commentSendMessage = function(message, context) {
 	self.$textarea.val('').keyup().trigger('input.autosize');
 };
 
-VISUALMELODY.loadScore = function (data, id, title, instruments) {
+SoMusic.loadScore = function (data, id, title) {
 	var scoreDiv = document.getElementById(id);
 	scoreDiv.parentElement.style.display = "none";
 	var titleField = document.createElement("p");
@@ -99,12 +77,12 @@ VISUALMELODY.loadScore = function (data, id, title, instruments) {
 	vmCanvas.id = id + "_vmc";
 	scoreDiv.appendChild(scoreCanvas);
 	scoreDiv.appendChild(vmCanvas);
-	var renderer = new Renderer(scoreCanvas.id, id, vmCanvas.id);
-	renderer.restoreData(data, instruments);
+	var renderer = new Renderer(scoreCanvas, data.instrumentsUsed);
+	renderer.updateComposition(data);
 	scoreDiv.parentElement.style.display = "block";
 }
 
-VISUALMELODY.removeScore = function () {
+SoMusic.removeScore = function () {
 	$('input[name=vmHidden]').val('');
 	document.getElementById("vm_placeholder").style.display = "none";
 	previewFloatBox.close();
@@ -116,7 +94,7 @@ VISUALMELODY.removeScore = function () {
 		document.getElementById('floatbox_overlay').style.display = 'block';
 }
 
-VISUALMELODY.modScore = function (vmData) {
+SoMusic.modScore = function (vmData) {
 	document.getElementById("vm_placeholder").style.display = "none";
 	$('.floatbox_canvas').each(function(i, obj) {
 		obj.style.display = 'block';
@@ -125,7 +103,38 @@ VISUALMELODY.modScore = function (vmData) {
 	$('input[name=vmHidden]').val('');
 }
 
-VISUALMELODY.modPostScore = function (idPost, vmData) {
+SoMusic.save = function(composition) {
+	if(SoMusic.idPost!=-1) {
+		console.log(SoMusic.ajax_update_score);
+		console.log(SoMusic.idPost);
+		$.ajax({
+			type: 'post',
+			url: SoMusic.ajax_update_score,
+			data: { idPost: SoMusic.idPost },
+			dataType: 'JSON',
+			success: function(data){
+				console.log(data);
+				if(data.status)
+					setTimeout(function(){ location.reload(); }, 50);
+				},
+			error: function( XMLHttpRequest, textStatus, errorThrown ){
+				OW.error(textStatus);
+			},
+			complete: function(){ }
+		});
+		return;
+	}
+	$('input[name=vmHidden]').val(JSON.stringify(composition));
+	var renderer = new Renderer(document.getElementById('feed_score'), composition.instrumentsUsed);
+	document.getElementById('vm_placeholder').style.display = 'block';
+	renderer.updateComposition(composition);
+	document.getElementById('score_title_text').value = '';
+	$('input[name=scoreTitle]').val('');
+	document.getElementsByTagName('BODY')[0].classList.remove('floatbox_nooverflow');
+}
+
+/*SoMusic.modPostScore = function (idPost, vmData) {
+	console.log("modPostScore");
 	console.log(vmData);
 	var totNScores = 0;
 	var instrumentsUsed = [];
@@ -147,48 +156,19 @@ VISUALMELODY.modPostScore = function (idPost, vmData) {
 		}
 		totNScores++;
 	}
-	VISUALMELODY.idPost = idPost;
-	VISUALMELODY.editor.init(instrumentsUsed, totNScores, document.getElementById("ks"), idPost);
-}
+	SoMusic.idPost = idPost;
+	SoMusic.editor = new Editor(SoMusic.floatBox,
+			document.getElementsByName("notes"),
+			document.getElementsByName("rests"),
+			document.getElementsByName("accidentals"),
+			document.getElementById("score"),
+			document.getElementById("add"),
+			vmData);
+	//SoMusic.editor.init(instrumentsUsed, totNScores, document.getElementById("ks"), idPost);
+}*/
 
-VISUALMELODY.addListener = function (ren) {
-	document.getElementById('score').classList.remove("shake");
-	document.getElementById('score').classList.remove("animated");
-	$('.floatbox_canvas').each(function(i, obj) {
-		obj.style.display = 'none';
-	});
-	document.getElementById('floatbox_overlay').style.display = 'none';
-	if(VISUALMELODY.idPost!=-1) {
-		console.log(dataToSend);
-		console.log(VISUALMELODY.ajax_update_score);
-		$.ajax({
-			type: 'post',
-			url: VISUALMELODY.ajax_update_score,
-			data: { idPost: VISUALMELODY.idPost },
-			dataType: 'JSON',
-			success: function(data){
-				if(data.status)
-					setTimeout(function(){ location.reload(); }, 50);
-			},
-			error: function( XMLHttpRequest, textStatus, errorThrown ){
-				OW.error(textStatus);
-			},
-			complete: function(){
-			}
-		});
-		return;
-	}
-	var vmData = ren.saveData();
-	$('input[name=vmHidden]').val(JSON.stringify(vmData));
-	var ren2 = new Renderer("feed_score", "feed_scoreDiv", "feed_vmCanvas");
-	document.getElementById("vm_placeholder").style.display = "block";
-	//ren2.restoreData(vmData);
-	//ren2.reloadData();
-	var ks = document.getElementById("ks");
-	var instrumentsUsed = VISUALMELODY.preview.getInstrumentsUsed();
-	ren2.init(instrumentsUsed.instruments, instrumentsUsed.totNScores, ks, true);
-	document.getElementById('score_title_text').value = "";
-	$('input[name=scoreTitle]').val('');
-	document.getElementsByTagName("BODY")[0].classList.remove("floatbox_nooverflow");
+SoMusic.newAssignment = function(groupId, multiUser) {
+	SoMusic.floatBox.close();
+	SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUser, "groupId":groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
 }
 
