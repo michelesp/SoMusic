@@ -139,7 +139,7 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 			$cache->addServer("localhost", 11211);
 			$composition = $cache->get($userId);
 			SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost ( json_encode($composition), "", // $clean['description'],
-OW::getUser ()->getId (), 
+					OW::getUser ()->getId (), 
 					// $clean['title'],
 					$clean ['scoreTitle'], $out ['entityId'] );
 			$cache->delete($userId);

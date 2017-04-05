@@ -85,8 +85,7 @@ SoMusic.loadScore = function (data, id, title) {
 SoMusic.removeScore = function () {
 	$('input[name=vmHidden]').val('');
 	document.getElementById("vm_placeholder").style.display = "none";
-	previewFloatBox.close();
-	delete previewFloatBox;
+	SoMusic.floatBox.close();
 	$('.floatbox_canvas').each(function(i, obj) {
 		obj.style.display = 'block';
 	});
@@ -167,8 +166,23 @@ SoMusic.save = function(composition) {
 	//SoMusic.editor.init(instrumentsUsed, totNScores, document.getElementById("ks"), idPost);
 }*/
 
-SoMusic.newAssignment = function(groupId, multiUser) {
-	SoMusic.floatBox.close();
-	SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUser, "groupId":groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
+SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
+	$.ajax({
+		type: 'post',
+		url: url,
+		data: { "groupId": groupId, "name": name, "isMultiUser": multiUserMod },
+		dataType: 'JSON',
+		success: function(data){
+			if(data){
+				SoMusic.floatBox.close();
+				SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
+			}
+			else console.log("errore");
+		},
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		},
+		complete: function(){ }
+	});
 }
 

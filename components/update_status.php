@@ -26,7 +26,8 @@ class SOMUSIC_CMP_UpdateStatus extends NEWSFEED_CMP_UpdateStatus {
                 SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
                 SoMusic.idPost = -1;
                 document.getElementById('vm_placeholder').style.display = 'none';
-            });";
+            });
+            SoMusic.init();";
 		OW::getDocument ()->addOnloadScript ( $script );
 		
 		// $form->setAction ( OW::getRequest ()->buildUrlQueryString ( OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_Ajax', 'statusUpdate' ) ) );

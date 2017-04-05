@@ -37,11 +37,11 @@ class SOMUSIC_CMP_Preview extends OW_Component {
 			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($groupId);
 			foreach ($userIdList as $uid)
 				$users[$uid] = BOL_UserService::getInstance()->findByIdWithoutCache($uid)->username;			
-		}
+		} else OW::getSession()->delete("newAssignment");
 		
 		$instGroups = SOMUSIC_BOL_Service::getInstance()->getInstrumentGroups();
 		$firstInstrument = $instGroups[0]["instruments"][0];
-		$instTable = array(array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"]));
+		$instTable = array(array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"], "user"=>$userId));
 		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTableContainer($users, $instTable);
 		
 		$preview = new SOMUSIC_CLASS_Preview($timeSignatures[0], $keysignatures[0], $instTable, $multiUserMod, $groupId);

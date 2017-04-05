@@ -10,6 +10,7 @@ class SOMUSIC_CMP_NewAssignment extends OW_Component {
 		$this->addForm($form);
 		$this->assign("form", $form);
 		$this->assign("groupId", $groupId);
+		$this->assign("newAssignmentURL", OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_NewAssignment', 'newAssignment'));
 	}
 	
 }

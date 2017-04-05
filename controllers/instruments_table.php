@@ -39,7 +39,7 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		array_push($preview->instrumentsTable, array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"], "user"=>$userId));
 		$preview->instrumentsTable = $this->changeName($preview->instrumentsTable, $this->getDuplicated($preview->instrumentsTable));
 		OW::getSession()->set("preview", serialize($preview));
-		$users = $this->getUsers($preview->groupId);
+		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
 		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
 		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
 		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
@@ -54,7 +54,7 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 			array_splice($preview->instrumentsTable, intval($_REQUEST["deleteInstrument"]), 1);
 		$preview->instrumentsTable = $this->changeName($preview->instrumentsTable, $this->getDuplicated($preview->instrumentsTable));
 		OW::getSession()->set("preview", serialize($preview));
-		$users = $this->getUsers($preview->groupId);
+		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
 		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
 		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
 		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
@@ -62,7 +62,7 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 	
 	public function getTable() {
 		$preview = unserialize(OW::getSession()->get("preview"));
-		$users = $this->getUsers($preview->groupId);
+		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
 		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
 		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
 		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
@@ -73,7 +73,7 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 			exit(json_encode("error"));
 		$preview = unserialize(OW::getSession()->get("preview"));
 		$preview->instrumentsTable = $_REQUEST["instruments"];
-		$users = $this->getUsers($preview->groupId);
+		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
 		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
 		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
 		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
@@ -88,17 +88,17 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		$preview->instrumentsTable[intval($_REQUEST["index"])]["type"] = $_REQUEST["value"];
 		$preview->instrumentsTable = $this->changeName($preview->instrumentsTable, $this->getDuplicated($preview->instrumentsTable));
 		OW::getSession()->set("preview", serialize($preview));
-		$users = $this->getUsers($preview->groupId);
+		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
 		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
 		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
 		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
 	}
 	
-	private function getUsers($groupId) {
+	private function getUsers($groupId, $multiUserMod) {
 		$userId = OW::getUser()->getId();
 		$username = OW::getUser()->getUserObject()->username;
 		$users = array($userId=>$username);
-		if($groupId>=0) {
+		if($multiUserMod && $groupId>=0) {
 			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($groupId);
 			foreach ($userIdList as $uid)
 				$users[$uid] = BOL_UserService::getInstance()->findByIdWithoutCache($uid)->username;
@@ -155,7 +155,8 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 			array_push($instrumentsUsed, array("labelName"=>$instrumentRow["name"],
 					"name"=>$name,
 					"scoresClef"=>$instrument["scoresClef"],
-					"braces"=>$instrument["braces"]));
+					"braces"=>$instrument["braces"],
+					"user"=>$instrumentRow["user"]));
 		}
 		return $instrumentsUsed;
 	}

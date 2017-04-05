@@ -1,5 +1,5 @@
 {style}
-button {
+input[type=button] {
     margin-top: 20px;
 }
 {/style}
@@ -12,10 +12,23 @@ button {
 	</div>
 	<div class="row">
 		<div class="col text-center">
-			<button onclick="SoMusic.newAssignment({$groupId}, false);">Single-user</button>
+			<div class="ow_box_toolbar_cont clearfix">	
+				<ul class="ow_box_toolbar ow_remark ow_bl">    
+    				<li>
+						<a onclick="SoMusic.newAssignment('{$newAssignmentURL}', {$groupId}, document.getElementsByName('name')[0].value, false);">Single-user</a>
+           			 </li>
+    			</ul>
+  		 	</div>
 		</div>
 		<div class="col text-center">
-			<button onclick="SoMusic.newAssignment({$groupId}, true);">Multi-user</button>
+			<div class="ow_box_toolbar_cont clearfix">	
+				<ul class="ow_box_toolbar ow_remark ow_bl">    
+    				<li>
+						<a onclick="SoMusic.newAssignment('{$newAssignmentURL}', {$groupId}, document.getElementsByName('name')[0].value, true);">Multi-user</a>
+           			 </li>
+    			</ul>
+  		 	</div>
+		</div>
 		</div>
 	</div>
 </div>
