@@ -115,4 +115,23 @@ class SOMUSIC_BOL_Service {
 		return $instruments;
 	}
 	
+	public function addAssignment($name, $groupId, $idOwner, $mode, $composition) {
+		$dt = new SOMUSIC_BOL_Somusic ();
+		$dt->data = $composition;
+		$dt->description = "";
+		$dt->id_owner = $idOwner;
+		$dt->title = "";
+		SOMUSIC_BOL_SomusicDao::getInstance ()->save ( $dt );
+		$dt2 = new SOMUSIC_BOL_Assignment();
+		$dt2->composition_id = $dt->id;
+		$dt2->group_id = $groupId;
+		$dt2->last_user_m = $idOwner;
+		$dt2->mode = $mode;
+		$dt2->name = $name;
+		$dt2->timestamp_c = time();
+		$dt2->timestamp_m = $dt2->timestamp_c;
+		SOMUSIC_BOL_AssignmentDao::getInstance ()->save ( $dt2 );
+		return $dt2;
+	}
+	
 }

@@ -58,6 +58,7 @@ SoMusic.commentSendMessage = function(message, context) {
 };
 
 SoMusic.loadScore = function (data, id, title) {
+	console.log(data);
 	var scoreDiv = document.getElementById(id);
 	scoreDiv.parentElement.style.display = "none";
 	var titleField = document.createElement("p");
@@ -103,9 +104,28 @@ SoMusic.modScore = function (vmData) {
 }
 
 SoMusic.save = function(composition) {
+	if(typeof SoMusic.assignment!=="undefined") {
+		console.log(SoMusic.assignment);
+		console.log(composition);
+		$.ajax({
+			type: 'post',
+			url: SoMusic.saveAssignmentURL,
+			data: { "composition": composition },
+			dataType: 'JSON',
+			success: function(data){
+				console.log(data);
+				//if(data)
+				//	setTimeout(function(){ location.reload(); }, 50);
+				},
+			error: function( XMLHttpRequest, textStatus, errorThrown ){
+				OW.error(textStatus);
+			},
+			complete: function(){ }
+		});
+		return;
+	}
+	console.log("not assignment");
 	if(SoMusic.idPost!=-1) {
-		console.log(SoMusic.ajax_update_score);
-		console.log(SoMusic.idPost);
 		$.ajax({
 			type: 'post',
 			url: SoMusic.ajax_update_score,
@@ -167,10 +187,11 @@ SoMusic.save = function(composition) {
 }*/
 
 SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
+	SoMusic.assignment = { "groupId": groupId, "name": name, "isMultiUser": multiUserMod };
 	$.ajax({
 		type: 'post',
 		url: url,
-		data: { "groupId": groupId, "name": name, "isMultiUser": multiUserMod },
+		data: SoMusic.assignment,
 		dataType: 'JSON',
 		success: function(data){
 			if(data){

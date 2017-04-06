@@ -35,16 +35,11 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$editorCTRL = new SOMUSIC_CTRL_Editor();
 		if($composition==null)
 			$composition = $editorCTRL->initEditor($instrumentsUsed, $timeSignature, $keySignature);
-		else $editorCTRL->setComposition($composition);
-		//$this->assign("instrumentsUsed", json_encode($instrumentsUsed));
-		//$this->assign("timeSignature", json_encode($timeSignature));
-		//$this->assign("keySignature", json_encode($keySignature));
+		else $editorCTRL->setComposition($composition);		//TODO: controllare
 		$this->assign("composition", json_encode($composition));
 		
 		$this->addForm($form);
 		$this->assign("form", $form);
-		
-		//$this->assign("initEditorURL", OW::getRouter ()->urlFor ('SOMUSIC_CTRL_Editor', 'initEditor'));
 	}
 	
 	public static function addScripts() {

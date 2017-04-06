@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'assignment` (
 	`timestamp_c` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	`timestamp_m` TIMESTAMP NOT NULL,
 	`last_user_m` INT NOT NULL,
-	`score_id` INT NOT NULL,
 	`mode` INT NOT NULL,
+	`composition_id` INT NOT NULL,
 	PRIMARY KEY (`id`)
 ) ENGINE = MyISAM;';
 

@@ -7,6 +7,6 @@ class SOMUSIC_BOL_Assignment extends OW_Entity {
 	public $timestamp_c;
 	public $timestamp_m;
 	public $last_user_m;
-	public $score_id;
 	public $mode;
+	public $composition_id;
 }

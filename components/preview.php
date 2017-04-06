@@ -37,7 +37,9 @@ class SOMUSIC_CMP_Preview extends OW_Component {
 			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($groupId);
 			foreach ($userIdList as $uid)
 				$users[$uid] = BOL_UserService::getInstance()->findByIdWithoutCache($uid)->username;			
-		} else OW::getSession()->delete("newAssignment");
+		}
+		if(!$multiUserMod && $groupId==-1)
+			OW::getSession()->delete("newAssignment");
 		
 		$instGroups = SOMUSIC_BOL_Service::getInstance()->getInstrumentGroups();
 		$firstInstrument = $instGroups[0]["instruments"][0];

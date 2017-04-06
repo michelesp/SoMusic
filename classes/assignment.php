@@ -6,9 +6,9 @@ class SOMUSIC_CLASS_Assignment implements Serializable, JsonSerializable {
 	public $is_multi_user;
 	
 	public function __construct($group_id, $name, $is_multi_user) {
-		$this->group_id;
-		$this->name;
-		$this->is_multi_user;
+		$this->group_id = $group_id;
+		$this->name = $name;
+		$this->is_multi_user = $is_multi_user;
 	}
 	
 	public function serialize() {

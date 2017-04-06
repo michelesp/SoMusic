@@ -135,14 +135,12 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 		/* SOMUSIC */
 		if (! empty ( $clean ['vmHidden'] )) {
 			$userId = OW::getUser()->getId();
-			$cache = new Memcached();
-			$cache->addServer("localhost", 11211);
-			$composition = $cache->get($userId);
+			$editor = new SOMUSIC_CTRL_Editor();
+			$composition = $editor->reset();
 			SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost ( json_encode($composition), "", // $clean['description'],
 					OW::getUser ()->getId (), 
 					// $clean['title'],
 					$clean ['scoreTitle'], $out ['entityId'] );
-			$cache->delete($userId);
 		}
 		/* SOMUSIC */
 		
@@ -169,20 +167,14 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 					'error' => $errorMessage
 			) ) );
 		}*/
-		
-		$userId = OW::getUser()->getId();
-		$cache = new Memcached();
-		$cache->addServer("localhost", 11211);
-		
 		$idPost = $_REQUEST['idPost'];
-
-		$scores = json_encode($cache->get($userId));
 		
-		$res = SOMUSIC_BOL_Service::getInstance ()->updateScorePost($idPost, $scores);
-		echo json_encode ( array (
-				"status" => $res
-		) );
-		exit ();
+		$editor = new SOMUSIC_CTRL_Editor();
+		$composition = $editor->reset();
+		
+		$res = SOMUSIC_BOL_Service::getInstance ()->updateScorePost($idPost, json_encode($composition));
+		
+		exit(json_encode(array("status"=>true)));
 	}
 	
 }

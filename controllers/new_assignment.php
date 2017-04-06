@@ -10,4 +10,14 @@ class SOMUSIC_CTRL_NewAssignment extends OW_ActionController {
 		exit(json_encode(true));
 	}
 	
+	public function save() {
+		if(!isset($_REQUEST["composition"]))
+			exit(json_encode(false));
+		$assignment = (object)json_decode(OW::getSession()->get("newAssignment"));
+		$userId = OW::getUser ()->getId ();
+		SOMUSIC_BOL_Service::getInstance ()->addAssignment($assignment->name, $assignment->group_id, $userId, $assignment->is_multi_user, json_encode($_REQUEST["composition"]));
+		OW::getSession()->delete("newAssignment");
+		exit(json_encode(true));
+	}
+	
 }

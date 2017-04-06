@@ -1,6 +1,6 @@
 <div class="list-group">
 	{foreach $assignments as $assignment}
-   		<a href="#" class="list-group-item">{$assignment->name}</a>
+   		<a href="#" class="list-group-item">{$assignment["name"]}</a>
 	{/foreach}
 </div>
 {if $isAdmin == true}

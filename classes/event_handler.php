@@ -86,6 +86,14 @@ class SOMUSIC_CLASS_EventHandler {
 		            ) );
 		
 		OW::getDocument ()->addOnloadScript ( $js2 );
+		
+		$js3 = UTIL_JsGenerator::composeJsString ( '
+                SoMusic.saveAssignmentURL = {$saveAssignmentURL}
+            ', array (
+		            		'saveAssignmentURL' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_NewAssignment', 'save' )
+		            ) );
+		
+		OW::getDocument ()->addOnloadScript ( $js3 );
 	}
 	public function onItemRender(OW_Event $event) {
 		$params = $event->getParams ();
