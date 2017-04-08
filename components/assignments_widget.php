@@ -19,7 +19,22 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 		
 		OW::getDocument ()->addOnloadScript ("");
 		
-		$this->assign('assignments', $assignments);
+		$assignment1 = array();
+		foreach ($assignments as $a) {
+			$composition = json_decode(SOMUSIC_BOL_Service::getInstance()->getComposition($a["composition_id"])->data);
+			$timeSignature = $composition->instrumentsScore[0]->measures[0]->timeSignature;
+			$keySignature = $composition->instrumentsScore[0]->measures[0]->keySignature;
+			$instrumentsUsed = $composition->instrumentsUsed;
+			array_push($assignment1, array("id"=>$a["id"],
+					"name"=>$a["name"],
+					"timeSignature"=>$timeSignature,
+					"keySignature"=>$keySignature,
+					"instrumentsUsed"=>json_encode($instrumentsUsed),
+					"composition"=>json_encode($composition)
+			));
+		}
+		
+		$this->assign('assignments', $assignment1);
 		$this->assign("isAdmin", $isAdmin);
 		$this->assign("groupId", $groupId);
 	}

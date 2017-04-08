@@ -1,0 +1,42 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12 text-center">
+			<h1>{$name}</h1>
+		</div>
+	</div>
+	{if $isMultiUser==0}
+	<div class="row">
+		<div class="col-md-12">
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Username</th>
+						<th>Creation date</th>
+						<th>Last modified</th>
+						<th> &nbsp; </th>
+					</tr>
+				</thead>
+				<tbody>
+					{foreach from=$users key=$i item=$user}
+					<tr>
+						<th scope="row">{$i+1}</th>
+						<td>{$user->username}</td>
+						{if isset($compositions["#"|cat:$user->id])}
+						<td>{$compositions["#"|cat:$user->id]["timestamp_c"]}</td>
+						<td>{$compositions["#"|cat:$user->id]["timestamp_m"]}</td>
+						<td><input onclick='SoMusic.viewAssignmentExecution({$compositions["#"|cat:$user->id]["executionId"]}, "{$compositions["#"|cat:$user->id]["timeSignature"]}", "{$compositions["#"|cat:$user->id]["keySignature"]}", {$compositions["#"|cat:$user->id]["instrumentsUsed"]}, {$compositions["#"|cat:$user->id]["composition"]})' type="button" value="view"></input></td>
+						{else}
+						<td>---</td>
+						<td>---</td>
+						<td> &nbsp; </td>
+						{/if}
+					</tr>
+					{/foreach}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	{else}
+	{/if}
+</div>

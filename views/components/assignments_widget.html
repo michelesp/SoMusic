@@ -1,13 +1,18 @@
-<div class="list-group">
+{style}
+#assignment_list {
+	height: 150px;
+	overflow-y: auto;
+}
+.assignment_item {
+	display: block;
+}
+{/style}
+<div id="assignment_list" class="list-group">
 	{foreach $assignments as $assignment}
-   		<a href="#" class="list-group-item">{$assignment["name"]}</a>
+   		<a onclick='{if $isAdmin == true} SoMusic.assignmentDetails({$assignment["id"]}); {else} SoMusic.completeAssignment({$assignment["id"]},"{$assignment["timeSignature"]}", "{$assignment["keySignature"]}", {$assignment["instrumentsUsed"]}, {$assignment["composition"]}); {/if}' class='list-group-item assignment_item'>{$assignment['name']}</a>
 	{/foreach}
 </div>
 {if $isAdmin == true}
-		<!-- <span class="ow_button text-center">
-			<input value="New" name="vm_open_dialog" id="newAssignment" type="button">
-		</span>
-		 -->
 	<div class="ow_box_toolbar_cont clearfix">	
 		<ul class="ow_box_toolbar ow_remark ow_bl">    
     		<li>

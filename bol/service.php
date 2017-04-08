@@ -134,4 +134,48 @@ class SOMUSIC_BOL_Service {
 		return $dt2;
 	}
 	
+	public function getAssignment($id) {
+		return SOMUSIC_BOL_AssignmentDao::getInstance()->findById($id);
+	}
+	
+	public function getAssignmentExecutionsByAssignmentId($id) {
+		$dbo = OW::getDbo ();
+		$query = "SELECT *
+                  FROM ow_assignment_execution
+				  WHERE ow_assignment_execution.assignment_id = " . $id . ";";
+		return $dbo->queryForList ( $query );
+	}
+	
+	public function addAssignmentExecution($assignmentId, $composition) {
+		$userId = OW::getUser()->getId();
+		$dt = new SOMUSIC_BOL_Somusic ();
+		$dt->data = $composition;
+		$dt->description = "";
+		$dt->id_owner = $userId;
+		$dt->title = "";
+		SOMUSIC_BOL_SomusicDao::getInstance ()->save ( $dt );
+		$execution = new SOMUSIC_BOL_AssignmentExecution();
+		$execution->assignment_id = $assignmentId;
+		$execution->user_id = $userId;
+		$execution->composition_id = $dt->id;
+		SOMUSIC_BOL_AssignmentExecutionDao::getInstance()->save($execution);
+	}
+	
+	public function getComposition($id) {
+		return SOMUSIC_BOL_SomusicDao::getInstance()->findById($id);
+	}
+	
+	public function updateComposition($id, $scores) {
+		$dbo = OW::getDbo ();
+		$query = "UPDATE ow_somusic ".
+                  "SET data = '".$scores."', timestamp_m = CURRENT_TIMESTAMP ".
+                  "WHERE ow_somusic.id = " . $id . ";";
+		$dbo->query ( $query );
+		return true;
+	}
+	
+	public function getExecution($id) {
+		return SOMUSIC_BOL_AssignmentExecutionDao::getInstance()->findById($id);
+	}
+	
 }

@@ -7,6 +7,14 @@ SoMusic.init = function () {
 	document.getElementById('score_title_text').addEventListener("change", function () {
 		$('input[name=scoreTitle]').val($('#score_title_text').val());
 	});
+	var oldClose = OW_FloatBox.prototype.close;
+	OW_FloatBox.prototype.close = function() {
+		/*if(typeof SoMusic.assignmentId!=="undefined")
+			delete SoMusic.assignmentId;
+		if(typeof SoMusic.assignment!=="undefined")
+			delete SoMusic.assignment;*/
+		oldClose.call(this);
+	}
 }
 
 SoMusic.commentSendMessage = function(message, context) {
@@ -104,9 +112,45 @@ SoMusic.modScore = function (vmData) {
 }
 
 SoMusic.save = function(composition) {
+	if(typeof SoMusic.executionId!=="undefined"){
+		$.ajax({
+			type: 'post',
+			url: SoMusic.editExecutionURL,
+			data: { "executionId": SoMusic.executionId, "composition": composition },
+			dataType: 'JSON',
+			success: function(data){
+				console.log(data);
+				delete SoMusic.assignmentId;
+				if(data)
+					setTimeout(function(){ location.reload(); }, 50);
+			},
+			error: function( XMLHttpRequest, textStatus, errorThrown ){
+				OW.error(textStatus);
+			},
+			complete: function(){ }
+		});
+		return;
+	}
+	if(typeof SoMusic.assignmentId!=="undefined"){
+		$.ajax({
+			type: 'post',
+			url: SoMusic.commitExecutionURL,
+			data: { "assignmentId": SoMusic.assignmentId, "composition": composition },
+			dataType: 'JSON',
+			success: function(data){
+				console.log(data);
+				delete SoMusic.assignmentId;
+				if(data)
+					setTimeout(function(){ location.reload(); }, 50);
+			},
+			error: function( XMLHttpRequest, textStatus, errorThrown ){
+				OW.error(textStatus);
+			},
+			complete: function(){ }
+		});
+		return;
+	}
 	if(typeof SoMusic.assignment!=="undefined") {
-		console.log(SoMusic.assignment);
-		console.log(composition);
 		$.ajax({
 			type: 'post',
 			url: SoMusic.saveAssignmentURL,
@@ -114,9 +158,9 @@ SoMusic.save = function(composition) {
 			dataType: 'JSON',
 			success: function(data){
 				console.log(data);
-				//if(data)
-				//	setTimeout(function(){ location.reload(); }, 50);
-				},
+				if(data)
+					setTimeout(function(){ location.reload(); }, 50);
+			},
 			error: function( XMLHttpRequest, textStatus, errorThrown ){
 				OW.error(textStatus);
 			},
@@ -135,7 +179,7 @@ SoMusic.save = function(composition) {
 				console.log(data);
 				if(data.status)
 					setTimeout(function(){ location.reload(); }, 50);
-				},
+			},
 			error: function( XMLHttpRequest, textStatus, errorThrown ){
 				OW.error(textStatus);
 			},
@@ -151,40 +195,6 @@ SoMusic.save = function(composition) {
 	$('input[name=scoreTitle]').val('');
 	document.getElementsByTagName('BODY')[0].classList.remove('floatbox_nooverflow');
 }
-
-/*SoMusic.modPostScore = function (idPost, vmData) {
-	console.log("modPostScore");
-	console.log(vmData);
-	var totNScores = 0;
-	var instrumentsUsed = [];
-	instrumentsUsed.push({
-		labelName: vmData.instrumentsScore[0].name.split("#score")[0],
-		name: vmData.instrumentsScore[0].instrument,
-		braces: instruments[vmData.instrumentsScore[0].instrument]["braces"],
-		scoresClef: instruments[vmData.instrumentsScore[0].instrument]["scoresClef"]
-	});
-	for(var i=1; i<vmData.instrumentsScore.length; i++) {
-		var label = vmData.instrumentsScore[i].name.split("#score")[0];
-		if(label != instrumentsUsed[instrumentsUsed.length-1].labelName){
-			instrumentsUsed.push({
-				labelName: label,
-				name: vmData.instrumentsScore[i].instrument,
-				braces: instruments[vmData.instrumentsScore[i].instrument]["braces"],
-				scoresClef: instruments[vmData.instrumentsScore[i].instrument]["scoresClef"]
-			});
-		}
-		totNScores++;
-	}
-	SoMusic.idPost = idPost;
-	SoMusic.editor = new Editor(SoMusic.floatBox,
-			document.getElementsByName("notes"),
-			document.getElementsByName("rests"),
-			document.getElementsByName("accidentals"),
-			document.getElementById("score"),
-			document.getElementById("add"),
-			vmData);
-	//SoMusic.editor.init(instrumentsUsed, totNScores, document.getElementById("ks"), idPost);
-}*/
 
 SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
 	SoMusic.assignment = { "groupId": groupId, "name": name, "isMultiUser": multiUserMod };
@@ -205,5 +215,25 @@ SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
 		},
 		complete: function(){ }
 	});
+}
+
+SoMusic.assignmentDetails = function(assignmentId) {
+	if(typeof SoMusic.floatBox!=="undefined")
+		SoMusic.floatBox.close();
+	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentDetails", {"assignmentId": assignmentId}, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
+}
+
+SoMusic.completeAssignment = function(assignmentId, timeSignature, keySignature, instrumentsUsed, composition) {
+	if(typeof SoMusic.floatBox!=="undefined")
+		SoMusic.floatBox.close();
+	var toSend = {"timeSignature":timeSignature,"keySignature":keySignature,"instrumentsUsed":instrumentsUsed,"composition":composition};
+	SoMusic.assignmentId = assignmentId;
+	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
+}
+
+SoMusic.viewAssignmentExecution = function(executionId, timeSignature, keySignature, instrumentsUsed, composition) {
+	var toSend = {"timeSignature":timeSignature,"keySignature":keySignature,"instrumentsUsed":instrumentsUsed,"composition":composition};
+	SoMusic.executionId = executionId;
+	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
 }
 

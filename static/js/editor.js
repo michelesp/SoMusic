@@ -1,11 +1,15 @@
 
-function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addButton, composition) {
+function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
+		addButton, composition, deteleNotesURL, addTieURL, addNoteURL) {
 	var editor = this;
 	this.floatBox = floatBox;
 	this.notesInput = notesInput;
 	this.restsInput = restsInput;
 	this.accidentalsInput = accidentalsInput;
 	this.canvas = canvas;
+	this.deleteNoteURL = deteleNotesURL;
+	this.addTieURL = addTieURL;
+	this.addNoteURL = addNoteURL;
 	this.notesInput.forEach(function(element, index){
 		element.addEventListener("click", function(){
 			var rest = document.querySelector("input[name='rests']:checked");
@@ -113,7 +117,7 @@ Editor.prototype.delNotes = function (e) {
 			measureIndex: this.renderer.selectedNotes[i].measureIndex,
 			noteIndex: this.renderer.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/deleteNotes", {"toRemove":toRemove});
+	this.ajaxRequest(this.deteleNotesURL, {"toRemove":toRemove});
 }
 
 Editor.prototype.tie = function (e) {
@@ -129,7 +133,7 @@ Editor.prototype.tie = function (e) {
 			measureIndex: this.renderer.selectedNotes[i].measureIndex,
 			noteIndex: this.renderer.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/addTie", {"toTie":toTie});
+	this.ajaxRequest(this.addTieURL, {"toTie":toTie});
 }
 
 //TODO pass x and y from processClick
@@ -144,7 +148,7 @@ Editor.prototype.addNote = function (e, staveIndex, measureIndex, noteIndex) {
 	var pitch = this.calculatePitch(e);
 	var noteLength = {"1":1, "2":2, "4":4, "8":8, "16":16, "32":32, "64":64,
 			"1r":1, "2r":2, "4r":4, "8r":8, "16r":16, "32r":32, "64r":64};
-	this.ajaxRequest("http://127.0.0.1/%7Emichele/SoMusic/somusic/Editor/addNote", {
+	this.ajaxRequest(this.addNoteURL, {
 		staveIndex: staveIndex,
 		measureIndex: measureIndex,
 		noteIndex: noteIndex,

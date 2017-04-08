@@ -40,6 +40,9 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		
 		$this->addForm($form);
 		$this->assign("form", $form);
+		$this->assign("deteleNotesURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'deleteNotes'));
+		$this->assign("addTieURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addTie'));
+		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
 	}
 	
 	public static function addScripts() {

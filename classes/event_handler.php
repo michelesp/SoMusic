@@ -90,10 +90,24 @@ class SOMUSIC_CLASS_EventHandler {
 		$js3 = UTIL_JsGenerator::composeJsString ( '
                 SoMusic.saveAssignmentURL = {$saveAssignmentURL}
             ', array (
-		            		'saveAssignmentURL' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_NewAssignment', 'save' )
+		            		'saveAssignmentURL' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_AssignmentManager', 'saveNewAssignment' )
 		            ) );
 		
 		OW::getDocument ()->addOnloadScript ( $js3 );
+		$js4 = UTIL_JsGenerator::composeJsString ( '
+                SoMusic.commitExecutionURL = {$commitExecutionURL}
+            ', array (
+		            		'commitExecutionURL' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_AssignmentManager', 'commitExecution' )
+		            ) );
+		
+		OW::getDocument ()->addOnloadScript ( $js4 );
+		$js5 = UTIL_JsGenerator::composeJsString ( '
+                SoMusic.editExecutionURL = {$editExecutionURL}
+            ', array (
+		            		'editExecutionURL' => OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_AssignmentManager', 'editExecution' )
+		            ) );
+		
+		OW::getDocument ()->addOnloadScript ( $js5 );
 	}
 	public function onItemRender(OW_Event $event) {
 		$params = $event->getParams ();

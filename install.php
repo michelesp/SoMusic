@@ -56,6 +56,14 @@ CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'assignment` (
 	`mode` INT NOT NULL,
 	`composition_id` INT NOT NULL,
 	PRIMARY KEY (`id`)
+) ENGINE = MyISAM;
+		
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'assignment_execution` (
+	`id` INT NOT NULL AUTO_INCREMENT ,
+	`composition_id` INT NOT NULL ,
+	`assignment_id` INT NOT NULL ,
+	`user_id` INT NOT NULL ,
+	PRIMARY KEY (`id`)
 ) ENGINE = MyISAM;';
 
 OW::getDbo ()->query ( $sql );
