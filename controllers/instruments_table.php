@@ -94,6 +94,18 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
 	}
 	
+	public function changeUser() {
+		if(!ctype_digit($_REQUEST["index"]) || empty($_REQUEST["id"]))
+			exit(json_encode("error"));
+		$preview = unserialize(OW::getSession()->get("preview"));
+		$preview->instrumentsTable[intval($_REQUEST["index"])]["user"] = $_REQUEST["id"];
+		OW::getSession()->set("preview", serialize($preview));
+		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
+		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
+		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
+		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
+	}
+	
 	private function getUsers($groupId, $multiUserMod) {
 		$userId = OW::getUser()->getId();
 		$username = OW::getUser()->getUserObject()->username;

@@ -26,6 +26,7 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 			$keySignature = $composition->instrumentsScore[0]->measures[0]->keySignature;
 			$instrumentsUsed = $composition->instrumentsUsed;
 			array_push($assignment1, array("id"=>$a["id"],
+					"isMultiUser"=>$a["mode"],
 					"name"=>$a["name"],
 					"timeSignature"=>$timeSignature,
 					"keySignature"=>$keySignature,

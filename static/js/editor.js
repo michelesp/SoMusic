@@ -1,15 +1,21 @@
 
 function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
-		addButton, composition, deteleNotesURL, addTieURL, addNoteURL) {
+		addButton, composition, deteleNotesURL, addTieURL, addNoteURL, getCompositionURL) {
 	var editor = this;
 	this.floatBox = floatBox;
 	this.notesInput = notesInput;
 	this.restsInput = restsInput;
 	this.accidentalsInput = accidentalsInput;
 	this.canvas = canvas;
-	this.deleteNoteURL = deteleNotesURL;
+	this.deleteNotesURL = deteleNotesURL;
 	this.addTieURL = addTieURL;
 	this.addNoteURL = addNoteURL;
+	this.getCompositionURL = getCompositionURL;
+	this.lastUpdate = Date.now();
+	this.interval = setInterval(() => {
+		if(Date.now()>editor.lastUpdate-5000)
+			editor.ajaxRequest(editor.getCompositionURL, {}, false);
+	}, 10000);
 	this.notesInput.forEach(function(element, index){
 		element.addEventListener("click", function(){
 			var rest = document.querySelector("input[name='rests']:checked");
@@ -32,11 +38,6 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
 	document.getElementById("tie").addEventListener("click", function (e) {
 		editor.tie(e);
 	}, false);
-	/*this.ajaxRequest(initEditorURL, {
-		instrumentsUsed: instrumentsUsed,
-		timeSignature: timeSignature,
-		keySignature: keySignature
-	});*/
 	addButton.addEventListener("click", function() {
 		editor.floatBox.close();
 		SoMusic.save(editor.renderer.composition);
@@ -75,7 +76,11 @@ Editor.prototype.processClick = function (e) {
 					}
 				}
 				if(!isSelected) {
-					this.renderer.selectedNotes.push({"note": note, "voiceName": voice, "index": staveIndex, "measureIndex": measureIndex, "noteIndex": noteIndex});
+					this.renderer.selectedNotes.push({"note": note,
+						"voiceName": voice,
+						"index": staveIndex,
+						"measureIndex": measureIndex,
+						"noteIndex": noteIndex});
 					note.setStyle({fillStyle: "red"});
 				}
 			}
@@ -117,7 +122,7 @@ Editor.prototype.delNotes = function (e) {
 			measureIndex: this.renderer.selectedNotes[i].measureIndex,
 			noteIndex: this.renderer.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest(this.deteleNotesURL, {"toRemove":toRemove});
+	this.ajaxRequest(this.deleteNotesURL, {"toRemove":toRemove}, true);
 }
 
 Editor.prototype.tie = function (e) {
@@ -133,7 +138,7 @@ Editor.prototype.tie = function (e) {
 			measureIndex: this.renderer.selectedNotes[i].measureIndex,
 			noteIndex: this.renderer.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest(this.addTieURL, {"toTie":toTie});
+	this.ajaxRequest(this.addTieURL, {"toTie":toTie}, true);
 }
 
 //TODO pass x and y from processClick
@@ -214,6 +219,10 @@ Editor.prototype.getNote = function (y, stave) {
 	return notes[note] + '/' + octave;
 }
 
+Editor.prototype.close = function() {
+	clearInterval(this.interval);
+}
+
 Editor.prototype.restoreData = function (data, instruments, isUsed) {
 	/*this.instrumentsUsed = [];
 	if(!isUsed) {
@@ -252,14 +261,14 @@ Editor.prototype.shakeScore = function(err){
 	sweetAlert('Oops...', err, 'error');
 }
 
-Editor.prototype.ajaxRequest = function(url, data) {
+Editor.prototype.ajaxRequest = function(url, data, cleanVars) {
 	var editor = this;
 	$.ajax({
 		type: 'post',
 		url: url,
 		data: data,
 		dataType: 'JSON',
-		success: function(data) { editor.renderer.updateComposition(data); },
+		success: function(data) { editor.lastUpdate=Date.now(); editor.renderer.updateComposition(data, cleanVars); },
 		error: function( XMLHttpRequest, textStatus, errorThrown ){
 			OW.error(textStatus);
 		},

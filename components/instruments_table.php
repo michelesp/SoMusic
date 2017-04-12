@@ -8,7 +8,7 @@ class SOMUSIC_CMP_InstrumentsTable extends OW_Component {
 			array_push($tableHeader, "User");
 		$toRender = array();
 		foreach ($instrumentsTable as $row)
-			array_push($toRender, array("name"=>$row["name"], "type"=>$row["type"]));
+			array_push($toRender, array("name"=>$row["name"], "type"=>$row["type"], "userId"=>$row["user"]));
 		$this->assign("tableHeader", $tableHeader);
 		$this->assign("instrumentGroups", SOMUSIC_BOL_Service::getInstance()->getInstrumentGroups());
 		$this->assign("tableRows", $toRender);

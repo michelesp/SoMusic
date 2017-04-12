@@ -70,7 +70,6 @@ label {
 </div>
 {/form}
 <script>
-	console.log({$composition});
 	SoMusic.editor = new Editor(SoMusic.floatBox,
 			document.getElementsByName("notes"),
 			document.getElementsByName("rests"),
@@ -78,7 +77,8 @@ label {
 			document.getElementById("score"),
 			document.getElementById("add"),
 			{$composition},
-			"{$deteleNotesURL}",
+			"{$deleteNotesURL}",
 			"{$addTieURL}",
-			"{$addNoteURL}");
+			"{$addNoteURL}",
+			"{$getCompositionURL}");
 </script>

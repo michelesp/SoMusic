@@ -1,10 +1,11 @@
 
-function InstrumentsTable(addURL, deleteURL, getURL, commitChangeURL, changeTypeURL) {
+function InstrumentsTable(addURL, deleteURL, getURL, commitChangeURL, changeTypeURL, changeUserURL) {
 	this.addURL = addURL;
 	this.deleteURL = deleteURL;
 	this.getURL = getURL;
 	this.commitChangeURL = commitChangeURL;
 	this.changeTypeURL = changeTypeURL;
+	this.changeUserURL = changeUserURL;
 	this.toUpdate = [];
 	this.lastEditTimeout = -1;
 	this.lastEditIndex = -1;
@@ -95,6 +96,21 @@ InstrumentsTable.prototype.changeType = function(index, value) {
 		type: 'post',
 		url: this.changeTypeURL,
 		data: {'index': index, 'value': value},
+		dataType: 'json',
+		success: function(data) { instrumentsTable.updateTable(data); },
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		},
+		complete: function(){ }
+	});
+}
+
+InstrumentsTable.prototype.changeUser = function(index, id) {
+	var instrumentsTable = this;
+	$.ajax({
+		type: 'post',
+		url: this.changeUserURL,
+		data: {'index': index, 'id': id},
 		dataType: 'json',
 		success: function(data) { instrumentsTable.updateTable(data); },
 		error: function( XMLHttpRequest, textStatus, errorThrown ){

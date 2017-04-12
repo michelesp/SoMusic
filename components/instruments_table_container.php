@@ -9,6 +9,7 @@ class SOMUSIC_CMP_InstrumentsTableContainer extends OW_Component {
 		$this->assign("getURL", OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_InstrumentsTable', 'getTable' ));
 		$this->assign("commitChangeURL", OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_InstrumentsTable', 'commitChange' ));
 		$this->assign("changeTypeURL", OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_InstrumentsTable', 'changeType' ));
+		$this->assign("changeUserURL", OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_InstrumentsTable', 'changeUser' ));
 		$this->assign("instrumentsTable", $instrumentsTable->render());
 	}
 	

@@ -11,28 +11,45 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$this->cache = new Memcached ();
 		$this->cache->addServer("localhost", 11211);
 		$assignment = OW::getSession()->get("newAssignment");
+		if($assignment==null)
+			$assignment = OW::getSession()->get("assignment");
 		if($assignment!=null){
 			$assignmentObj = (object)json_decode($assignment);
-			if($assignmentObj->group_id==null || $assignmentObj->name==null || $assignmentObj->is_multi_user==null)
+			if($assignmentObj->group_id==null || $assignmentObj->name==null || (isset($assignmentObj->is_multi_user)?$assignmentObj->is_multi_user:$assignmentObj->mode)==null)
 				$this->id = "userId#".$this->userId;
 			else $this->id = json_encode((object)array("groupId"=>$assignmentObj->group_id, "name"=>$assignmentObj->name));
 		}
 		else $this->id = "userId#".$this->userId;
-		//$this->composition = $this->cache->get($this->id);
-		$this->composition = unserialize(OW::getSession()->get($this->id));
 		$this->instrumentsScore = array();
-		if(isset($this->composition) && isset($this->composition->instrumentsScore)) {
-			for($i=0; $i<count($this->composition->instrumentsScore); $i++)
+		$this->composition = unserialize(OW::getSession()->get($this->id));
+		if(isset($this->composition)) {
+			if(!is_object($this->composition))
+				$this->composition = $this->getCompositionObject($this->composition);
+			$nMeasures = 0;
+			for($i=0; $i<count($this->composition->instrumentsScore); $i++) {
 				array_push($this->instrumentsScore, $this->cache->get($this->id."#instrumentScore#".$i));
-			
+				$nMeasures = max(array($nMeasures, count($this->instrumentsScore[$i]->measures)));
+			}
+			for($i=0; $i<count($this->composition->instrumentsScore); $i++) {
+				$lastMeasure = $this->instrumentsScore[$i]->measures[count($this->instrumentsScore[$i]->measures)-1];
+				$clef = $lastMeasure->clef;
+				$timeSign = $lastMeasure->timeSignature;
+				$keySign = $lastMeasure->keySignature;
+				while(count($this->instrumentsScore[$i]->measures)<$nMeasures) 
+					array_push($this->instrumentsScore[$i]->measures, $this->newMeasure($clef, explode ("/", $timeSign), $keySign));
+			}
+			$this->composition->instrumentsScore = $this->instrumentsScore;
 		}
 	}
 
 	public function __destruct() {
 		for($i=0; $i<count($this->instrumentsScore); $i++)
-			$this->cache->set($this->id."#instrumentScore#".$i, $this->instrumentsScore[$i], time()+60*60);
+			if($this->instrumentsScore[$i]->user == $this->userId) {
+				$this->cache->set($this->id."#instrumentScore#".$i, $this->instrumentsScore[$i], time()+60*60);
+				$this->composition->instrumentsScore[$i] = $this->instrumentsScore[$i];
+			}
+			else $this->composition->instrumentsScore[$i] = $this->cache->get($this->id."#instrumentScore#".$i);
 		OW::getSession()->set($this->id, serialize($this->composition));
-		//$this->cache->set ($this->id, $this->composition);
 	}
 	
 
@@ -70,9 +87,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$newNote = explode ( "/", $_REQUEST ["newNote"] );
 		$duration = 64 / intval ( $_REQUEST ["duration"] );
 		$userId = OW::getUser ()->getId ();
-		if(!is_object($this->composition))
-			$this->composition = $this->getCompositionObject($this->composition);
-		//$instrumentScore = $this->composition->instrumentsScore [$staveIndex];
+		//if(!is_object($this->composition))
+		//	$this->composition = $this->getCompositionObject($this->composition);
 		$instrumentScore = $this->instrumentsScore[$staveIndex];
 		if($instrumentScore->user!=$userId)
 			$this->error("permission denied");
@@ -105,15 +121,6 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			array_push ( $note->octave, $newNote [1] );
 		}
 		$this->instrumentsScore[$staveIndex] = $instrumentScore;
-		/*if ($measureIndex == count ( $this->composition->instrumentsScore) - 1) {
-			for($i = 0; $i < count ($this->composition->instrumentsScore); $i++) {
-				$lastMeasure = $this->instrumentsScore [$i]->measures [$measureIndex];
-				$clef = $lastMeasure->clef;
-				$timeSign = $lastMeasure->timeSignature;
-				$keySign = $lastMeasure->keySignature;
-				array_push ( $this->instrumentsScore [$i]->measures, $this->newMeasure ( $clef, explode ( "/", $timeSign ), $keySign ) );
-			}
-		}*/
 		if ($measureIndex == count ( $this->instrumentsScore[0]->measures) - 1) {
 			for($i = 0; $i < count ($this->instrumentsScore); $i++) {
 				$lastMeasure = $this->instrumentsScore [$i]->measures [$measureIndex];
@@ -130,8 +137,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	public function deleteNotes() {
 		if(!isset($_REQUEST["toRemove"]))
 			$this->error("error notes deletion");
-		if(!is_object($this->composition))
-			$this->composition = $this->getCompositionObject($this->composition);
+		//if(!is_object($this->composition))
+		//	$this->composition = $this->getCompositionObject($this->composition);
 		foreach ($_REQUEST ["toRemove"] as $obj) {
 			//$is = $this->composition->instrumentsScore [$obj ["staveIndex"]];
 			$is = $this->instrumentsScore[$obj["staveIndex"]];
@@ -198,8 +205,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$toTie = $_REQUEST ["toTie"];
 		$score = $toTie [0] ["voiceName"];
 		$userId = OW::getUser ()->getId ();
-		if(!is_object($this->composition))
-			$this->composition = $this->getCompositionObject($this->composition);
+		//if(!is_object($this->composition))
+		//	$this->composition = $this->getCompositionObject($this->composition);
 		for($i = 1; $i < count ( $toTie ); $i ++) {
 			if ($toTie [$i] ["voiceName"] != $score) {
 				// error message
@@ -245,8 +252,10 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	}
 
 	public function getComposition() {
-		$id = $_REQUEST ["id"];
-		if (ctype_digit ( $id )) {
+		//if(!is_object($this->composition))
+		//	$this->composition = $this->getCompositionObject($this->composition);
+		if (isset($_REQUEST ["id"])) {
+			$id = intval($_REQUEST["id"]);
 			$this->composition = json_decode ( SOMUSIC_BOL_Service::getInstance ()->getScoreByPostId ( $id ) ["data"] );
 			$this->instrumentsScore = $this->composition->instrumentsScore;
 			for($i=0; $i<count($this->instrumentsScore); $i++)
@@ -340,9 +349,9 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	}
 	
 	private function error($errorMsg) {
-		/*$composition = (array)$this->composition;
+		$composition = (array)$this->composition;
 		 $composition["error"] = $errorMsg;
-		 exit(json_encode((object)$composition));*/
+		 exit(json_encode((object)$composition));
 	}
 	
 }

@@ -13,6 +13,10 @@ SoMusic.init = function () {
 			delete SoMusic.assignmentId;
 		if(typeof SoMusic.assignment!=="undefined")
 			delete SoMusic.assignment;*/
+		if(typeof SoMusic.editor !== "undefined") {
+			SoMusic.editor.close();
+			delete SoMusic.editor;
+		}
 		oldClose.call(this);
 	}
 }
@@ -226,7 +230,12 @@ SoMusic.assignmentDetails = function(assignmentId) {
 SoMusic.completeAssignment = function(assignmentId, timeSignature, keySignature, instrumentsUsed, composition) {
 	if(typeof SoMusic.floatBox!=="undefined")
 		SoMusic.floatBox.close();
-	var toSend = {"timeSignature":timeSignature,"keySignature":keySignature,"instrumentsUsed":instrumentsUsed,"composition":composition};
+	var toSend = {"timeSignature":timeSignature,
+			"keySignature":keySignature,
+			"instrumentsUsed":instrumentsUsed,
+			"composition":composition,
+			"assignmentId":assignmentId};
+	console.log(toSend);
 	SoMusic.assignmentId = assignmentId;
 	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
 }

@@ -62,9 +62,9 @@
 				</select></td>
 				{if $usersCount>1}
 				<td>
-					<select name="instrumentUser">
+					<select name="instrumentUser" onchange="instrumentsTable.changeUser({$i}, value)">
 						{foreach from=$users key=$uid item=$username}
-						<option value="{$uid}">{$username}</option>
+						<option value="{$uid}" {if $uid==$row['userId']}selected{/if}>{$username}</option>
 						{/foreach}
 					</select>
 				</td>

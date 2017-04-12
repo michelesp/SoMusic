@@ -24,13 +24,14 @@ Renderer.prototype.renderAndDraw = function() {
 	});
 }
 
-Renderer.prototype.updateComposition = function(data) {
+Renderer.prototype.updateComposition = function(data, cleanVars) {
 	console.log(data);
 	var instrumentsScore = data.instrumentsScore;
 	this.composition = data;
 	this.measures = [];
 	this.ties = [];
-	this.selectedNotes = [];
+	if(cleanVars)
+		this.selectedNotes = [];
 	for(var i=0; i<instrumentsScore[0].measures.length; i++) {
 		var timeSignature = instrumentsScore[0].measures[i].timeSignature.split("/");
 		var m = new Measure(i, timeSignature[0], timeSignature[1], instrumentsScore[0].measures[0].keySignature, data.instrumentsUsed);

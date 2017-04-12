@@ -2,7 +2,7 @@
 
 class SOMUSIC_CMP_Editor extends OW_Component {
 	
-	public function __construct($timeSignature, $keySignature, $instrumentsUsed, $composition = null) {
+	public function __construct($timeSignature, $keySignature, $instrumentsUsed, $composition = null, $assignmentId = null) {
 		$imgUrl =  OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticUrl()."img/";
 		$notes = array("1"=>$imgUrl."whole-note.png",
 				"2"=>$imgUrl."half-note.png",
@@ -32,6 +32,14 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		foreach ($accidentals as $key=>$value)
 			$accidentalsField->addOption($key, "<img src='$value' class='noteImg'/>");
 		$form->addElement($accidentalsField);
+		
+		$assignment = null;
+		if(isset($assignmentId)) {
+			$assignment = SOMUSIC_BOL_Service::getInstance()->getAssignment(intval($assignmentId));
+			OW::getSession()->set("assignment", json_encode($assignment));
+		}
+		else OW::getSession()->delete("assignment");
+		
 		$editorCTRL = new SOMUSIC_CTRL_Editor();
 		if($composition==null)
 			$composition = $editorCTRL->initEditor($instrumentsUsed, $timeSignature, $keySignature);
@@ -40,9 +48,10 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		
 		$this->addForm($form);
 		$this->assign("form", $form);
-		$this->assign("deteleNotesURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'deleteNotes'));
+		$this->assign("deleteNotesURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'deleteNotes'));
 		$this->assign("addTieURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addTie'));
 		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
+		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getComposition'));
 	}
 	
 	public static function addScripts() {
