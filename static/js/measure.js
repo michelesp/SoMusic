@@ -19,7 +19,6 @@ function Measure(index, beatNum, beatValue, keySign, instrumentsUsed) {
 		this.voices[this.voicesName[i]].setMode(3);
 	}
 	//array of ties inside the measure
-	this.formatter = new Vex.Flow.Formatter();
 	this.minNote = 1; //1 is w, 2 is h, 3 is q, 4 is 8, 5 is 16
 	this.width;
 	this.computeScale();
@@ -117,17 +116,26 @@ Measure.prototype.renderEndLine = function (ctx) {
 //calculate the width of the stave based on the note with the minimum duration
 Measure.prototype.computeScale = function () {
 	this.restoreVoices();
+	var widths = [];
+	for (var voiceName in this.notesArr)
+		widths[voiceName] = 70;
 	for (var voiceName in this.notesArr) {
 		for (var i = 0; i < this.notesArr[voiceName].length; i++) {
 			var noteDuration = this.notesArr[voiceName][i].duration;
 			if(isNaN(noteDuration.charAt(noteDuration.length-1)))
 				noteDuration = parseInt(noteDuration.substring(0, noteDuration.length-1));
 			else noteDuration = parseInt(noteDuration);
+			widths[voiceName] += 10*noteDuration;
 			if (noteDuration > this.minNote)
 				this.minNote = noteDuration;
 		}
 	}
-	this.width = 90 * this.minNote+((this.index==0)?20:0);
+	this.width = 70;
+	for (var voiceName in this.notesArr)
+		if(this.width<widths[voiceName])
+			this.width = widths[voiceName];
+	if(this.index==0)
+		this.width+=40;
 }
 
 //check if the given voice is full or not
@@ -143,13 +151,23 @@ Measure.prototype.getEndX = function () {
 
 //draw the notes on the staves
 Measure.prototype.drawNotes = function (ctx) {
-	this.completeVoices();
-	var toFormat = [];
-	for (var voice in this.voices)
-		toFormat.push(this.voices[voice]);
-	this.formatter.format(toFormat, this.width);
-	for (var voice in this.voices) 
-		this.voices[voice].draw(ctx, this.getStaveToDraw(voice));
+	for (var voice in this.voices) {
+		var fillStyles = [];
+		for(var i=0; i<this.voices[voice].tickables.length; i++) {
+			var note = this.voices[voice].tickables[i];
+			fillStyles[i] = [];
+			for(var j=0; j<note.note_heads.length; j++)
+				fillStyles[i][j] = (typeof note.note_heads[j].style!=="undefined"?note.note_heads[j].style:"");
+		}
+		var beams = Vex.Flow.Beam.generateBeams(this.voices[voice].tickables);
+		for(var i=0; i<this.voices[voice].tickables.length; i++) {
+			for(var j=0; j<this.voices[voice].tickables[i].note_heads.length; j++)
+				this.voices[voice].tickables[i].note_heads[j].style = fillStyles[i][j];
+		}
+		Vex.Flow.Formatter.FormatAndDraw(ctx,  this.getStaveToDraw(voice), this.voices[voice].tickables);
+		beams.forEach(function(b) { b.setContext(ctx).draw(); });
+		//this.voices[voice].draw(ctx, this.getStaveToDraw(voice));
+	}
 }
 
 Measure.prototype.getStaveToDraw = function (voice) {

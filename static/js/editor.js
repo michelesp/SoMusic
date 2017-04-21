@@ -1,6 +1,6 @@
 
-function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
-		addButton, composition, deteleNotesURL, addTieURL, addNoteURL, getCompositionURL) {
+function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addButton, 
+		composition, deteleNotesURL, addTieURL, addNoteURL, getCompositionURL, accidentalUpdateURL) {
 	var editor = this;
 	this.floatBox = floatBox;
 	this.notesInput = notesInput;
@@ -11,9 +11,10 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
 	this.addTieURL = addTieURL;
 	this.addNoteURL = addNoteURL;
 	this.getCompositionURL = getCompositionURL;
+	this.accidentalUpdateURL = accidentalUpdateURL;
 	this.lastUpdate = Date.now();
 	this.interval = setInterval(() => {
-		if(Date.now()>editor.lastUpdate-5000)
+		if(Date.now()>editor.lastUpdate-5000 && this.renderer.selectedNotes.length==0)
 			editor.ajaxRequest(editor.getCompositionURL, {}, false);
 	}, 10000);
 	this.notesInput.forEach(function(element, index){
@@ -28,6 +29,11 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
 			var note = document.querySelector("input[name='notes']:checked");
 			if(note!=null)
 				note.checked = false;
+		});
+	});
+	this.accidentalsInput.forEach(function(element, index){
+		element.addEventListener("click", function(){
+			editor.accidentalUpdate(this.value);
 		});
 	});
 	this.renderer = new Renderer(this.canvas, composition.instrumentsUsed);
@@ -159,7 +165,8 @@ Editor.prototype.addNote = function (e, staveIndex, measureIndex, noteIndex) {
 		noteIndex: noteIndex,
 		newNote: pitch,
 		duration: noteLength[duration],
-		isPause: duration.indexOf("r")>=0
+		isPause: duration.indexOf("r")>=0,
+		accidental: document.querySelector("input[name='accidentals']:checked").value
 	});
 }
 
@@ -217,6 +224,19 @@ Editor.prototype.getNote = function (y, stave) {
 	}
 	var notes = {0: 'c', 1: 'd', 2: 'e', 3: 'f', 4: 'g', 5: 'a', 6: 'b'};
 	return notes[note] + '/' + octave;
+}
+
+Editor.prototype.accidentalUpdate = function (type) {
+	if(this.renderer.selectedNotes.length==0)
+		return;
+	var toUpdate = [];
+	for(var i=0; i<this.renderer.selectedNotes.length; i++) 
+		toUpdate.push({
+			staveIndex: this.renderer.selectedNotes[i].index,
+			measureIndex: this.renderer.selectedNotes[i].measureIndex,
+			noteIndex: this.renderer.selectedNotes[i].noteIndex
+		});
+	this.ajaxRequest(this.accidentalUpdateURL, {"toUpdate":toUpdate, "accidental":type}, true);
 }
 
 Editor.prototype.close = function() {

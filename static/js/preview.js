@@ -4,14 +4,13 @@ function Preview(floatBox, timeSignature, keySignature, scoreDiv, nextButton, in
 	this.timeSignature = timeSignature;
 	this.keySignature = keySignature;
 	this.scoreDiv = scoreDiv;
-	this.nextButton = nextButton;
 	this.instrumentsTable = instrumentsTable;
 	this.renderer = new Vex.Flow.Renderer(scoreDiv, Vex.Flow.Renderer.Backends.SVG);
 	this.instrumentsTable.toUpdate.push(this);
 	var preview = this;
 	this.timeSignature.addEventListener("change", function() { preview.update(); }, false);
 	this.keySignature.addEventListener("change", function() { preview.update(); }, false);
-	this.nextButton.addEventListener("click", function() { preview.commitPreview(); }, false);
+	nextButton.addEventListener("click", function() { preview.commitPreview(); }, false);
 }
 
 Preview.prototype.update = function() {

@@ -1,0 +1,40 @@
+{$menu}
+
+<div class="container-fluid">
+	{foreach from=$instrumentsGroups key=$group item=$instruments}
+	<div class="row">
+		<div class="col-md-12">
+			<div class="row">
+				<div class="col-md-12">
+					<h1>{$group}</h1>
+				</div>
+			</div>
+			<form>
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Staves</th>
+						</tr>
+					</thead>
+					<tbody>
+						{foreach from=$instruments item=$instrument}
+						<tr>
+							<td>{$instrument["name"]}</td>
+							<td>
+								{foreach from=$instrument["clefs"] item=$clef}
+								{$clef}<br>
+								{/foreach}
+							</td>
+						</tr>
+						{/foreach}
+						<tr>
+							<td collspan="2"><input type="button" value="aggiungi"></input></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+		</div>
+	</div>
+	{/foreach}
+</div>

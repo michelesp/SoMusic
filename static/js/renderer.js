@@ -51,7 +51,12 @@ Renderer.prototype.updateComposition = function(data, cleanVars) {
 					else if(m1.clef=="alto")
 						keys[0] = "c/4";
 				}
-				m.addNote(new Vex.Flow.StaveNote({clef: m1.clef, keys: keys, duration: (64/note.duration)+(note.isRest?"r":"") }), instrumentsScore[j].name, k);
+				var note1 = new Vex.Flow.StaveNote({clef: m1.clef, keys: keys, duration: (64/note.duration)+(note.isRest?"r":"")});
+				if(note.accidental!=null)
+					for(var l=0; l<note.accidental.length; l++)
+						if(note.accidental[l]!="clear")
+							note1.addAccidental(l, new Vex.Flow.Accidental(note.accidental[l]));
+				m.addNote(note1, instrumentsScore[j].name, k);
 			}
 		}
 		this.measures.push(m);

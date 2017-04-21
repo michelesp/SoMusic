@@ -21,7 +21,10 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 		
 		$assignment1 = array();
 		foreach ($assignments as $a) {
+			//TODO: se esiste un execution usare quello, oppure gestire questa cosa da un altra parte
 			$composition = json_decode(SOMUSIC_BOL_Service::getInstance()->getComposition($a["composition_id"])->data);
+			//if(!is_object($composition))
+			//	$composition = $this->getCompositionObject($composition);
 			$timeSignature = $composition->instrumentsScore[0]->measures[0]->timeSignature;
 			$keySignature = $composition->instrumentsScore[0]->measures[0]->keySignature;
 			$instrumentsUsed = $composition->instrumentsUsed;
@@ -31,7 +34,8 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 					"timeSignature"=>$timeSignature,
 					"keySignature"=>$keySignature,
 					"instrumentsUsed"=>json_encode($instrumentsUsed),
-					"composition"=>json_encode($composition)
+					"composition"=>json_encode($composition),
+					"close"=>$a["close"]
 			));
 		}
 		
@@ -53,4 +57,27 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 	{
 		return self::ACCESS_ALL;
 	}
+	
+	/*private function getCompositionObject($compositionArray) {
+		$this->composition = new SOMUSIC_CLASS_Composition($compositionArray["id"], $compositionArray["name"], $compositionArray["user_c"], $compositionArray["timestamp_c"], $compositionArray["user_m"], $compositionArray["timestamp_m"], array(), $compositionArray["instrumentsUsed"]);
+		foreach ($compositionArray["instrumentsScore"] as $instrumentScoreArray) {
+			$instrumentScore = new SOMUSIC_CLASS_InstrumentScore($instrumentScoreArray["default_clef"], $instrumentScoreArray["name"], array(), array(), $instrumentScoreArray["instrument"], $instrumentScoreArray["user"]);
+			foreach ($instrumentScoreArray["measures"] as $measureArray) {
+				$voices = array();
+				foreach ($measureArray["voices"] as $voiceArray) {
+					$voice = array();
+					foreach ($voiceArray as $noteArray)
+						array_push($voice, new SOMUSIC_CLASS_Note($noteArray["id"], $noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["duration"], $noteArray["isRest"], $noteArray["isTieStart"], $noteArray["isTieEnd"]));
+						array_push($voices, $voice);
+				}
+				$measure = new SOMUSIC_CLASS_Measure($measureArray["id"], $measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
+				array_push($instrumentScore->measures, $measure);
+			}
+			foreach ($instrumentScoreArray["ties"] as $tieArray)
+				array_push($instrumentScore->ties, new SOMUSIC_CLASS_Tie($tieArray["firstMeasure"], $tieArray["firstNote"], $tieArray["lastMeasure"], $tieArray["lastNote"]));
+				array_push($this->composition->instrumentsScore, $instrumentScore);
+		}
+		return $this->composition;
+	}*/
+	
 }

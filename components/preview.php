@@ -32,12 +32,15 @@ class SOMUSIC_CMP_Preview extends OW_Component {
 		
 		$userId = OW::getUser()->getId();
 		$username = OW::getUser()->getUserObject()->username;
-		$users = array($userId=>$username);
+		
 		if($multiUserMod && $groupId>=0) {
+			$users = array($userId=>$username);
 			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($groupId);
 			foreach ($userIdList as $uid)
 				$users[$uid] = BOL_UserService::getInstance()->findByIdWithoutCache($uid)->username;			
 		}
+		else $users = array("-1"=>$username);
+		
 		if(!$multiUserMod && $groupId==-1 && OW::getSession()->get("newAssignment")!=null)
 			OW::getSession()->delete("newAssignment");
 		

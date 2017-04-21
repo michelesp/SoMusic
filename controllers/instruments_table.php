@@ -36,7 +36,7 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		$preview->instrumentsTable = $_REQUEST["instruments"];
 		$userId = OW::getUser()->getId();
 		$firstInstrument = SOMUSIC_BOL_Service::getInstance()->getInstrumentGroups()[0]["instruments"][0];
-		array_push($preview->instrumentsTable, array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"], "user"=>$userId));
+		array_push($preview->instrumentsTable, array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"], "user"=>($preview->multiUserMod?$userId:-1)));
 		$preview->instrumentsTable = $this->changeName($preview->instrumentsTable, $this->getDuplicated($preview->instrumentsTable));
 		OW::getSession()->set("preview", serialize($preview));
 		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
@@ -109,12 +109,13 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 	private function getUsers($groupId, $multiUserMod) {
 		$userId = OW::getUser()->getId();
 		$username = OW::getUser()->getUserObject()->username;
-		$users = array($userId=>$username);
 		if($multiUserMod && $groupId>=0) {
+			$users = array($userId=>$username);
 			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($groupId);
 			foreach ($userIdList as $uid)
 				$users[$uid] = BOL_UserService::getInstance()->findByIdWithoutCache($uid)->username;
 		}
+		else $users = array("-1"=>$username);
 		return $users;
 	}
 	

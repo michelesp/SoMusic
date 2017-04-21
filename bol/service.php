@@ -106,11 +106,11 @@ class SOMUSIC_BOL_Service {
 		$instruments = array();
 		$groups = SOMUSIC_BOL_InstrumentGroupDao::getInstance()->findAll();
 		foreach ($groups as $group){
-			$groupOfInstruments = array("name"=>$group->name, "instruments"=>array());
+			$groupOfInstruments = array("name"=>$group->name, "instruments"=>array(), "id"=>$group->id);
 			$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstrumentsByGroup($group->id);
 			foreach ($musicIntruments as $mi)
 				array_push($groupOfInstruments["instruments"], array("name"=>$mi["name"], "optionValue"=>strtolower(str_replace(" ", "_", $mi["name"]))));
-				array_push($instruments, $groupOfInstruments);
+			array_push($instruments, $groupOfInstruments);
 		}
 		return $instruments;
 	}
@@ -128,8 +128,8 @@ class SOMUSIC_BOL_Service {
 		$dt2->last_user_m = $idOwner;
 		$dt2->mode = $mode;
 		$dt2->name = $name;
-		$dt2->timestamp_c = time();
-		$dt2->timestamp_m = $dt2->timestamp_c;
+		//$dt2->timestamp_c = time();
+		//$dt2->timestamp_m = $dt2->timestamp_c;
 		SOMUSIC_BOL_AssignmentDao::getInstance ()->save ( $dt2 );
 		return $dt2;
 	}
@@ -176,6 +176,33 @@ class SOMUSIC_BOL_Service {
 	
 	public function getExecution($id) {
 		return SOMUSIC_BOL_AssignmentExecutionDao::getInstance()->findById($id);
+	}
+	
+	public function removeAssignment($id) {
+		$executions = $this->getAssignmentExecutionsByAssignmentId($id);
+		foreach ($executions as $ex) {
+			SOMUSIC_BOL_SomusicDao::getInstance()->deleteById($ex["composition_id"]);
+			SOMUSIC_BOL_AssignmentExecutionDao::getInstance()->deleteById($ex["id"]);
+		}
+		SOMUSIC_BOL_AssignmentDao::getInstance()->deleteById($id);
+	}
+	
+	public function closeAssignment($id) {
+		$dbo = OW::getDbo();
+		$query = "UPDATE ow_assignment ".
+				"SET ow_assignment.close = 1 ".
+				"WHERE ow_assignment.id = ".$id.";";
+		$dbo->query($query);
+		return true;
+	}
+	
+	public function getExecutionByAssignmentAndUser($assignmentId, $userId) {
+		$dbo = OW::getDbo ();
+		$query = "SELECT *
+                  FROM ow_assignment_execution
+				  WHERE ow_assignment_execution.assignment_id = ".$assignmentId." AND 
+				  		ow_assignment_execution.user_id = ".$userId.";";
+		return $dbo->queryForRow($query);
 	}
 	
 }

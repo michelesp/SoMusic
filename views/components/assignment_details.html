@@ -1,13 +1,39 @@
+{style}
+#details_table {
+	width: 100%;
+}
+#details_table thead,
+#details_table tbody,
+#details_table tr,
+#details_table td,
+#details_table th {
+	display: block;
+}
+#details_table tr:after {
+	content: ' ';
+    display: block;
+    visibility: hidden;
+    clear: both;
+}
+#details_table tbody {
+	height: calc(40vh);
+	overflow-y: auto;
+}
+#details_table td,
+#details_table th {
+	width: 20%;
+    float: left;
+}
+{/style}
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-md-12 text-center">
 			<h1>{$name}</h1>
 		</div>
 	</div>
-	{if $isMultiUser==0}
 	<div class="row">
 		<div class="col-md-12">
-			<table class="table table-hover">
+			<table id="details_table" class="table table-hover">
 				<thead>
 					<tr>
 						<th>#</th>
@@ -37,6 +63,14 @@
 			</table>
 		</div>
 	</div>
-	{else}
-	{/if}
+	<div class="row">
+		<div class="col-md-3"></div>
+		<div class="col-md-4 text-center">
+			<a onclick="SoMusic.closeAssignment('{$closeURL}', {$id});" class='list-group-item assignment_item'>Close Assignment</a>
+		</div>
+		<div class="col-md-2 text-center">
+			<a onclick="SoMusic.removeAssignment('{$removeURL}', {$id});" class='list-group-item assignment_item'>Remove</a>
+		</div>
+		<div class="col-md-3"></div>
+	</div>
 </div>

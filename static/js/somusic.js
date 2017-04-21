@@ -172,7 +172,6 @@ SoMusic.save = function(composition) {
 		});
 		return;
 	}
-	console.log("not assignment");
 	if(SoMusic.idPost!=-1) {
 		$.ajax({
 			type: 'post',
@@ -202,12 +201,14 @@ SoMusic.save = function(composition) {
 
 SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
 	SoMusic.assignment = { "groupId": groupId, "name": name, "isMultiUser": multiUserMod };
+	console.log(SoMusic.assignment);
 	$.ajax({
 		type: 'post',
 		url: url,
 		data: SoMusic.assignment,
 		dataType: 'JSON',
 		success: function(data){
+			console.log(data);
 			if(data){
 				SoMusic.floatBox.close();
 				SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
@@ -246,3 +247,36 @@ SoMusic.viewAssignmentExecution = function(executionId, timeSignature, keySignat
 	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
 }
 
+SoMusic.removeAssignment = function(url, id) {
+	$.ajax({
+		type: 'post',
+		url: url,
+		data: {"id": id},
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data)
+				setTimeout(function(){ location.reload(); }, 50);
+		},
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		}
+	});
+}
+
+SoMusic.closeAssignment = function(url, id) {
+	$.ajax({
+		type: 'post',
+		url: url,
+		data: {"id": id},
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data)
+				setTimeout(function(){ location.reload(); }, 50);
+		},
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		}
+	});
+}

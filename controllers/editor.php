@@ -6,7 +6,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	private $composition;
 	private $instrumentsScore;
 
-	public function __construct() {
+	public function __construct($loadData=true) {
 		$this->userId = OW::getUser ()->getId ();
 		$this->cache = new Memcached ();
 		$this->cache->addServer("localhost", 11211);
@@ -20,9 +20,9 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			else $this->id = json_encode((object)array("groupId"=>$assignmentObj->group_id, "name"=>$assignmentObj->name));
 		}
 		else $this->id = "userId#".$this->userId;
-		$this->instrumentsScore = array();
-		$this->composition = unserialize(OW::getSession()->get($this->id));
-		if(isset($this->composition)) {
+		if($loadData) {
+			$this->instrumentsScore = array();
+			$this->composition = unserialize(OW::getSession()->get($this->id));
 			if(!is_object($this->composition))
 				$this->composition = $this->getCompositionObject($this->composition);
 			$nMeasures = 0;
@@ -43,8 +43,10 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	}
 
 	public function __destruct() {
+		if(!isset($this->composition) || !isset($this->instrumentsScore))
+			return;
 		for($i=0; $i<count($this->instrumentsScore); $i++)
-			if($this->instrumentsScore[$i]->user == $this->userId) {
+			if($this->instrumentsScore[$i]->user == $this->userId || $this->instrumentsScore[$i]->user==-1) {
 				$this->cache->set($this->id."#instrumentScore#".$i, $this->instrumentsScore[$i], time()+60*60);
 				$this->composition->instrumentsScore[$i] = $this->instrumentsScore[$i];
 			}
@@ -66,6 +68,10 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			}
 		}
 		$this->composition->instrumentsScore = $this->instrumentsScore;
+		for($i=0; $i<count($this->instrumentsScore); $i++) {
+			$this->cache->set($this->id."#instrumentScore#".$i, $this->instrumentsScore[$i], time()+60*60);
+			$this->composition->instrumentsScore[$i] = $this->instrumentsScore[$i];
+		}
 		return $this->composition;
 	}
 
@@ -79,7 +85,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 
 	public function addNote() {
 		if(!isset($_REQUEST["staveIndex"]) || !isset($_REQUEST["measureIndex"]) || !isset($_REQUEST["noteIndex"])
-				|| !isset($_REQUEST["newNote"]) || !isset($_REQUEST["duration"]))
+				|| !isset($_REQUEST["newNote"]) || !isset($_REQUEST["duration"]) || !isset($_REQUEST["accidental"]))
 			$this->error("error insertion note");
 		$staveIndex = intval ( $_REQUEST ["staveIndex"] );
 		$measureIndex = intval ( $_REQUEST ["measureIndex"] );
@@ -87,10 +93,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$newNote = explode ( "/", $_REQUEST ["newNote"] );
 		$duration = 64 / intval ( $_REQUEST ["duration"] );
 		$userId = OW::getUser ()->getId ();
-		//if(!is_object($this->composition))
-		//	$this->composition = $this->getCompositionObject($this->composition);
 		$instrumentScore = $this->instrumentsScore[$staveIndex];
-		if($instrumentScore->user!=$userId)
+		if($instrumentScore->user!=$userId && $instrumentScore->user!=-1)
 			$this->error("permission denied");
 		$measure = $instrumentScore->measures[$measureIndex];
 		$note = $measure->voices [0] [$noteIndex];
@@ -106,7 +110,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			}
 			if ($_REQUEST ["isPause"] == "true")
 				array_unshift ( $toAdd, new SOMUSIC_CLASS_Note ( - 1, array (), array (), null, $duration, true, array (), array () ) );
-			else array_unshift ( $toAdd, new SOMUSIC_CLASS_Note ( - 1, array($newNote [0]), array($newNote [1]), null, $duration, false, array (), array () ) );
+			else array_unshift ( $toAdd, new SOMUSIC_CLASS_Note ( - 1, array($newNote[0]), array($newNote[1]), array($_REQUEST["accidental"]), $duration, false, array(), array()));
 			for($i = $noteIndex + 1; $i < count ( $measure->voices [0] ); $i ++) {
 				$n = $measure->voices [0] [$i];
 				for($j = 0; $j < count ( $n->isTieStart ); $j ++)
@@ -116,9 +120,11 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			}
 			array_splice ( $measure->voices [0], $noteIndex, 1, $toAdd );
 		}
-		else if ($duration == $note->duration && $_REQUEST ["isPause"] == "false") {
-			array_push ( $note->step, $newNote [0] );
-			array_push ( $note->octave, $newNote [1] );
+		else if ($duration == $note->duration && $_REQUEST["isPause"] == "false") {
+			array_push($note->step, $newNote[0]);
+			array_push($note->octave, $newNote[1]);
+			array_push($note->accidental, $_REQUEST["accidental"]);
+			$this->sortNote($note);
 		}
 		$this->instrumentsScore[$staveIndex] = $instrumentScore;
 		if ($measureIndex == count ( $this->instrumentsScore[0]->measures) - 1) {
@@ -137,12 +143,9 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	public function deleteNotes() {
 		if(!isset($_REQUEST["toRemove"]))
 			$this->error("error notes deletion");
-		//if(!is_object($this->composition))
-		//	$this->composition = $this->getCompositionObject($this->composition);
 		foreach ($_REQUEST ["toRemove"] as $obj) {
-			//$is = $this->composition->instrumentsScore [$obj ["staveIndex"]];
 			$is = $this->instrumentsScore[$obj["staveIndex"]];
-			if($is->user!=$this->userId)
+			if($is->user!=$this->userId && $this->instrumentsScore[$i]->user!=-1)
 				continue;
 			$m = $is->measures [$obj ["measureIndex"]];
 			$note = $m->voices [0] [$obj ["noteIndex"]];
@@ -205,14 +208,9 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$toTie = $_REQUEST ["toTie"];
 		$score = $toTie [0] ["voiceName"];
 		$userId = OW::getUser ()->getId ();
-		//if(!is_object($this->composition))
-		//	$this->composition = $this->getCompositionObject($this->composition);
-		for($i = 1; $i < count ( $toTie ); $i ++) {
-			if ($toTie [$i] ["voiceName"] != $score) {
-				// error message
-				echo (json_encode ( $this->composition ));
-			}
-		}
+		for($i = 1; $i < count ( $toTie ); $i ++) 
+			if ($toTie [$i] ["voiceName"] != $score) 
+				$this->error("error voice");
 		$firstMeasure = INF;
 		$lastMeasure = - INF;
 		for($i = 0; $i < count ( $toTie ); $i ++) {
@@ -235,9 +233,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 					$lastNote = $pos;
 			}
 		}
-		//$instrumentScore = $this->composition->instrumentsScore [$toTie [0] ["staveIndex"]];
 		$instrumentScore = $this->instrumentsScore[$toTie[0]["staveIndex"]];
-		if($instrumentScore->user!=$userId)
+		if($instrumentScore->user!=$userId && $instrumentScore->user!=-1)
 			exit(json_encode($this->composition));
 		$tieIndex = $this->areTied ( $instrumentScore, $firstMeasure, $firstNote, $lastMeasure, $lastNote );
 		$startNote = $instrumentScore->measures [$firstMeasure]->voices [0] [$firstNote];
@@ -252,8 +249,6 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	}
 
 	public function getComposition() {
-		//if(!is_object($this->composition))
-		//	$this->composition = $this->getCompositionObject($this->composition);
 		if (isset($_REQUEST ["id"])) {
 			$id = intval($_REQUEST["id"]);
 			$this->composition = json_decode ( SOMUSIC_BOL_Service::getInstance ()->getScoreByPostId ( $id ) ["data"] );
@@ -273,6 +268,22 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$this->instrumentsScore = array();
 		$this->composition = null;
 		return $composition;
+	}
+	
+	public function accidentalUpdate() {
+		if(!isset($_REQUEST["toUpdate"]) || !isset($_REQUEST["accidental"]))
+			$this->error("error accidental update");
+		foreach ($_REQUEST ["toUpdate"] as $obj) {
+			$is = $this->instrumentsScore[$obj["staveIndex"]];
+			if($is->user!=$this->userId && $this->instrumentsScore[$i]->user!=-1)
+				continue;
+			$m = $is->measures [$obj ["measureIndex"]];
+			$note = $m->voices [0] [$obj ["noteIndex"]];
+			for($i=0; $i<count($note->accidental); $i++)
+				$note->accidental[$i] = $_REQUEST["accidental"];
+		}
+		$this->composition->instrumentsScore = $this->instrumentsScore;
+		exit(json_encode($this->composition));
 	}
 
 	private function getCompositionObject($compositionArray) {
@@ -352,6 +363,46 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$composition = (array)$this->composition;
 		 $composition["error"] = $errorMsg;
 		 exit(json_encode((object)$composition));
+	}
+	
+	private function sortNote(&$note) {
+		$n = count($note->octave);
+		for($i=0; $i<$n-1; $i++) {
+			for($j=$i+1; $j<$n; $j++) {
+				if(intval($note->octave[$j])<intval($note->octave[$i]) || 
+						($note->octave[$j]==$note->octave[$i] && $this->stepToInt($note->step[$j])<$this->stepToInt($note->step[$i]))) {
+					$temp = $note->octave[$j];
+					$note->octave[$j] = $note->octave[$i];
+					$note->octave[$i] = $temp;
+					$temp = $note->step[$j];
+					$note->step[$j] = $note->step[$i];
+					$note->step[$i] = $temp;
+					$temp = $note->accidental[$j];
+					$note->accidental[$j] = $note->accidental[$i];
+					$note->accidental[$i] = $temp;
+				}
+			}
+		}
+	}
+	
+	private function stepToInt($step) {
+		switch($step) {
+			case "c":
+				return 0;
+			case "d":
+				return 1;
+			case "e":
+				return 2;
+			case "f":
+				return 3;
+			case "g":
+				return 4;
+			case "a":
+				return 5;
+			case "b":
+				return 6;
+		}
+		return -1;
 	}
 	
 }

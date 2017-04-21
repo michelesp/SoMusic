@@ -29,10 +29,13 @@ class SOMUSIC_CMP_AssignmentDetails extends OW_Component {
 					"composition"=>json_encode($compositionObj)
 			);
 		}
+		$this->assign("id", $assignmentId);
 		$this->assign("name", $assignment->name);
 		$this->assign("isMultiUser", $isMultiUser);
 		$this->assign("users", $users);
 		$this->assign("compositions", $compositions);
+		$this->assign("removeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'removeAssignment'));
+		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'closeAssignment'));
 	}
 	
 	private function cmpUser($a, $b) {

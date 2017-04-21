@@ -51,10 +51,11 @@ CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'assignment` (
 	`name` VARCHAR(32) NOT NULL, 
 	`group_id` INT NOT NULL,
 	`timestamp_c` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	`timestamp_m` TIMESTAMP NOT NULL,
+	`timestamp_m` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	`last_user_m` INT NOT NULL,
 	`mode` INT NOT NULL,
 	`composition_id` INT NOT NULL,
+	`close` INT NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 ) ENGINE = MyISAM;
 		
@@ -111,3 +112,6 @@ $sql = "INSERT INTO `ow_instrument_group` (`id`, `name`)
 		VALUES ('2', '1', '2', NULL), ('3', '1', '2', NULL), ('22', '1', '2', NULL);";
 
 OW::getDbo ()->query ( $sql );
+
+OW::getPluginManager()->addPluginSettingsRouteName('somusic', 'somusic.admin');
+

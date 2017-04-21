@@ -40,10 +40,11 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		}
 		else OW::getSession()->delete("assignment");
 		
-		$editorCTRL = new SOMUSIC_CTRL_Editor();
+		$editorCTRL = new SOMUSIC_CTRL_Editor(false);
+		
 		if($composition==null)
 			$composition = $editorCTRL->initEditor($instrumentsUsed, $timeSignature, $keySignature);
-		else $editorCTRL->setComposition($composition);		//TODO: controllare
+		else $editorCTRL->setComposition($composition);
 		$this->assign("composition", json_encode($composition));
 		
 		$this->addForm($form);
@@ -52,6 +53,7 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$this->assign("addTieURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addTie'));
 		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
 		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getComposition'));
+		$this->assign("accidentalUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'accidentalUpdate'));
 	}
 	
 	public static function addScripts() {
