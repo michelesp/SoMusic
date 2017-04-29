@@ -25,7 +25,13 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		if(!isset($_REQUEST["composition"]) || !isset($_REQUEST["assignmentId"]))
 			exit(json_encode(false));
 		$assignmentId = intval($_REQUEST["assignmentId"]);
-		$userId = OW::getUser ()->getId ();
+		$assignment = SOMUSIC_BOL_Service::getInstance()->getAssignment($assignmentId);
+		$group = GROUPS_BOL_Service::getInstance()->findGroupById($assignment->group_id);
+		$userId = OW::getUser()->getId();
+		if($assignment->mode==1 && $userId!=$group->userId)
+			exit(json_encode(true));
+		else if($assignment->mode==1 && $userId==$group->userId)
+			SOMUSIC_BOL_Service::getInstance()->closeAssignment($assignmentId);
 		$composition = $this->getCompositionObject($_REQUEST["composition"]);
 		$oldExecution = SOMUSIC_BOL_Service::getInstance()->getExecutionByAssignmentAndUser($assignmentId, $userId);
 		if(!array_key_exists("id", $oldExecution))
@@ -56,6 +62,14 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 			exit(json_encode(false));
 		$id = intval($_REQUEST["id"]);
 		SOMUSIC_BOL_Service::getInstance()->closeAssignment($id);
+		exit(json_encode(true));
+	}
+	
+	public function saveComment() {
+		if(!isset($_REQUEST["id"]) || !isset($_REQUEST["comment"]))
+			exit(json_encode(false));
+		$id = intval($_REQUEST["id"]);
+		SOMUSIC_BOL_Service::getInstance()->setExecutionComment($id, $_REQUEST["comment"]);
 		exit(json_encode(true));
 	}
 	

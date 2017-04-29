@@ -158,6 +158,7 @@ class SOMUSIC_BOL_Service {
 		$execution->assignment_id = $assignmentId;
 		$execution->user_id = $userId;
 		$execution->composition_id = $dt->id;
+		$execution->comment = '';
 		SOMUSIC_BOL_AssignmentExecutionDao::getInstance()->save($execution);
 	}
 	
@@ -203,6 +204,21 @@ class SOMUSIC_BOL_Service {
 				  WHERE ow_assignment_execution.assignment_id = ".$assignmentId." AND 
 				  		ow_assignment_execution.user_id = ".$userId.";";
 		return $dbo->queryForRow($query);
+	}
+	
+	public function setExecutionComment($idExecution, $comment) {
+		$dbo = OW::getDbo();
+		$query = "UPDATE ow_assignment_execution ".
+				"SET comment = '".$comment."' ".
+				"WHERE id = ".$idExecution.";";
+		$dbo->query($query);
+	}
+	
+	public function getAdminGroupIdByExecution($id) {
+		$execution = SOMUSIC_BOL_AssignmentExecutionDao::getInstance()->findById($id);
+		$assignment = SOMUSIC_BOL_Assignment::getInstance()->findById($execution->assignment_id);
+		$group = GROUPS_BOL_GroupDao::getInstance()->findById($assignment->group_id);
+		return $group->userId;
 	}
 	
 }

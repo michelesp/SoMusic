@@ -60,10 +60,11 @@ CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'assignment` (
 ) ENGINE = MyISAM;
 		
 CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'assignment_execution` (
-	`id` INT NOT NULL AUTO_INCREMENT ,
-	`composition_id` INT NOT NULL ,
-	`assignment_id` INT NOT NULL ,
-	`user_id` INT NOT NULL ,
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`composition_id` INT NOT NULL,
+	`assignment_id` INT NOT NULL,
+	`user_id` INT NOT NULL,
+	`comment` VARCHAR(255) NOT NULL DEFAULT "",
 	PRIMARY KEY (`id`)
 ) ENGINE = MyISAM;';
 

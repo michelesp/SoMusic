@@ -7,15 +7,20 @@ SoMusic.init = function () {
 	document.getElementById('score_title_text').addEventListener("change", function () {
 		$('input[name=scoreTitle]').val($('#score_title_text').val());
 	});
+	SoMusic.floatBox = [];
 	var oldClose = OW_FloatBox.prototype.close;
 	OW_FloatBox.prototype.close = function() {
 		/*if(typeof SoMusic.assignmentId!=="undefined")
 			delete SoMusic.assignmentId;
 		if(typeof SoMusic.assignment!=="undefined")
 			delete SoMusic.assignment;*/
-		if(typeof SoMusic.editor !== "undefined") {
-			SoMusic.editor.close();
-			delete SoMusic.editor;
+		if(SoMusic.floatBox.length>0) {
+			var fb = SoMusic.floatBox.pop();
+			console.log(fb);
+			if(fb.name=="Editor") {
+				SoMusic.editor.close();
+				delete SoMusic.editor;
+			}
 		}
 		oldClose.call(this);
 	}
@@ -98,7 +103,8 @@ SoMusic.loadScore = function (data, id, title) {
 SoMusic.removeScore = function () {
 	$('input[name=vmHidden]').val('');
 	document.getElementById("vm_placeholder").style.display = "none";
-	SoMusic.floatBox.close();
+	var fb = SoMusic.floatBox.pop();
+	fb.floatBox.close();
 	$('.floatbox_canvas').each(function(i, obj) {
 		obj.style.display = 'block';
 	});
@@ -116,6 +122,7 @@ SoMusic.modScore = function (vmData) {
 }
 
 SoMusic.save = function(composition) {
+	console.log("save");
 	if(typeof SoMusic.executionId!=="undefined"){
 		$.ajax({
 			type: 'post',
@@ -210,8 +217,9 @@ SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
 		success: function(data){
 			console.log(data);
 			if(data){
-				SoMusic.floatBox.close();
-				SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
+				var fb = SoMusic.floatBox.pop();
+				fb.floatBox.close();
+				SoMusic.floatBox.push({"name":"preview", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})});
 			}
 			else console.log("errore");
 		},
@@ -223,14 +231,12 @@ SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
 }
 
 SoMusic.assignmentDetails = function(assignmentId) {
-	if(typeof SoMusic.floatBox!=="undefined")
-		SoMusic.floatBox.close();
-	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentDetails", {"assignmentId": assignmentId}, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
+	SoMusic.closeAllFloatBox();
+	SoMusic.floatBox.push({"name":"AssignmentDetails", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentDetails", {"assignmentId": assignmentId}, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
 }
 
 SoMusic.completeAssignment = function(assignmentId, timeSignature, keySignature, instrumentsUsed, composition) {
-	if(typeof SoMusic.floatBox!=="undefined")
-		SoMusic.floatBox.close();
+	//SoMusic.closeAllFloatBox();
 	var toSend = {"timeSignature":timeSignature,
 			"keySignature":keySignature,
 			"instrumentsUsed":instrumentsUsed,
@@ -238,13 +244,30 @@ SoMusic.completeAssignment = function(assignmentId, timeSignature, keySignature,
 			"assignmentId":assignmentId};
 	console.log(toSend);
 	SoMusic.assignmentId = assignmentId;
-	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
+	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
+}
+
+SoMusic.closeAllFloatBox = function() {
+	while(SoMusic.floatBox.length>0) {
+		var fb = SoMusic.floatBox.pop();
+		fb.floatBox.close();
+	}
+}
+
+SoMusic.executionDetails = function(assignmentId, executionId) {
+	SoMusic.closeAllFloatBox();
+	var toSend = {
+			"assignmentId": assignmentId,
+			"executionId": executionId
+	};
+	console.log(toSend);
+	SoMusic.floatBox.push({"name":"AssignmentExecutionDetails", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentExecutionDetails", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
 }
 
 SoMusic.viewAssignmentExecution = function(executionId, timeSignature, keySignature, instrumentsUsed, composition) {
 	var toSend = {"timeSignature":timeSignature,"keySignature":keySignature,"instrumentsUsed":instrumentsUsed,"composition":composition};
 	SoMusic.executionId = executionId;
-	SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""});
+	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
 }
 
 SoMusic.removeAssignment = function(url, id) {
@@ -274,6 +297,43 @@ SoMusic.closeAssignment = function(url, id) {
 			console.log(data);
 			if(data)
 				setTimeout(function(){ location.reload(); }, 50);
+		},
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		}
+	});
+}
+
+SoMusic.saveComment = function(url, id, comment) {
+	$.ajax({
+		type: 'post',
+		url: url,
+		data: {"id": id, "comment": comment},
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data)
+				$("#commentModal").modal("hide");
+		},
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		}
+	});
+}
+
+SoMusic.removeCompositionInstrument = function(url, i) {
+	var row = document.getElementsByClassName("instrumentsSettings")[i];
+	$.ajax({
+		type: 'post',
+		url: url,
+		data: {"index": i},
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data) {
+				row.parentNode.removeChild(row);
+				SoMusic.editor.update();
+			}
 		},
 		error: function( XMLHttpRequest, textStatus, errorThrown ){
 			OW.error(textStatus);

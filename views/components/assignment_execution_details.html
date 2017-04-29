@@ -1,0 +1,70 @@
+{style}
+.assignmentExecutionDetails {
+	height: calc(8vh);
+}
+.assignmentExecutionDetails textarea {
+	height: calc(10vh);
+	resize: none;
+}
+.assignmentExecutionDetails:first-child {
+	margin-bottom: calc(5vh);
+}
+.assignmentExecutionDetails:last-child {
+	margin-top: calc(5vh);
+}
+{/style}
+<div class="container-fluid">
+	<div class="row assignmentExecutionDetails">
+		<div class="col-md-12 text-center">
+			<h1>{$name}</h1>
+		</div>
+	</div>
+	<div class="row assignmentExecutionDetails">
+		<div class="col-md-4">
+			<b>assignment creation time</b>
+		</div>
+		<div class="col-md-8">
+			{$assignment_timestamp_c}
+		</div>
+	</div>
+	<div class="row assignmentExecutionDetails">
+		<div class="col-md-4">
+			<b>execution creation time</b>
+		</div>
+		<div class="col-md-8">
+			{$execution_timestamp_c}
+		</div>
+	</div>
+	<div class="row assignmentExecutionDetails">
+		<div class="col-md-4">
+			<b>execution last modify</b>
+		</div>
+		<div class="col-md-8">
+			{$execution_timestamp_m}
+		</div>
+	</div>
+	{if !$isAdmin}
+	<div class="row assignmentExecutionDetails">
+		<div class="col-md-4">
+			<b>comment</b>
+		</div>
+		<div class="col-md-8">
+			<textarea readonly>{$comment}</textarea>
+		</div>
+	</div>
+	{/if}
+	<div class="row">
+		<div class="col-md-2"></div>
+		<div class="col-md-4 text-center">
+		{if !$isAdmin}
+			<a onclick='SoMusic.completeAssignment({$assignmentId},"{$timeSignature}", "{$keySignature}", {$instrumentsUsed}, {$originalComposition});' class='list-group-item assignment_item'>New Execution</a>
+		{else}
+			<a onclick='SoMusic.removeAssignment("{$removeAssignmentURL}", {$assignmentId});' class='list-group-item assignment_item'>Delete Assignment</a>
+		{/if}
+		</div>
+		<div class="col-md-4 text-center">
+			<a onclick='SoMusic.completeAssignment({$assignmentId},"{$timeSignature}", "{$keySignature}", {$instrumentsUsed}, {$composition});' class='list-group-item assignment_item'>Edit Execution</a>
+		</div>
+		<div class="col-md-2"></div>
+	</div>
+</div>

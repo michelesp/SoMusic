@@ -50,8 +50,9 @@ Preview.prototype.update = function() {
 }
 
 Preview.prototype.commitPreview = function() {
-	this.floatBox.close();
-	SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_Editor',
+	var fb = SoMusic.floatBox.pop();
+	fb.floatBox.close();
+	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor',
 			{"timeSignature": this.timeSignature.value, "keySignature": this.keySignature.value, "instrumentsUsed": this.instrumentsTable.instrumentsUsed},
-			{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''});
+			{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})});
 }

@@ -34,9 +34,11 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$form->addElement($accidentalsField);
 		
 		$assignment = null;
+		$isClose = 0;
 		if(isset($assignmentId)) {
 			$assignment = SOMUSIC_BOL_Service::getInstance()->getAssignment(intval($assignmentId));
 			OW::getSession()->set("assignment", json_encode($assignment));
+			$isClose = $assignment->close;
 		}
 		else OW::getSession()->delete("assignment");
 		
@@ -44,8 +46,12 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		
 		if($composition==null)
 			$composition = $editorCTRL->initEditor($instrumentsUsed, $timeSignature, $keySignature);
+		else if(isset($assignmentId) && $editorCTRL->isCompositionInCache())
+			$editorCTRL->loadDataFromCache();
 		else $editorCTRL->setComposition($composition);
+
 		$this->assign("composition", json_encode($composition));
+		$this->assign("instrumentsUsed", json_encode($instrumentsUsed));
 		
 		$this->addForm($form);
 		$this->assign("form", $form);
@@ -54,6 +60,8 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
 		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getComposition'));
 		$this->assign("accidentalUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'accidentalUpdate'));
+		$this->assign("isClose", $isClose);
+		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'close'));
 	}
 	
 	public static function addScripts() {

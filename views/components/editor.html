@@ -54,6 +54,9 @@ label {
 			<button type="button" class="btn btn-danger" id="del">Delete</button>
 			<button type="button" class="btn btn-warning" id="visualMelody">Visual Melody</button>
 			<button type="button" class="btn btn-success" id="tie">Tie</button>
+			{if $isClose==1}
+			<button onclick='{literal}SoMusic.floatBox.push({"name":"CompositionSettings", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_CompositionSettings", {"instrumentsUsed":{/literal}{$instrumentsUsed}{literal}}, {top:"calc(5vh)", width:"calc(50vw)", height:"calc(50vh)", iconClass: "ow_ic_add", title: ""})});{/literal}' type="button" class="btn btn-success" id="settings">Settings</button>
+			{/if}
 		</div>
 	</div>
 	<div class="row">
@@ -81,5 +84,6 @@ label {
 			"{$addTieURL}",
 			"{$addNoteURL}",
 			"{$getCompositionURL}",
-			"{$accidentalUpdateURL}");
+			"{$accidentalUpdateURL}",
+			"{$closeURL}");
 </script>

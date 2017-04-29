@@ -10,7 +10,7 @@
 <div id="assignment_list" class="list-group">
 	{foreach $assignments as $assignment}
    		{if $isAdmin || $assignment["close"]==0}
-   		<a onclick='{if $isAdmin == true && $assignment["isMultiUser"]==0} SoMusic.assignmentDetails({$assignment["id"]}); {else} SoMusic.completeAssignment({$assignment["id"]},"{$assignment["timeSignature"]}", "{$assignment["keySignature"]}", {$assignment["instrumentsUsed"]}, {$assignment["composition"]}); {/if}' class='list-group-item assignment_item'>{$assignment['name']}</a>
+   		<a onclick='{if $isAdmin == true && $assignment["isMultiUser"]==0} SoMusic.assignmentDetails({$assignment["id"]}); {elseif $assignment["executionId"]!=-1} SoMusic.executionDetails({$assignment["id"]}, {$assignment["executionId"]}); {else} SoMusic.completeAssignment({$assignment["id"]},"{$assignment["timeSignature"]}", "{$assignment["keySignature"]}", {$assignment["instrumentsUsed"]}, {$assignment["composition"]}); {/if}' class='list-group-item assignment_item'>{$assignment['name']}</a>
 		{/if}
 	{/foreach}
 </div>
@@ -18,8 +18,31 @@
 	<div class="ow_box_toolbar_cont clearfix">	
 		<ul class="ow_box_toolbar ow_remark ow_bl">    
     		<li>
-				<a onclick="{literal}if(typeof SoMusic.floatBox!=='undefined') SoMusic.floatBox.close(); SoMusic.floatBox = OW.ajaxFloatBox('SOMUSIC_CMP_NewAssignment', {'groupId':{/literal}{$groupId}{literal}}, {top:'calc(5vh)', width:'calc(30vw)', height:'calc(50vh)', iconClass: 'ow_ic_add', title: ''});{/literal}">Add</a>
+				<a onclick="{literal}SoMusic.closeAllFloatBox(); SoMusic.floatBox.push({'name':'NewAssignment', 'floatBox':OW.ajaxFloatBox('SOMUSIC_CMP_NewAssignment', {'groupId':{/literal}{$groupId}{literal}}, {top:'calc(5vh)', width:'calc(30vw)', height:'calc(50vh)', iconClass: 'ow_ic_add', title: ''})});{/literal}">Add</a>
             </li>
     	</ul>
     </div>
 {/if}
+
+
+<!-- move to separate js file -->
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Comment</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      	<textarea id="commentText" style="width:100%"></textarea>
+      	<input id="commentExecutionId" type="hidden" value=""></input>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="SoMusic.saveComment('{$saveComment}', document.getElementById('commentExecutionId').value, document.getElementById('commentText').value);">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>

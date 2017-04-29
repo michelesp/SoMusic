@@ -8,7 +8,7 @@ class SOMUSIC_CMP_AssignmentDetails extends OW_Component {
 		$usersId = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($assignment->group_id);
 		$isMultiUser = $assignment->mode;
 		$users = array();
-		$userId = OW::getUser()->getId ();
+		$userId = OW::getUser()->getId();
 		foreach ($usersId as $id) 
 			if($userId!=$id)
 				array_push($users, BOL_UserService::getInstance()->findByIdWithoutCache($id));
@@ -26,7 +26,8 @@ class SOMUSIC_CMP_AssignmentDetails extends OW_Component {
 					"timeSignature"=>$timeSignature,
 					"keySignature"=>$keySignature,
 					"instrumentsUsed"=>json_encode($instrumentsUsed),
-					"composition"=>json_encode($compositionObj)
+					"composition"=>json_encode($compositionObj),
+					"comment"=>json_encode($ex["comment"])
 			);
 		}
 		$this->assign("id", $assignmentId);

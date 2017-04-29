@@ -124,7 +124,8 @@ class SOMUSIC_CLASS_EventHandler {
 	                    });
 	                    if(document.getElementById("floatbox_overlay") != null)
 	                        document.getElementById("floatbox_overlay").style.display = "block";
-	                    SoMusic.floatBox.close();
+	                    var fb = SoMusic.floatBox.pop();
+						fb.close();
 	                    //delete previewFloatBox;
 	                }
 					var composition = '.$scoreData ['data'].';
@@ -132,9 +133,9 @@ class SOMUSIC_CLASS_EventHandler {
 					var keySignature = composition.instrumentsScore[0].measures[0].keySignature;
 					var instrumentsUsed = composition.instrumentsUsed;
 					SoMusic.idPost = '.$scoreData ['id_post'].';
-					SoMusic.floatBox = OW.ajaxFloatBox("SOMUSIC_CMP_Editor",
+					SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor",
 						{"timeSignature": timeSignature, "keySignature": keySignature, "instrumentsUsed": instrumentsUsed, "composition": composition},
-						{top:"calc(5vh)", width:"calc(80vw)", height:"calc(85vh)", iconClass: "ow_ic_add", title: ""});
+						{top:"calc(5vh)", width:"calc(80vw)", height:"calc(85vh)", iconClass: "ow_ic_add", title: ""})});
 					document.getElementById("vm_placeholder").style.display = "none";
 				});' );
 		}

@@ -1,6 +1,6 @@
 
-function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addButton, 
-		composition, deteleNotesURL, addTieURL, addNoteURL, getCompositionURL, accidentalUpdateURL) {
+function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addButton, composition,
+		deteleNotesURL, addTieURL, addNoteURL, getCompositionURL, accidentalUpdateURL, closeURL) {
 	var editor = this;
 	this.floatBox = floatBox;
 	this.notesInput = notesInput;
@@ -12,6 +12,7 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addB
 	this.addNoteURL = addNoteURL;
 	this.getCompositionURL = getCompositionURL;
 	this.accidentalUpdateURL = accidentalUpdateURL;
+	this.closeURL = closeURL;
 	this.lastUpdate = Date.now();
 	this.interval = setInterval(() => {
 		if(Date.now()>editor.lastUpdate-5000 && this.renderer.selectedNotes.length==0)
@@ -45,7 +46,8 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addB
 		editor.tie(e);
 	}, false);
 	addButton.addEventListener("click", function() {
-		editor.floatBox.close();
+		var fb = SoMusic.floatBox.pop();
+		fb.floatBox.close();
 		SoMusic.save(editor.renderer.composition);
 	}, false);
 	this.notesInput[2].click();
@@ -241,6 +243,11 @@ Editor.prototype.accidentalUpdate = function (type) {
 
 Editor.prototype.close = function() {
 	clearInterval(this.interval);
+	this.ajaxRequest(this.closeURL, {}, false);
+}
+
+Editor.prototype.update = function() {
+	this.ajaxRequest(this.getCompositionURL, {}, false);
 }
 
 Editor.prototype.restoreData = function (data, instruments, isUsed) {
