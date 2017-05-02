@@ -312,7 +312,8 @@ class SOMUSIC_CLASS_MusicXMLParser {
 	}
 	
 	private function getMeasureStaveIndexs($measureXML, $scoreIndex, $nScorePart, $divisions) {
-		if(isset($measureXML->backup) && count($measureXML->backup)==$nScorePart-1)
+		if((isset($measureXML->backup) && count($measureXML->backup)==$nScorePart-1)
+				|| (!isset($measureXML->backup) && $scoreIndex==$nScorePart-1))
 			return array($scoreIndex);
 		$toReturn = array();
 		for($i=0; $i<count($measureXML->backup)+1; $i++) {
