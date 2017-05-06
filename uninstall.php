@@ -32,3 +32,8 @@ OW::getDbo ()->query ( $sql );
 $sql = 'DROP TABLE ' . OW_DB_PREFIX . 'assignment_execution;';
 OW::getDbo ()->query ( $sql );
 
+
+
+$sql = 'DROP TABLE ' . OW_DB_PREFIX . 'somusic_users_compositions_similarity;';
+OW::getDbo ()->query ( $sql );
+

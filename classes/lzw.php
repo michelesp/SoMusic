@@ -1,6 +1,6 @@
 <?php
 
-class SOMUSIC_CLASS_LZW {
+class SOMUSIC_CLASS_Lzw {
 	private $dictionary;
 	private $invDictionary;
 	
@@ -39,7 +39,7 @@ class SOMUSIC_CLASS_LZW {
 		}
 		if(strlen($str)>0) {
 			array_push($couples, array($lastIndex, null));
-			$p = pack("SZ*", $lastIndex, "ppp");
+			$p = pack("SZ*", $lastIndex, "");
 			$data.=$p;
 		}
 		return $data;
@@ -55,20 +55,18 @@ class SOMUSIC_CLASS_LZW {
 			$index = unpack("S", substr($data, $i, 2))[1];
 			$i += 2;
 			$str = "";
-			$ch = unpack("C", substr($data, $i, 1))[1];
+			$ch = unpack("C", $data[$i])[1];
 			$i++;
 			while($ch!=0) {
 				$str.=chr($ch);
-				$ch = unpack("C", substr($data, $i, 1))[1];
+				$ch = unpack("C", $data[$i])[1];
 				$i++;
 			}
-			while(strlen($str)>1 && $str[0]==$str[1])
-				$str = substr($str, 1);
 			$str1 = $dictionary[$index].$str;
 			$output .= $str1;
 			$dictionary[count($dictionary)] = $str1;
 		}
-		return substr($output, 0, -1);
+		return $output;
 	}
 
 	private function nextToken($string, $start) {

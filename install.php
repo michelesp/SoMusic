@@ -66,6 +66,15 @@ CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'assignment_execution` (
 	`user_id` INT NOT NULL,
 	`comment` VARCHAR(255) NOT NULL DEFAULT "",
 	PRIMARY KEY (`id`)
+) ENGINE = MyISAM;
+		
+CREATE TABLE IF NOT EXISTS `' . OW_DB_PREFIX . 'somusic_users_compositions_similarity` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`userId1` INT NOT NULL,
+	`userId2` INT NOT NULL,
+	`value` FLOAT NOT NULL,
+	`last_update` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`)
 ) ENGINE = MyISAM;';
 
 OW::getDbo ()->query ( $sql );
@@ -115,4 +124,7 @@ $sql = "INSERT INTO `ow_instrument_group` (`id`, `name`)
 OW::getDbo ()->query ( $sql );
 
 OW::getPluginManager()->addPluginSettingsRouteName('somusic', 'somusic.admin');
+
+$path = OW::getPluginManager()->getPlugin('somusic')->getRootDir().'langs.zip';
+OW::getLanguage()->importPluginLangs($path, 'somusic');
 

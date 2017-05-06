@@ -5,3 +5,6 @@ $widgetService = BOL_ComponentAdminService::getInstance();
 $widget = $widgetService->addWidget('SOMUSIC_CMP_AssignmentsWidget', true);
 $widgetPlace = $widgetService->addWidgetToPlace($widget, "group");
 $widgetService->addWidgetToPosition($widgetPlace, BOL_ComponentService::SECTION_LEFT, 0);
+
+OW::getNavigation()->addMenuItem(OW_Navigation::MAIN, 'somusic.compositions-similarity', 'somusic', 'main_menu_similarity', OW_Navigation::VISIBLE_FOR_MEMBER);
+

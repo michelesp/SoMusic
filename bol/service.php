@@ -221,4 +221,71 @@ class SOMUSIC_BOL_Service {
 		return $group->userId;
 	}
 	
+	public function test() {
+		$dbo = OW::getDbo();
+		$query = "UPDATE ow_somusic_test SET test = CURRENT_TIMESTAMP WHERE id = 0;";
+		$dbo->query($query);
+	}
+	
+	public function getUserAssignmentExecutions($userId) {
+		$dbo = OW::getDbo();
+		$query = "SELECT *
+                  FROM ow_assignment_execution
+				  WHERE user_id = ".$userId.";";
+		return $dbo->queryForList($query);
+	}
+	
+	public function getAllCompositions($userId) {
+		$dbo = OW::getDbo();
+		$query = "SELECT id, data
+                  FROM ow_somusic
+				  WHERE id_owner = ".$userId.";";
+		$compositions = $dbo->queryForList($query);
+		$executions = $this->getUserAssignmentExecutions($userId);
+		$len = count($compositions);
+		foreach ($executions as $ex) {
+			$deleted = false;
+			for($i=0; $i<count($compositions) && !$deleted; $i++) {
+				if($ex["composition_id"] == $compositions[$i]["id"]) {
+					array_splice($compositions, $i, 1);
+					$deleted = true;
+				}
+			}
+		}
+		$toReturn = array();
+		foreach ($compositions as $i=>$composition)
+			array_push($toReturn, SOMUSIC_CLASS_Composition::getCompositionObject(json_decode($composition["data"], true)));
+		return $toReturn;
+	}
+	
+	public function getUsersCompositionsSimilarity($userId1, $userId2) {
+		$dbo = OW::getDbo ();
+		$query = "SELECT *
+                  FROM ow_somusic_users_compositions_similarity
+				  WHERE (userId1 = ".$userId1." AND userId2 = ".$userId2.") OR
+				  		(userId2 = ".$userId1." AND userId1 = ".$userId2.");";
+		return $dbo->queryForRow($query);
+	}
+	
+	public function addUsersCompositionsSimilarity($userId1, $userId2, $value) {
+		$ucs = new SOMUSIC_BOL_UsersCompositionsSimilarity();
+		$ucs->userId1 = $userId1;
+		$ucs->userId2 = $userId2;
+		$ucs->value = $value;
+		SOMUSIC_BOL_UsersCompositionsSimilarityDao::getInstance()->save($ucs);
+	}
+	
+	public function updateUsersCompositionsSimilarity($userId1, $userId2, $value) {
+		$dbo = OW::getDbo();
+		$query = "UPDATE ow_somusic_users_compositions_similarity ".
+				"SET value = '".$value."', last_update = CURRENT_TIMESTAMP ".
+				"WHERE (userId1 = ".$userId1." AND userId2 = ".$userId2.") OR ".
+				  		"(userId2 = ".$userId1." AND userId1 = ".$userId2.");";
+		$dbo->query($query);
+	}
+	
+	public function getAllUsersCompositionsSimilarity() {
+		return SOMUSIC_BOL_UsersCompositionsSimilarityDao::getInstance()->findAll();
+	}
+	
 }

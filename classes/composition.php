@@ -26,6 +26,27 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 		$this->accidentalValue = array("b"=>-1, "clear"=>0, "#"=>1);
 	}
 	
+	public static function getCompositionObject($compositionArray) {
+		$composition = new SOMUSIC_CLASS_Composition($compositionArray["id"], $compositionArray["name"], $compositionArray["user_c"], $compositionArray["timestamp_c"], $compositionArray["user_m"], $compositionArray["timestamp_m"], array(), $compositionArray["instrumentsUsed"]);
+		foreach ($compositionArray["instrumentsScore"] as $instrumentScoreArray) {
+			$instrumentScore = new SOMUSIC_CLASS_InstrumentScore($instrumentScoreArray["default_clef"], $instrumentScoreArray["name"], array(), array(), $instrumentScoreArray["instrument"], $instrumentScoreArray["user"]);
+			foreach ($instrumentScoreArray["measures"] as $measureArray) {
+				$voices = array();
+				foreach ($measureArray["voices"] as $voiceArray) {
+					$voice = array();
+					foreach ($voiceArray as $noteArray)
+						array_push($voice, new SOMUSIC_CLASS_Note($noteArray["id"], $noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["duration"], $noteArray["isRest"], $noteArray["isTieStart"], $noteArray["isTieEnd"]));
+					array_push($voices, $voice);
+				}
+				$measure = new SOMUSIC_CLASS_Measure($measureArray["id"], $measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
+				array_push($instrumentScore->measures, $measure);
+			}
+			foreach ($instrumentScoreArray["ties"] as $tieArray)
+				array_push($instrumentScore->ties, new SOMUSIC_CLASS_Tie($tieArray["firstMeasure"], $tieArray["firstNote"], $tieArray["lastMeasure"], $tieArray["lastNote"]));
+				array_push($composition->instrumentsScore, $instrumentScore);
+		}
+		return $composition;
+	}
 	
 	public function getId() {
 		return $this->id;
@@ -101,10 +122,20 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 	
 	private function getNoteDistance($note, $modal) {
 		$distance = 0;
+		$note["octave"] = intval($note["octave"]);
+		$note["step"] = strtoupper($note["step"]);
+		$modal["octave"] = intval($modal["octave"]);
+		$modal["step"] = strtoupper($modal["step"]);
 		$minMax = $this->getMinMaxNotes($note, $modal);
+		for($i=0; $i<count($minMax); $i++) {
+			$minMax[$i]["octave"] = intval($minMax[$i]["octave"]);
+			$minMax[$i]["step"] = strtoupper($minMax[$i]["step"]);
+		}
 		$note0 = $minMax[0];
-		//var_dump(array($note, $minMax[1]));
+		//var_dump($minMax);
 		while($note0["octave"]!=$minMax[1]["octave"] || $note0["step"]!=$minMax[1]["step"]) {
+			//var_dump($note0);
+			//sleep(1);
 			if($note0["step"]=="B" || $note0["step"]=="E")
 				$distance++;
 			else $distance+=2;
