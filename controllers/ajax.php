@@ -43,9 +43,11 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 		}
 		
 		$comment = BOL_CommentService::getInstance ()->addComment ( $params->getEntityType (), $params->getEntityId (), $params->getPluginKey (), OW::getUser ()->getId (), $commentText, $attachment );
-		SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost ( $clean ['vmJSONData'], $clean ['description'], OW::getUser ()->getId (), 
-				// $clean['title'],
-				"test", $comment->getId () );
+		
+		$composition = SOMUSIC_CLASS_Composition::getCompositionObject(json_decode($clean ['vmJSONData']));
+		
+		SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost (// $clean['title'],
+				"test", $comment->getId(), json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
 		
 		// OW::getEventManager()->trigger($event);
 		
@@ -137,10 +139,9 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 			$userId = OW::getUser()->getId();
 			$editor = new SOMUSIC_CTRL_Editor();
 			$composition = $editor->reset();
-			SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost ( json_encode($composition), "", // $clean['description'],
-					OW::getUser ()->getId (), 
+			SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost (
 					// $clean['title'],
-					$clean ['scoreTitle'], $out ['entityId'] );
+					$clean ['scoreTitle'], $out ['entityId'], json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
 		}
 		/* SOMUSIC */
 		
@@ -172,7 +173,7 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 		$editor = new SOMUSIC_CTRL_Editor();
 		$composition = $editor->reset();
 		
-		$res = SOMUSIC_BOL_Service::getInstance ()->updateScorePost($idPost, json_encode($composition));
+		SOMUSIC_BOL_Service::getInstance()->updateScorePost($idPost, json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
 		
 		exit(json_encode(array("status"=>true)));
 	}

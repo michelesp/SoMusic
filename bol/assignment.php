@@ -1,7 +1,6 @@
 <?php
 
 class SOMUSIC_BOL_Assignment extends OW_Entity {
-	public $id;
 	public $name;
 	public $group_id;
 	public $timestamp_c;

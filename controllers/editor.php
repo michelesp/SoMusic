@@ -254,7 +254,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	public function getComposition() {
 		if (isset($_REQUEST ["id"])) {
 			$id = intval($_REQUEST["id"]);
-			$this->composition = json_decode ( SOMUSIC_BOL_Service::getInstance ()->getScoreByPostId ( $id ) ["data"] );
+			//$this->composition = json_decode ( SOMUSIC_BOL_Service::getInstance ()->getScoreByPostId ( $id ) ["data"] );
+			$this->composition = SOMUSIC_CLASS_Composition::getCompositionObject(SOMUSIC_BOL_Service::getInstance()->getScoreByPostId($id));
 			$this->instrumentsScore = $this->composition->instrumentsScore;
 			for($i=0; $i<count($this->instrumentsScore); $i++)
 				$this->cache->set($this->id."#instrumentScore#".$i, $this->instrumentsScore[$i], time()+60*60);

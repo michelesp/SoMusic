@@ -1,7 +1,12 @@
 <?php
 
 class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
-
+	private $service;
+	
+	public function __construct() {
+		$this->service = SOMUSIC_BOL_Service::getInstance();
+	}
+	
 	public function newAssignment() {
 		if(!isset($_REQUEST["groupId"]) || !isset($_REQUEST["name"]) || !isset($_REQUEST["isMultiUser"]))
 			exit(json_encode(false));
@@ -14,9 +19,8 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		if(!isset($_REQUEST["composition"]))
 			exit(json_encode(false));
 		$assignment = (object)json_decode(OW::getSession()->get("newAssignment"));
-		$userId = OW::getUser ()->getId ();
-		$composition = $this->getCompositionObject($_REQUEST["composition"]);
-		SOMUSIC_BOL_Service::getInstance()->addAssignment($assignment->name, $assignment->group_id, $userId, $assignment->is_multi_user, json_encode($composition));
+		$composition = $this->getCompositionObject($_REQUEST["composition"]);				//TODO: usare quello della classe Composition
+		$this->service->addAssignment($assignment->name, $assignment->group_id, $assignment->is_multi_user, json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
 		OW::getSession()->delete("newAssignment");
 		exit(json_encode(true));
 	}
@@ -25,27 +29,28 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		if(!isset($_REQUEST["composition"]) || !isset($_REQUEST["assignmentId"]))
 			exit(json_encode(false));
 		$assignmentId = intval($_REQUEST["assignmentId"]);
-		$assignment = SOMUSIC_BOL_Service::getInstance()->getAssignment($assignmentId);
+		$assignment = $this->service->getAssignment($assignmentId);
 		$group = GROUPS_BOL_Service::getInstance()->findGroupById($assignment->group_id);
 		$userId = OW::getUser()->getId();
 		if($assignment->mode==1 && $userId!=$group->userId)
-			exit(json_encode(true));
+			exit(json_encode(true));		//multi-user mode
 		else if($assignment->mode==1 && $userId==$group->userId)
-			SOMUSIC_BOL_Service::getInstance()->closeAssignment($assignmentId);
-		$composition = $this->getCompositionObject($_REQUEST["composition"]);
-		$oldExecution = SOMUSIC_BOL_Service::getInstance()->getExecutionByAssignmentAndUser($assignmentId, $userId);
-		if(!array_key_exists("id", $oldExecution))
-			SOMUSIC_BOL_Service::getInstance()->addAssignmentExecution($assignmentId, json_encode($composition));
-		else SOMUSIC_BOL_Service::getInstance()->updateComposition($oldExecution["composition_id"], json_encode($composition));
+			$this->service->closeAssignment($assignmentId);		//multi-user mode
+		$composition = $this->getCompositionObject($_REQUEST["composition"]);				//TODO: usare quello in Composition
+		$oldExecution = $this->service->getExecutionByAssignmentAndUser($assignmentId, $userId);
+		if(!isset($oldExecution))
+			$this->service->addAssignmentExecution($assignmentId, json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
+		else $this->service->updateComposition($oldExecution->composition_id, json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
 		exit(json_encode(true));
 	}
 	
 	public function editExecution() {
 		if(!isset($_REQUEST["executionId"]) || !isset($_REQUEST["composition"]))
 			exit(json_encode(false));
-		$execution = SOMUSIC_BOL_Service::getInstance()->getExecution(intval($_REQUEST["executionId"]));
-		$composition = SOMUSIC_BOL_Service::getInstance()->getComposition($execution->composition_id);
-		SOMUSIC_BOL_Service::getInstance()->updateComposition($composition->id, json_encode($this->getCompositionObject($_REQUEST["composition"])));
+		$execution = $this->service->getExecution(intval($_REQUEST["executionId"]));
+		$composition = $this->service->getComposition($execution->composition_id);
+		$newComposition = $this->getCompositionObject($_REQUEST["composition"]);		//TODO: usare quello in Composition
+		$this->service->updateComposition($composition->id, json_encode($newComposition->instrumentsScore), json_encode($newComposition->instrumentsUsed));
 		exit(json_encode(true));
 	}
 	
@@ -53,7 +58,7 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		if(!isset($_REQUEST["id"]))
 			exit(json_encode(false));
 		$id = intval($_REQUEST["id"]);
-		SOMUSIC_BOL_Service::getInstance()->removeAssignment($id);
+		$this->service->removeAssignment($id);
 		exit(json_encode(true));
 	}
 	
@@ -61,7 +66,7 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		if(!isset($_REQUEST["id"]))
 			exit(json_encode(false));
 		$id = intval($_REQUEST["id"]);
-		SOMUSIC_BOL_Service::getInstance()->closeAssignment($id);
+		$this->service->closeAssignment($id);
 		exit(json_encode(true));
 	}
 	
@@ -69,10 +74,11 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		if(!isset($_REQUEST["id"]) || !isset($_REQUEST["comment"]))
 			exit(json_encode(false));
 		$id = intval($_REQUEST["id"]);
-		SOMUSIC_BOL_Service::getInstance()->setExecutionComment($id, $_REQUEST["comment"]);
+		$this->service->setExecutionComment($id, $_REQUEST["comment"]);
 		exit(json_encode(true));
 	}
 	
+	//TODO: spostare in Composition
 	private function getCompositionObject($compositionArray) {
 		$composition = new SOMUSIC_CLASS_Composition(-1, $compositionArray["name"], $compositionArray["user_c"], $compositionArray["timestamp_c"], $compositionArray["user_m"], $compositionArray["timestamp_m"], array(), $compositionArray["instrumentsUsed"]);
 		foreach ($compositionArray["instrumentsScore"] as $instrumentScoreArray) {

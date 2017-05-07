@@ -49,11 +49,11 @@
 					<tr>
 						<!-- <th scope="row">{$i+1}</th> -->
 						<td><b>{$user->username}</b></td>
-						{if isset($compositions["#"|cat:$user->id])}
-						<td>{$compositions["#"|cat:$user->id]["timestamp_c"]}</td>
-						<td>{$compositions["#"|cat:$user->id]["timestamp_m"]}</td>
-						<td><input onclick='SoMusic.viewAssignmentExecution({$compositions["#"|cat:$user->id]["executionId"]}, "{$compositions["#"|cat:$user->id]["timeSignature"]}", "{$compositions["#"|cat:$user->id]["keySignature"]}", {$compositions["#"|cat:$user->id]["instrumentsUsed"]}, {$compositions["#"|cat:$user->id]["composition"]})' type="button" value="view"></input></td>
-						<td><input onclick='document.getElementById("commentExecutionId").value={$compositions["#"|cat:$user->id]["executionId"]}; document.getElementById("commentText").innerHTML={$compositions["#"|cat:$user->id]["comment"]}; $("#commentModal").modal("show");' type="button" value="comment"></input></td>
+						{if isset($compositions[$user->id])}
+						<td>{$compositions[$user->id]["timestamp_c"]}</td>
+						<td>{$compositions[$user->id]["timestamp_m"]}</td>
+						<td><input onclick='SoMusic.viewAssignmentExecution({$compositions[$user->id]["executionId"]}, "{$compositions[$user->id]["timeSignature"]}", "{$compositions[$user->id]["keySignature"]}", {$compositions[$user->id]["instrumentsUsed"]}, {$compositions[$user->id]["composition"]})' type="button" value="view"></input></td>
+						<td><input onclick='document.getElementById("commentExecutionId").value={$compositions[$user->id]["executionId"]}; document.getElementById("commentText").innerHTML={$compositions[$user->id]["comment"]}; $("#commentModal").modal("show");' type="button" value="comment"></input></td>
 						{else}
 						<td>---</td>
 						<td>---</td>

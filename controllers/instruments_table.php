@@ -13,15 +13,15 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 			$scoresChelfIndex = array();
 			$braces = array();
 			foreach ($instrumentScores as $i=>$is){
-				array_push($scoresChelf, $is["clef"]);
-				array_push($scoresChelfIndex, $is["id"]);
+				array_push($scoresChelf, $is->clef);
+				array_push($scoresChelfIndex, $is->id);
 			}
 			foreach ($scoresChelfIndex as $i) {
 				foreach ($scoresChelfIndex as $j) {
 					if($i!=$j) {
 						$instrumentScoreInBraces = SOMUSIC_BOL_Service::getInstance()->getInstrumentScoreInBraces($mi->id, $i, $j);
 						foreach ($instrumentScoreInBraces as $isib)
-							array_push($braces, array($isib["id_score_1"]-1, $isib["id_score_2"]-1));
+							array_push($braces, array($isib->id_score_1-1, $isib->id_score_2-1));
 					}
 				}
 			}

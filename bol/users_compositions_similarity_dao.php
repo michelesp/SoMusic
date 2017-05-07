@@ -1,24 +1,13 @@
 <?php
 
 class SOMUSIC_BOL_UsersCompositionsSimilarityDao extends OW_BaseDao {
-	/**
-	 * Constructor.
-	 */
+
+	private static $classInstance;
+	
 	protected function __construct() {
 		parent::__construct ();
 	}
-	/**
-	 * Singleton instance.
-	 *
-	 * @var SOMUSIC_BOL_UsersCompositionsSimilarityDao
-	 */
-	private static $classInstance;
-
-	/**
-	 * Returns an instance of class (singleton pattern implementation).
-	 *
-	 * @return SOMUSIC_BOL_UsersCompositionsSimilarityDao
-	 */
+	
 	public static function getInstance() {
 		if (self::$classInstance === null) {
 			self::$classInstance = new self ();
@@ -26,21 +15,38 @@ class SOMUSIC_BOL_UsersCompositionsSimilarityDao extends OW_BaseDao {
 		return self::$classInstance;
 	}
 
-	/**
-	 *
-	 * @see OW_BaseDao::getDtoClassName()
-	 *
-	 */
+	
 	public function getDtoClassName() {
 		return 'SOMUSIC_BOL_UsersCompositionsSimilarity';
 	}
 
-	/**
-	 *
-	 * @see OW_BaseDao::getTableName()
-	 *
-	 */
 	public function getTableName() {
-		return OW_DB_PREFIX . 'somusic_users_compositions_similarity';
+		return OW_DB_PREFIX.'somusic_users_compositions_similarity';
 	}
+	
+	public function getUsersCompositionsSimilarity($userId1, $userId2) {
+		$example = new OW_Example();
+		$example->andFieldEqual("userId1", $userId1);
+		$example->andFieldEqual("userId2", $userId2);
+		$ucs = $this->findObjectByExample($example);
+		if(isset($ucs))
+			return $ucs;
+		$example = new OW_Example();
+		$example->andFieldEqual("userId1", $userId2);
+		$example->andFieldEqual("userId2", $userId1);
+		return $this->findObjectByExample($example);
+	}
+	
+	public function updateUsersCompositionsSimilarity($userId1, $userId2, $value) {
+		$query = 'UPDATE '.$this->getTableName().
+				' SET value = :value, last_update = CURRENT_TIMESTAMP '.
+				' WHERE (userId1 = :userId1 AND userId2 = :userId2) OR '.
+						'(userId2 = :userId1 AND userId1 = :userId2)';
+		$this->dbo->query($query, array(
+				"value" => $value,
+				"userId1" => $userId1,
+				"userId2" => $userId2
+		));
+	}
+	
 }
