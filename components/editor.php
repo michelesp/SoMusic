@@ -2,8 +2,55 @@
 
 class SOMUSIC_CMP_Editor extends OW_Component {
 	
-	public function __construct($timeSignature, $keySignature, $instrumentsUsed, $composition = null, $assignmentId = null) {
-		$imgUrl =  OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticUrl()."img/";
+	public function __construct($compositionId = -1, $assignmentId = null) {
+		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap.min.css');
+		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-grid.min.css');
+		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
+		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'bootstrap.min.js', 'text/javascript');
+		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'editor.js', 'text/javascript');
+
+		$assignment = null;
+		$isClose = 0;
+		if(isset($assignmentId)) {
+			$assignment = SOMUSIC_BOL_Service::getInstance()->getAssignment(intval($assignmentId));
+			OW::getSession()->set("assignment", json_encode($assignment));
+			$isClose = $assignment->close;
+		}
+		else OW::getSession()->delete("assignment");
+		$this->assign("assignment", json_encode($assignment));
+		$composition = null;
+		if($compositionId>=0) {
+			$editor = new SOMUSIC_CTRL_Editor(false);
+			if(!$editor->isCompositionInCache()) {
+				$composition = SOMUSIC_CLASS_Composition::getCompositionObject(SOMUSIC_BOL_Service::getInstance()->getComposition($compositionId));
+				$editor->setComposition($composition);
+			}
+			else{
+				$editor->loadDataFromCache();
+				$composition = $editor->getComposition();
+			}
+		}
+		else {
+			$editor = new SOMUSIC_CTRL_Editor();
+			$composition = $editor->getComposition();
+		}
+		$this->assign("composition", json_encode($composition));
+		$this->assign("instrumentsUsed", json_encode($composition->instrumentsUsed));
+		
+		$form = $this->makeForm();
+		$this->addForm($form);
+		$this->assign("deleteNotesURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'deleteNotes'));
+		$this->assign("addTieURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addTie'));
+		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
+		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getJSONComposition'));
+		$this->assign("accidentalUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'accidentalUpdate'));
+		$this->assign("isClose", $isClose);
+		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'close'));
+		$this->assign("exportURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'exportMusicXML'));
+	}
+	
+	private function makeForm() {
+		$imgUrl =  OW::getPluginManager()->getPlugin('somusic')->getStaticUrl()."img/";
 		$notes = array("1"=>$imgUrl."whole-note.png",
 				"2"=>$imgUrl."half-note.png",
 				"4"=>$imgUrl."quarter-note.png",
@@ -18,10 +65,9 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 				"b"=>$imgUrl."flat.png",
 				"#"=>$imgUrl."sharp.png",
 				"n"=>$imgUrl."restore.png");
-		OW::getSession()->delete("preview");
 		$form = new Form("editor_form");
 		$notesField = new RadioField("notes");
-		foreach ($notes as $key=>$value) 
+		foreach ($notes as $key=>$value)
 			$notesField->addOption($key, "<img src='$value' class='noteImg'/>");
 		$form->addElement($notesField);
 		$restsField = new RadioField("rests");
@@ -32,40 +78,29 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		foreach ($accidentals as $key=>$value)
 			$accidentalsField->addOption($key, "<img src='$value' class='noteImg'/>");
 		$form->addElement($accidentalsField);
-		
-		$assignment = null;
-		$isClose = 0;
-		if(isset($assignmentId)) {
-			$assignment = SOMUSIC_BOL_Service::getInstance()->getAssignment(intval($assignmentId));
-			OW::getSession()->set("assignment", json_encode($assignment));
-			$isClose = $assignment->close;
-		}
-		else OW::getSession()->delete("assignment");
-		
-		$editorCTRL = new SOMUSIC_CTRL_Editor(false);
-		
-		if($composition==null)
-			$composition = $editorCTRL->initEditor($instrumentsUsed, $timeSignature, $keySignature);
-		else if(isset($assignmentId) && $editorCTRL->isCompositionInCache())
-			$editorCTRL->loadDataFromCache();
-		else $editorCTRL->setComposition($composition);
-
-		$this->assign("composition", json_encode($composition));
-		$this->assign("instrumentsUsed", json_encode($instrumentsUsed));
-		
-		$this->addForm($form);
-		$this->assign("form", $form);
-		$this->assign("deleteNotesURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'deleteNotes'));
-		$this->assign("addTieURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addTie'));
-		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
-		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getComposition'));
-		$this->assign("accidentalUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'accidentalUpdate'));
-		$this->assign("isClose", $isClose);
-		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'close'));
+		return $form;
 	}
 	
-	public static function addScripts() {
-		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'editor.js', 'text/javascript' );
+	//TODO: adesso inutile
+	private function isInclused($composition, $instrumentsUsed) {
+		foreach ($instrumentsUsed as $instUsed)
+			foreach ($composition->instrumentsUsed as $instUsed1)
+				if($instUsed["labelName"] == $instUsed1->labelName)
+					return true;
+		return false;
+	}
+	
+	//TODO: adesso inutile
+	private function addOtherInstruments($composition, $instrumentsUsed) {
+		foreach ($instrumentsUsed as $instUsed) {
+			$find = false;
+			for($i=0; $i<count($composition->instrumentsUsed) && !$find; $i++)
+				if($instUsed["labelName"] == $composition->instrumentsUsed[$i]->labelName)
+					$find = true;
+			if(!$find)
+				array_push($composition->insturmentsUsed, (object)$instUsed);
+		}
+		return $composition;
 	}
 	
 }

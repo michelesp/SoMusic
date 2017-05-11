@@ -16,7 +16,7 @@
     clear: both;
 }
 #tabInstruments thead th {
-	height: 30px;
+	height: 35px;
 }
 #tabInstruments tbody {
 	height: calc(30vh);
@@ -35,8 +35,7 @@
 {/style}
 <div id="instrumentsTableDiv">
 	<label class="descr">Instruments:</label> <br />
-	<table class="table table-hover table-striped"
-		id="tabInstruments">
+	<table class="table table-hover table-striped" id="tabInstruments">
 		<thead>
 			<tr>
 				{foreach from=$tableHeader item=$th}
@@ -45,7 +44,7 @@
 				<th> &nbsp; </th>
 			</tr>
 		</thead>
-		<tbody id="tabInstrumentsBody">
+		<tbody>
 			{foreach from=$tableRows key=$i item=$row}
 			<tr>
 				<td><input type="text" class="form-control" name="instrumentName"
@@ -79,7 +78,7 @@
 			{/foreach}
 		</tbody>
 	</table>
-	<a id="add_instrument" class="btn btn-default pull-left"
-		onclick="instrumentsTable.addInstrument()">Add Instrument</a>
+	<button id="add_instrument" type="button" class="btn btn-default pull-left"
+		onclick="instrumentsTable.addInstrument()">Add Instrument</button>
 </div>
 

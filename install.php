@@ -32,22 +32,9 @@ CREATE TABLE IF NOT EXISTS `'.$prefix.'music_instrument` (
 	`id` INT NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(32) NOT NULL,
 	`id_group` INT NOT NULL,
+	`scoresClef` VARCHAR(255) NOT NULL,
+	`braces` VARCHAR(255) NOT NULL,
 	PRIMARY KEY (`id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-		
-CREATE TABLE IF NOT EXISTS `'.$prefix.'instrument_score` (
-	`id_instrument` INT NOT NULL,
-	`id` INT NOT NULL AUTO_INCREMENT,
-	`clef` ENUM("treble","bass","tenor","alto","soprano","mezzo-soprano","baritone-c") NOT NULL,
-	PRIMARY KEY (`id_instrument`, `id`)
-	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
-		
-CREATE TABLE IF NOT EXISTS `'.$prefix.'instrument_score_in_braces` (
-	`id_instrument` INT NOT NULL,
-	`id_score_1` INT NOT NULL,
-	`id_score_2` INT NOT NULL,
-	`id` INT NOT NULL AUTO_INCREMENT,
-	PRIMARY KEY (`id_instrument`, `id_score_1`, `id_score_2`, `id`)
 	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `'.$prefix.'assignment` (
@@ -83,49 +70,62 @@ CREATE TABLE IF NOT EXISTS `'.$prefix.'users_compositions_similarity` (
 
 OW::getDbo()->query($sql);
 
-$sql = "INSERT INTO `".$prefix."instrument_group` (`id`, `name`)
-		VALUES (NULL, 'Keyboards'), (NULL, 'Strings'), (NULL, 'Woodwinds'),
-		(NULL, 'Brass'), (NULL, 'Plucked-strings'), (NULL, 'Vocals');
-		
-		INSERT INTO `".$prefix."music_instrument` (`id`, `name`, `id_group`) 
-		VALUES (NULL, 'Accordion', '1'), (NULL, 'Organ', '1'), (NULL, 'Piano', '1');
-		
-		INSERT INTO `".$prefix."music_instrument` (`id`, `name`, `id_group`) 
-		VALUES (NULL, 'Contrabass', '2'), (NULL, 'Viola', '2'), 
-		(NULL, 'Violin', '2'), (NULL, 'Violoncello', '2');
-		
-		INSERT INTO `".$prefix."music_instrument` (`id`, `name`, `id_group`) 
-		VALUES (NULL, 'Saxopone', '3'), (NULL, 'Bassoon', '3'), 
-		(NULL, 'Clarinet', '3'), (NULL, 'English Horn', '3'), 
-		(NULL, 'Flute', '3'), (NULL, 'Pan Flute', '3'), 
-		(NULL, 'Piccolo', '3'), (NULL, 'Tin Whistle', '3');
-		
-		INSERT INTO `".$prefix."music_instrument` (`id`, `name`, `id_group`) 
-		VALUES ('16', 'Trombone', '4'), (NULL, 'Trumpet', '4'), (NULL, 'Tuba', '4');
-		
-		INSERT INTO `".$prefix."music_instrument` (`id`, `name`, `id_group`) 
-		VALUES (NULL, 'Banjo', '5'), (NULL, 'Bass', '5'), (NULL, 'Guitar', '5'), 
-		(NULL, 'Harp', '5'), (NULL, 'Sitar', '5'), (NULL, 'Ukulele', '5');
-		
-		INSERT INTO `".$prefix."music_instrument` (`id`, `name`, `id_group`) 
-		VALUES (NULL, '4 Voices', '6'), (NULL, 'Singer Voice', '6');
-		
-		INSERT INTO `".$prefix."instrument_score` (`id_instrument`, `id`, `clef`) 
-		VALUES ('1', NULL, 'treble'), ('2', NULL, 'treble'), ('2', NULL, 'bass'), 
-		('2', NULL, 'bass'), ('3', NULL, 'treble'), ('3', NULL, 'bass'), 
-		('4', NULL, 'bass'), ('5', NULL, 'alto'), ('6', NULL, 'treble'), 
-		('7', NULL, 'bass'), ('8', NULL, 'treble'), ('9', NULL, 'bass'), 
-		('10', NULL, 'treble'), ('11', NULL, 'treble'), ('12', NULL, 'treble'), 
-		('13', NULL, 'treble'), ('14', NULL, 'treble'), ('15', NULL, 'treble'), 
-		('16', NULL, 'bass'), ('17', NULL, 'treble'), ('18', NULL, 'bass'), 
-		('19', NULL, 'treble'), ('20', NULL, 'bass'), ('21', NULL, 'treble'), 
-		('22', NULL, 'treble'), ('22', NULL, 'bass'), ('23', NULL, 'treble'), 
-		('24', NULL, 'bass'), ('25', NULL, 'treble'), ('25', NULL, 'bass');
-		
-		INSERT INTO `".$prefix."instrument_score_in_braces` (`id_instrument`, `id_score_1`, `id_score_2`, `id`) 
-		VALUES ('2', '1', '2', NULL), ('3', '1', '2', NULL), ('22', '1', '2', NULL);";
+$pianoBraces = json_encode(array(array(0, 1)));
+$commonBraces = json_encode(array());
+$pianoScoresClef = json_encode(array("treble", "bass"));
+$organScoresClef = json_encode(array("treble", "bass", "bass"));
+$trebleScoresClef = json_encode(array("treble"));
+$bassScoresClef = json_encode(array("bass"));
+$altoScoresClef = json_encode(array("alto"));
 
-OW::getDbo ()->query ( $sql );
+$sql = 'INSERT INTO `'.$prefix.'instrument_group` (`id`, `name`)
+		VALUES (NULL, "Keyboards"), (NULL, "Strings"), (NULL, "Woodwinds"),
+		(NULL, "Brass"), (NULL, "Plucked-strings"), (NULL, "Vocals");';
+OW::getDbo()->query($sql);
+
+$sql = 'INSERT INTO `'.$prefix.'music_instrument` (`id`, `name`, `id_group`, `scoresClef`, `braces`) 
+		VALUES (NULL, "Accordion", 1, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Organ", 1, \''.$organScoresClef.'\', \''.$pianoBraces.'\'),
+				(NULL, "Piano", 1, \''.$pianoScoresClef.'\', \''.$pianoBraces.'\');';
+OW::getDbo()->query($sql);
+
+$sql = 'INSERT INTO `'.$prefix.'music_instrument` (`id`, `name`, `id_group`, `scoresClef`, `braces`) 
+		VALUES (NULL, "Contrabass", 2, \''.$bassScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Viola", 2, \''.$altoScoresClef.'\', \''.$commonBraces.'\'), 
+				(NULL, "Violin", 2, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Violoncello", 2, \''.$bassScoresClef.'\', \''.$commonBraces.'\');';
+OW::getDbo()->query($sql);
+
+$sql = 'INSERT INTO `'.$prefix.'music_instrument` (`id`, `name`, `id_group`, `scoresClef`, `braces`) 
+		VALUES (NULL, "Saxopone", 3, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Bassoon", 3, \''.$bassScoresClef.'\', \''.$commonBraces.'\'), 
+				(NULL, "Clarinet", 3, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "English Horn", 3, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'), 
+				(NULL, "Flute", 3, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Pan Flute", 3, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'), 
+				(NULL, "Piccolo", 3, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Tin Whistle", 3, \''.$trebleScoresClef.'\', \''.$commonBraces.'\');';
+OW::getDbo()->query($sql);
+
+$sql = 'INSERT INTO `'.$prefix.'music_instrument` (`id`, `name`, `id_group`, `scoresClef`, `braces`) 
+		VALUES (NULL, "Trombone", 4, \''.$bassScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Trumpet", 4, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Tuba", 4, \''.$bassScoresClef.'\', \''.$commonBraces.'\');';
+OW::getDbo()->query($sql);
+
+$sql = 'INSERT INTO `'.$prefix.'music_instrument` (`id`, `name`, `id_group`, `scoresClef`, `braces`) 
+		VALUES (NULL, "Banjo", 5, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Bass", 5, \''.$bassScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Guitar", 5, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'), 
+				(NULL, "Harp", 5, \''.$pianoScoresClef.'\', \''.$pianoBraces.'\'),
+				(NULL, "Sitar", 5, \''.$trebleScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Ukulele", 5, \''.$bassScoresClef.'\', \''.$commonBraces.'\');';
+OW::getDbo()->query($sql);
+
+$sql = 'INSERT INTO `'.$prefix.'music_instrument` (`id`, `name`, `id_group`, `scoresClef`, `braces`) 
+		VALUES (NULL, "4 Voices", 6, \''.$pianoScoresClef.'\', \''.$commonBraces.'\'),
+				(NULL, "Singer Voice", 6, \''.$trebleScoresClef.'\', \''.$commonBraces.'\');';
+OW::getDbo()->query($sql);
 
 OW::getPluginManager()->addPluginSettingsRouteName('somusic', 'somusic.admin');
 

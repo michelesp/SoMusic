@@ -7,26 +7,8 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		//parent::_construct();
 		$this->instruments = array();
 		$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstruments();
-		foreach ($musicIntruments as $mi) {
-			$instrumentScores = SOMUSIC_BOL_Service::getInstance()->getInstrumentScores($mi->id);
-			$scoresChelf = array();
-			$scoresChelfIndex = array();
-			$braces = array();
-			foreach ($instrumentScores as $i=>$is){
-				array_push($scoresChelf, $is->clef);
-				array_push($scoresChelfIndex, $is->id);
-			}
-			foreach ($scoresChelfIndex as $i) {
-				foreach ($scoresChelfIndex as $j) {
-					if($i!=$j) {
-						$instrumentScoreInBraces = SOMUSIC_BOL_Service::getInstance()->getInstrumentScoreInBraces($mi->id, $i, $j);
-						foreach ($instrumentScoreInBraces as $isib)
-							array_push($braces, array($isib->id_score_1-1, $isib->id_score_2-1));
-					}
-				}
-			}
-			$this->instruments[strtolower(str_replace(" ", "_", $mi->name))] = array("scoresClef"=>$scoresChelf, "braces"=>$braces);
-		}
+		foreach ($musicIntruments as $mi)
+			$this->instruments[strtolower(str_replace(" ", "_", $mi->name))] = array("scoresClef"=>json_decode($mi->scoresClef), "braces"=>json_decode($mi->braces));
 	}
 	
 	public function addInstrument() {

@@ -4,10 +4,8 @@ class SOMUSIC_BOL_Service {
 	
 	private $assignmentDao;
 	private $assignmentExecutionDao;
-	private $instrumentGroupDao;					//?
-	private $instrumentScoreInBracesDao;			//?
-	private $instrumentScoreDao;					//?
-	private $musicInstrumentDao;					//?
+	private $instrumentGroupDao;
+	private $musicInstrumentDao;
 	private $compositionDao;
 	private $somusicPostDao;
 	private $usersCompositionsSimilarityDao;
@@ -24,8 +22,6 @@ class SOMUSIC_BOL_Service {
 		$this->assignmentDao = SOMUSIC_BOL_AssignmentDao::getInstance();
 		$this->assignmentExecutionDao = SOMUSIC_BOL_AssignmentExecutionDao::getInstance();
 		$this->instrumentGroupDao = SOMUSIC_BOL_InstrumentGroupDao::getInstance();
-		$this->instrumentScoreInBracesDao = SOMUSIC_BOL_InstrumentScoreInBracesDao::getInstance();
-		$this->instrumentScoreDao = SOMUSIC_BOL_InstrumentScoreDao::getInstance();
 		$this->musicInstrumentDao = SOMUSIC_BOL_MusicInstrumentDao::getInstance();
 		$this->compositionDao = SOMUSIC_BOL_CompositionDao::getInstance();
 		$this->somusicPostDao = SOMUSIC_BOL_SomusicPostDao::getInstance();
@@ -168,14 +164,6 @@ class SOMUSIC_BOL_Service {
 				array_push($instruments, $groupOfInstruments);
 		}
 		return $instruments;
-	}
-	
-	public function getInstrumentScoreInBraces($id_instrument, $id_score_1, $id_score_2) {
-		return $this->instrumentScoreInBracesDao->getInstrumentScoreInBraces($id_instrument, $id_score_1, $id_score_2);
-	}
-	
-	public function getInstrumentScores($id_instrument) {
-		return $this->instrumentScoreDao->getInstrumentScores($id_instrument);
 	}
 	
 	public function getMusicInstruments() {

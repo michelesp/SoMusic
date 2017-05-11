@@ -57,13 +57,13 @@
 		<div class="col-md-2"></div>
 		<div class="col-md-4 text-center">
 		{if !$isAdmin}
-			<a onclick='SoMusic.completeAssignment({$assignmentId},"{$timeSignature}", "{$keySignature}", {$instrumentsUsed}, {$originalComposition});' class='list-group-item assignment_item'>New Execution</a>
+			<a onclick='SoMusic.completeAssignment({$assignmentId}, {$originalCompositionId});' class='list-group-item assignment_item'>New Execution</a>
 		{else}
 			<a onclick='SoMusic.removeAssignment("{$removeAssignmentURL}", {$assignmentId});' class='list-group-item assignment_item'>Delete Assignment</a>
 		{/if}
 		</div>
 		<div class="col-md-4 text-center">
-			<a onclick='SoMusic.completeAssignment({$assignmentId},"{$timeSignature}", "{$keySignature}", {$instrumentsUsed}, {$composition});' class='list-group-item assignment_item'>Edit Execution</a>
+			<a onclick='SoMusic.completeAssignment({$assignmentId}, {$compositionId});' class='list-group-item assignment_item'>Edit Execution</a>
 		</div>
 		<div class="col-md-2"></div>
 	</div>

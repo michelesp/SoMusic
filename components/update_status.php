@@ -23,7 +23,7 @@ class SOMUSIC_CMP_UpdateStatus extends NEWSFEED_CMP_UpdateStatus {
                         document.getElementById('floatbox_overlay').style.display = 'block';
                     SoMusic.closeAllFloatBox();
                 }
-                SoMusic.floatBox.push({'name':'Preview', 'floatBox':OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})});
+                SoMusic.floatBox.push({'name':'Preview', 'floatBox':OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(75vh)', iconClass: 'ow_ic_add', title: ''})});
                 SoMusic.idPost = -1;
                 document.getElementById('vm_placeholder').style.display = 'none';
             });

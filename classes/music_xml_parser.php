@@ -1,6 +1,6 @@
 <?php
 
-class SOMUSIC_CLASS_MusicXMLParser {
+class SOMUSIC_CLASS_MusicXmlParser {
 	private $xmlString;
 	private $composition;
 	private $instrumentsName;
@@ -54,7 +54,7 @@ class SOMUSIC_CLASS_MusicXMLParser {
 		$partList = $xml->addChild("part-list");
 		$scoreCount = 0;
 		for($i=0; $i<count($composition->instrumentsUsed); $i++) {
-			$instrumentUsed = $composition->instrumentsUsed[$i];
+			$instrumentUsed = (object)$composition->instrumentsUsed[$i];
 			$scorePart = $partList->addChild("score-part");
 			$scorePart->addAttribute("id", "P".($i+1));
 			$scorePart->addChild("part-name", $instrumentUsed->labelName);
@@ -146,28 +146,35 @@ class SOMUSIC_CLASS_MusicXMLParser {
 						$n++;
 						$voice = $scores[$k]->measures[$j]->voices[$h];
 						for($l=0; $l<count($voice); $l++) {
+							if(count($voice[$l]->step)==0 && $voice[$l]->isRest) {
+								$note = $measure->addChild("note");
+								$note->addChild("rest");
+								$note->addChild("duration", $voice[$l]->duration);
+								$note->addChild("voice", $n);
+								$note->addChild("staff", $k+1);
+							}
 							for($m=0; $m<count($voice[$l]->step); $m++) {
 								$note = $measure->addChild("note");
 								if($m>1)
 									$note->addChild("chord");
-									if(!$voice[$l]->isRest) {
-										$pitch = $note->addChild("pitch");
-										$pitch->addChild("step", strtoupper($voice[$l]->step[$m]));
-										$pitch->addChild("octave", $voice[$l]->octave[$m]);
-									}
-									else $note->addChild("rest");
-									$note->addChild("duration", $voice[$l]->duration);
-									$note->addChild("voice", $n);
-									$note->addChild("staff", $k+1);
-										
-									if(count($voice[$l]->isTieStart)>0) {
-										$tie = $note->addChild("tie");
-										$tie->addAttribute("type", "start");
-									}
-									if(count($voice[$l]->isTieEnd)>0) {
-										$tie = $note->addChild("tie");
-										$tie->addAttribute("type", "stop");
-									}
+								if(!$voice[$l]->isRest) {
+									$pitch = $note->addChild("pitch");
+									$pitch->addChild("step", strtoupper($voice[$l]->step[$m]));
+									$pitch->addChild("octave", $voice[$l]->octave[$m]);
+								}
+								else $note->addChild("rest");
+								$note->addChild("duration", $voice[$l]->duration);
+								$note->addChild("voice", $n);
+								$note->addChild("staff", $k+1);
+									
+								if(count($voice[$l]->isTieStart)>0) {
+									$tie = $note->addChild("tie");
+									$tie->addAttribute("type", "start");
+								}
+								if(count($voice[$l]->isTieEnd)>0) {
+									$tie = $note->addChild("tie");
+									$tie->addAttribute("type", "stop");
+								}
 							}
 						}
 						if($n<$nVoices) {
@@ -230,12 +237,14 @@ class SOMUSIC_CLASS_MusicXMLParser {
 			$lastTimeSignature = null;
 			$lastKeySignature = null;
 			$lastDivisions = null;
+			$lastBeats = null;
 			for($j=0; $j<count($part->measure); $j++) {
-				$measure = $this->getMeasure($part->measure[$j], $lastClef, $lastTimeSignature, $lastKeySignature, $lastDivisions, $i, count($clefs));
+				$measure = $this->getMeasure($part->measure[$j], $lastClef, $lastTimeSignature, $lastKeySignature, $lastDivisions, $lastBeats, $i, count($clefs));
 				$lastClef = $measure->clef;
 				$lastTimeSignature = $measure->timeSignature;
 				$lastKeySignature = $measure->keySignature;
 				$lastDivisions = $this->getDivisions($part->measure[$j], $lastDivisions);
+				$lastBeats = $this->getBeats($part->measure[$j], $lastBeats);
 				array_push($is->measures, $measure);
 				$ts = $this->getTieTyped($part->measure[$j], "start", $i);
 				for($k=0; $k<count($ts); $k++)
@@ -261,6 +270,12 @@ class SOMUSIC_CLASS_MusicXMLParser {
 		return $divisions;
 	}
 	
+	private function getBeats($measureXML, $beats = null) {
+		if(isset($measureXML->attributes) && isset($measureXML->attributes->time))
+			$beat = intval($measureXML->attributes->time->beats->__toString());
+		return $beats;
+	}
+	
 	private function getClefs($measureAttr) {
 		$toReturn = array();
 		for($i=0; $i<count($measureAttr->clef); $i++)
@@ -284,19 +299,25 @@ class SOMUSIC_CLASS_MusicXMLParser {
 		return $this->major[$fifths];
 	}
 	
-	private function getMeasure($measureXML, $clef=null, $timeSignature=null, $keySignature=null, $divisions=null, $scoreIndex, $nScorePart) {
+	private function getMeasure($measureXML, $clef=null, $timeSignature=null, $keySignature=null, $divisions=null, $beats=null, $scoreIndex, $nScorePart) {
 		if(isset($measureXML->attributes)) {
-			$clef = $this->getClef($measureXML->attributes, $scoreIndex);
-			$timeSignature = $measureXML->attributes->time->beats."/".$measureXML->xpath(".//beat-type")[0];
-			$keySignature = $this->getKeySignature($measureXML->attributes);
-			$divisions = intval($measureXML->attributes->divisions->__toString());
+			if(isset($measureXML->attributes->clef[$scoreIndex]))
+				$clef = $this->getClef($measureXML->attributes, $scoreIndex);
+			if(isset($measureXML->attributes->time))
+				$timeSignature = $measureXML->attributes->time->beats."/".$measureXML->xpath(".//beat-type")[0];
+			if(isset($measureXML->attributes->key))
+				$keySignature = $this->getKeySignature($measureXML->attributes);
+			if(isset($measureXML->attributes->divisions))
+				$divisions = intval($measureXML->attributes->divisions->__toString());
+			if(isset($measureXML->attributes->time))
+				$beats = $measureXML->attributes->time->beats;
 		}
 		$measure = new SOMUSIC_CLASS_Measure("-1", $clef, $keySignature, $timeSignature, array());
 		$indexs = $this->getMeasureStaveIndexs($measureXML, $scoreIndex, $nScorePart, $divisions);
 		for($i=0; $i<count($indexs); $i++) {
 			$voice = array();
-			$start = $this->getMeasureNoteStart($measureXML, $indexs[$i], $divisions);
-			$end = $this->getMeasureNoteEnd($measureXML, $start, $divisions);
+			$start = $this->getMeasureNoteStart($measureXML, $indexs[$i], $divisions, $beats);
+			$end = $this->getMeasureNoteEnd($measureXML, $start, $divisions, $beats);
 			for($j=$start; $j<$end; $j++) {
 				$note = $this->getNote($measureXML->note[$j], $divisions);
 				if(isset($measureXML->note[$j]->chord)) {
@@ -324,8 +345,7 @@ class SOMUSIC_CLASS_MusicXMLParser {
 		return $toReturn;
 	}
 	
-	private function getMeasureNoteStart($measureXML, $scoreIndex, $divisions) {
-		$beats = $measureXML->attributes->time->beats;
+	private function getMeasureNoteStart($measureXML, $scoreIndex, $divisions, $beats) {
 		$si = 0;
 		$start = 0;
 		$end = count($measureXML->note);
@@ -346,8 +366,7 @@ class SOMUSIC_CLASS_MusicXMLParser {
 		return $start;
 	}
 	
-	private function getMeasureNoteEnd($measureXML, $start, $divisions) {
-		$beats = $measureXML->attributes->time->beats;
+	private function getMeasureNoteEnd($measureXML, $start, $divisions, $beats) {
 		$end = count($measureXML->note);
 		$totDuration = 0;
 		for($i=$start; $i<$end; $i++) {

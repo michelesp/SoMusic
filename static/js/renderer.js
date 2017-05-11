@@ -51,6 +51,7 @@ Renderer.prototype.updateComposition = function(data, cleanVars) {
 					else if(m1.clef=="alto")
 						keys[0] = "c/4";
 				}
+				console.log(note.duration+"     "+(64/note.duration)+(note.isRest?"r":""));
 				var note1 = new Vex.Flow.StaveNote({clef: m1.clef, keys: keys, duration: (64/note.duration)+(note.isRest?"r":"")});
 				if(note.accidental!=null)
 					for(var l=0; l<note.accidental.length; l++)

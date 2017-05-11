@@ -1,8 +1,4 @@
 
-.floatbox_container {
-	width: calc(80vw) !important;
-}
-
 #scorePreview {
 	height: calc(60vh);
 	overflow: auto;

@@ -1,5 +1,7 @@
 <?php
 class SOMUSIC_BOL_MusicInstrument extends OW_Entity {
-	public $id;
 	public $name;
+	public $id_group;
+	public $scoresClef;
+	public $braces;
 }

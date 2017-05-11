@@ -235,16 +235,12 @@ SoMusic.assignmentDetails = function(assignmentId) {
 	SoMusic.floatBox.push({"name":"AssignmentDetails", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentDetails", {"assignmentId": assignmentId}, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
 }
 
-SoMusic.completeAssignment = function(assignmentId, timeSignature, keySignature, instrumentsUsed, composition) {
+SoMusic.completeAssignment = function(assignmentId, compositionId) {
 	//SoMusic.closeAllFloatBox();
-	var toSend = {"timeSignature":timeSignature,
-			"keySignature":keySignature,
-			"instrumentsUsed":instrumentsUsed,
-			"composition":composition,
-			"assignmentId":assignmentId};
+	var toSend = {"compositionId":compositionId, "assignmentId":assignmentId};
 	console.log(toSend);
 	SoMusic.assignmentId = assignmentId;
-	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
+	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(80vw)", height:"calc(80vh)", iconClass: "ow_ic_add", title: ""})});
 }
 
 SoMusic.closeAllFloatBox = function() {
@@ -264,10 +260,10 @@ SoMusic.executionDetails = function(assignmentId, executionId) {
 	SoMusic.floatBox.push({"name":"AssignmentExecutionDetails", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentExecutionDetails", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
 }
 
-SoMusic.viewAssignmentExecution = function(executionId, timeSignature, keySignature, instrumentsUsed, composition) {
-	var toSend = {"timeSignature":timeSignature,"keySignature":keySignature,"instrumentsUsed":instrumentsUsed,"composition":composition};
+SoMusic.viewAssignmentExecution = function(executionId, compositionId) {
+	var toSend = {"compositionId":compositionId};
 	SoMusic.executionId = executionId;
-	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
+	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(80vw)", height:"calc(80vh)", iconClass: "ow_ic_add", title: ""})});
 }
 
 SoMusic.removeAssignment = function(url, id) {
@@ -339,4 +335,39 @@ SoMusic.removeCompositionInstrument = function(url, i) {
 			OW.error(textStatus);
 		}
 	});
+}
+
+SoMusic.importMusicXML = function(url, fileInput) {
+	var file = fileInput.files[0];
+	var reader = new FileReader();
+	reader.onload = function(e) {
+		document.getElementById("xmlFile").value = reader.result;
+		 $.ajax({
+		        url: url,
+		        type: 'POST',
+		        data: new FormData($('form[name="preview_form"]')[0]),
+		        cache: false,
+		        contentType: false,
+		        processData: false,
+		        //contentType: "multipart/form-data",
+		        dataType: 'JSON',
+		        success: function(data){
+					console.log(data);
+					SoMusic.preview.instrumentsTable.loadTable();
+					setTimeout(() => {
+						SoMusic.preview.commitPreview();
+					}, 1000);
+				},
+		    });
+	}
+	reader.readAsText(file);	
+}
+
+SoMusic.exportMusicXML = function(url) {
+	var a = document.createElement('a');
+	a.setAttribute('download', 'music.xml');
+	a.href = url;
+	a.style.display = 'none';
+	document.body.appendChild(a);
+	a.click();
 }

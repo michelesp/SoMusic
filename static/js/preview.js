@@ -1,10 +1,11 @@
 
-function Preview(floatBox, timeSignature, keySignature, scoreDiv, nextButton, instrumentsTable) {
+function Preview(floatBox, timeSignature, keySignature, scoreDiv, nextButton, instrumentsTable, commitURL) {
 	this.floatBox = floatBox;
 	this.timeSignature = timeSignature;
 	this.keySignature = keySignature;
 	this.scoreDiv = scoreDiv;
 	this.instrumentsTable = instrumentsTable;
+	this.commitURL = commitURL;
 	this.renderer = new Vex.Flow.Renderer(scoreDiv, Vex.Flow.Renderer.Backends.SVG);
 	this.instrumentsTable.toUpdate.push(this);
 	var preview = this;
@@ -50,9 +51,29 @@ Preview.prototype.update = function() {
 }
 
 Preview.prototype.commitPreview = function() {
+	var preview = this;
 	var fb = SoMusic.floatBox.pop();
 	fb.floatBox.close();
-	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor',
+	$.ajax({
+		type: 'post',
+		url: preview.commitURL,
+		data: {
+			"timeSignature": preview.timeSignature.value,
+			"keySignature": preview.keySignature.value,
+			"instrumentsUsed": preview.instrumentsTable.instrumentsUsed
+		},
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data)
+				SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor', {},
+						{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})})
+		},
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		}
+	});
+	/*SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor',
 			{"timeSignature": this.timeSignature.value, "keySignature": this.keySignature.value, "instrumentsUsed": this.instrumentsTable.instrumentsUsed},
 			{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})});
-}
+*/}

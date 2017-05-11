@@ -17,17 +17,11 @@ class SOMUSIC_CMP_AssignmentDetails extends OW_Component {
 		$compositions = array();
 		foreach ($executions as $ex) {
 			$composition = $service->getComposition($ex->composition_id);
-			$compositionObj = (object)json_decode($composition->data);
-			$timeSignature = $compositionObj->instrumentsScore[0]->measures[0]->timeSignature;
-			$keySignature = $compositionObj->instrumentsScore[0]->measures[0]->keySignature;
-			$instrumentsUsed = $compositionObj->instrumentsUsed;
+			$composition = SOMUSIC_CLASS_Composition::getCompositionObject($composition);
 			$compositions[$ex->user_id] = array("executionId"=>$ex->id,
-					"timestamp_c"=>str_replace(" ", "&nbsp;&nbsp;&nbsp;",date("H:i d/m/Y",strtotime($composition->timestamp_c))),
+					"timestamp_c"=>str_replace(" ", "&nbsp;&nbsp;&nbsp;",date("H:i d/m/Y",strtotime($composition->getTimestampC()))),
 					"timestamp_m"=>str_replace(" ", "&nbsp;&nbsp;&nbsp;",date("H:i d/m/Y",strtotime($composition->timestamp_m))),
-					"timeSignature"=>$timeSignature,
-					"keySignature"=>$keySignature,
-					"instrumentsUsed"=>json_encode($instrumentsUsed),
-					"composition"=>json_encode($compositionObj),
+					"compositionId"=>$composition->getId(),
 					"comment"=>json_encode($ex->comment)
 			);
 		}

@@ -52,7 +52,7 @@
 						{if isset($compositions[$user->id])}
 						<td>{$compositions[$user->id]["timestamp_c"]}</td>
 						<td>{$compositions[$user->id]["timestamp_m"]}</td>
-						<td><input onclick='SoMusic.viewAssignmentExecution({$compositions[$user->id]["executionId"]}, "{$compositions[$user->id]["timeSignature"]}", "{$compositions[$user->id]["keySignature"]}", {$compositions[$user->id]["instrumentsUsed"]}, {$compositions[$user->id]["composition"]})' type="button" value="view"></input></td>
+						<td><input onclick='SoMusic.viewAssignmentExecution({$compositions[$user->id]["executionId"]}, "{$compositions[$user->id]["compositionId"]}")' type="button" value="view"></input></td>
 						<td><input onclick='document.getElementById("commentExecutionId").value={$compositions[$user->id]["executionId"]}; document.getElementById("commentText").innerHTML={$compositions[$user->id]["comment"]}; $("#commentModal").modal("show");' type="button" value="comment"></input></td>
 						{else}
 						<td>---</td>

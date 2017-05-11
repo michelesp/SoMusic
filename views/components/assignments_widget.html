@@ -10,7 +10,7 @@
 <div id="assignment_list" class="list-group">
 	{foreach $assignments as $assignment}
    		{if $isAdmin || $assignment["close"]==0}
-   		<a onclick='{if $isAdmin == true && $assignment["isMultiUser"]==0} SoMusic.assignmentDetails({$assignment["id"]}); {elseif $assignment["executionId"]!=-1} SoMusic.executionDetails({$assignment["id"]}, {$assignment["executionId"]}); {else} SoMusic.completeAssignment({$assignment["id"]},"{$assignment["timeSignature"]}", "{$assignment["keySignature"]}", {$assignment["instrumentsUsed"]}, {$assignment["composition"]}); {/if}' class='list-group-item assignment_item'>{$assignment['name']}</a>
+   		<a onclick='{if $isAdmin == true && $assignment["isMultiUser"]==0} SoMusic.assignmentDetails({$assignment["id"]}); {elseif $assignment["executionId"]!=-1} SoMusic.executionDetails({$assignment["id"]}, {$assignment["executionId"]}); {else} SoMusic.completeAssignment({$assignment["id"]}, {$assignment["compositionId"]}); {/if}' class='list-group-item assignment_item'>{$assignment['name']}</a>
 		{/if}
 	{/foreach}
 </div>

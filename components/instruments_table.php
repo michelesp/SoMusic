@@ -3,6 +3,7 @@
 class SOMUSIC_CMP_InstrumentsTable extends OW_Component {
 	
 	public function __construct($users, $instrumentsTable) {
+		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'instruments_table.js', 'text/javascript');
 		$tableHeader = array("Name", "Type");
 		if(count($users)>1)
 			array_push($tableHeader, "User");
@@ -15,8 +16,5 @@ class SOMUSIC_CMP_InstrumentsTable extends OW_Component {
 		$this->assign("users", $users);
 		$this->assign("usersCount", count($users));
 	}
-	
-	public static function addScripts() {
-		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'instruments_table.js', 'text/javascript' );
-	}
+
 }

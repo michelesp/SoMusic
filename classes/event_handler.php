@@ -1,11 +1,11 @@
 <?php
 class SOMUSIC_CLASS_EventHandler {
 	private static $classInstance;
+	
 	public static function getInstance() {
 		if (self::$classInstance === null) {
 			self::$classInstance = new self ();
 		}
-		
 		return self::$classInstance;
 	}
 	
@@ -43,6 +43,7 @@ class SOMUSIC_CLASS_EventHandler {
 		$event->setData ( $ret );
 		return $ret;
 	}
+	
 	public function onApplicationInit(OW_Event $event) {
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'somusic.js', 'text/javascript' );
 		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'renderer.js', 'text/javascript' );
@@ -112,39 +113,11 @@ class SOMUSIC_CLASS_EventHandler {
 	public function onItemRender(OW_Event $event) {
 		$params = $event->getParams ();
 		$data = $event->getData ();
-		/*$scoreData = SOMUSIC_BOL_Service::getInstance ()->getScoreByPostId ( $params ['action'] ['entityId'] );
-		if (! empty ( $scoreData )) {
-			$data ['content'] ['vars'] ['status'] .= '<span class = "zoomIn animated"><div class="score_placeholder" id="score_placeholder_' . $scoreData ['id_post'] . '" style = "overflow-x: auto; overflow-y: auto;' . '"></div></span>';
-			//eliminare tranne primo rigo
-			OW::getDocument ()->addOnloadScript ( 'SoMusic.loadScore(' . $scoreData ['data'] . ',"score_placeholder_' . $scoreData ['id_post'] . '","' . $scoreData ['title'] . '");
-				document.getElementById("score_placeholder_' . $scoreData ['id_post'] . '").addEventListener("click", function(e) {
-					if(typeof previewFloatBox != "undefined" || document.getElementsByName("floatbox_canvas").length > 0) {
-	                    $(".floatbox_canvas").each(function(i, obj) {
-	                        obj.style.display = "block";
-	                    });
-	                    if(document.getElementById("floatbox_overlay") != null)
-	                        document.getElementById("floatbox_overlay").style.display = "block";
-	                    var fb = SoMusic.floatBox.pop();
-						fb.close();
-	                    //delete previewFloatBox;
-	                }
-					var composition = '.$scoreData ['data'].';
-					var timeSignature = composition.instrumentsScore[0].measures[0].timeSignature;
-					var keySignature = composition.instrumentsScore[0].measures[0].keySignature;
-					var instrumentsUsed = composition.instrumentsUsed;
-					SoMusic.idPost = '.$scoreData ['id_post'].';
-					SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor",
-						{"timeSignature": timeSignature, "keySignature": keySignature, "instrumentsUsed": instrumentsUsed, "composition": composition},
-						{top:"calc(5vh)", width:"calc(80vw)", height:"calc(85vh)", iconClass: "ow_ic_add", title: ""})});
-					document.getElementById("vm_placeholder").style.display = "none";
-				});' );
-		}*/
 	    $postId = $params['action']['entityId'];
 	    $composition = SOMUSIC_BOL_Service::getInstance()->getScoreByPostId($postId);
 	    if (isset($composition)) {
 	    	$data['content']['vars']['status'] .= '<span class = "zoomIn animated"><div class="score_placeholder" id="score_placeholder_' . $postId . '" style = "overflow-x: auto; overflow-y: auto;' . '"></div></span>';
 	    	$composition = SOMUSIC_CLASS_Composition::getCompositionObject($composition);
-	    	//eliminare tranne primo rigo
 	    	OW::getDocument ()->addOnloadScript ( 'SoMusic.loadScore(' . json_encode($composition) . ',"score_placeholder_' . $postId . '","' . $composition->name . '");
 				document.getElementById("score_placeholder_' . $postId . '").addEventListener("click", function(e) {
 					if(typeof previewFloatBox != "undefined" || document.getElementsByName("floatbox_canvas").length > 0) {
@@ -157,13 +130,10 @@ class SOMUSIC_CLASS_EventHandler {
 						fb.close();
 	                    //delete previewFloatBox;
 	                }
-					var composition = '.json_encode($composition).';
-					var timeSignature = composition.instrumentsScore[0].measures[0].timeSignature;
-					var keySignature = composition.instrumentsScore[0].measures[0].keySignature;
-					var instrumentsUsed = composition.instrumentsUsed;
 					SoMusic.idPost = '.$postId.';
+	    			console.log('.$composition->getId().');
 					SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor",
-						{"timeSignature": timeSignature, "keySignature": keySignature, "instrumentsUsed": instrumentsUsed, "composition": composition},
+						{"compositionId": '.$composition->getId().'},
 						{top:"calc(5vh)", width:"calc(80vw)", height:"calc(85vh)", iconClass: "ow_ic_add", title: ""})});
 					document.getElementById("vm_placeholder").style.display = "none";
 				});' );

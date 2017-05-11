@@ -16,6 +16,9 @@ label {
 	border: 1px solid #DDDDDD;
 }
 {/style}
+<script>
+console.log({$assignment});
+</script>
 {form name='editor_form'}
 <div class="container-fluid">
 	<div class="row">
@@ -60,7 +63,7 @@ label {
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-4"> &nbsp; </div>
+		<div class="col-md-4"> <br><a onclick="SoMusic.exportMusicXML('{$exportURL}');">Export MusicXML</a> </div>
 		<div class="col-md-4"> &nbsp; </div>
 		<div class="col-md-4">
 			<span class="rounded_attachment_btn">

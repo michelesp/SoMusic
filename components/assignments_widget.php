@@ -6,19 +6,17 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 		parent::__construct();
 		$service = SOMUSIC_BOL_Service::getInstance();
 		
-		OW::getDocument ()->addStyleSheet ( "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" );
-		OW::getDocument ()->addScript ( OW::getPluginManager ()->getPlugin ( 'SoMusic' )->getStaticJsUrl () . 'assignments.js', 'text/javascript' );
-		OW::getDocument ()->addScript ( "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js", 'text/javascript' );
-		SOMUSIC_CMP_InstrumentsTable::addScripts();
-		SOMUSIC_CMP_Editor::addScripts();
+		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap.min.css');
+		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-grid.min.css');
+		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
+		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'bootstrap.min.js', 'text/javascript');
+		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'assignments.js', 'text/javascript');
 		
 		$groupId = $params->additionalParamList["entityId"];
 		$assignments = $service->getAssignmentsByGroupId($groupId);
 		
 		$group = GROUPS_BOL_Service::getInstance()->findGroupById($groupId);
 		$isAdmin = $group->userId == OW::getUser()->getId();
-		
-		OW::getDocument ()->addOnloadScript ("");
 		
 		$userId = OW::getUser()->getId();
 		
@@ -36,10 +34,11 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 			array_push($assignment1, array("id"=>$a->id,
 					"isMultiUser"=>$a->mode,
 					"name"=>$a->name,
-					"timeSignature"=>$timeSignature,
-					"keySignature"=>$keySignature,
-					"instrumentsUsed"=>json_encode($instrumentsUsed),
-					"composition"=>json_encode($composition),
+					//"timeSignature"=>$timeSignature,
+					//"keySignature"=>$keySignature,
+					//"instrumentsUsed"=>json_encode($instrumentsUsed),
+					//"composition"=>json_encode($composition),
+					"compositionId"=>$composition->getId(),
 					"close"=>$a->close,
 					"executionId"=>(isset($execution->id)?$execution->id:-1)
 			));

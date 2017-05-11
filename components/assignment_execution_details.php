@@ -15,19 +15,13 @@ class SOMUSIC_CMP_AssignmentExecutionDetails extends OW_Component {
 		$this->assign("execution_timestamp_m", $executionTimestampM);
 		$this->assign("comment", $execution->comment);
 		
-		$composition = json_decode($composition->data);
-		$timeSignature = $composition->instrumentsScore[0]->measures[0]->timeSignature;
-		$keySignature = $composition->instrumentsScore[0]->measures[0]->keySignature;
-		$instrumentsUsed = $composition->instrumentsUsed;
-		
+		$compositionId = SOMUSIC_CLASS_Composition::getCompositionObject($composition)->getId();
+
 		$this->assign("assignmentId", $assignmentId);
-		$this->assign("timeSignature", $timeSignature);
-		$this->assign("keySignature", $keySignature);
-		$this->assign("instrumentsUsed", json_encode($instrumentsUsed));
-		$this->assign("composition", json_encode($composition));
+		$this->assign("compositionId", $compositionId);
 		
-		$originalComposition = SOMUSIC_BOL_Service::getInstance()->getComposition($assignment->composition_id);
-		$this->assign("originalComposition", $originalComposition->data);
+		$originalComposition = SOMUSIC_CLASS_Composition::getCompositionObject(SOMUSIC_BOL_Service::getInstance()->getComposition($assignment->composition_id));
+		$this->assign("originalCompositionId", $originalComposition->getId());
 	
 		$userId = OW::getUser()->getId();
 		$group = GROUPS_BOL_Service::getInstance()->findGroupById($assignment->group_id);
