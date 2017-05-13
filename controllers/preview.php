@@ -14,16 +14,16 @@ class SOMUSIC_CTRL_Preview extends OW_ActionController {
 			array_push($instrumentsName, $mi->name);
 		$parser = new SOMUSIC_CLASS_MusicXmlParser($instrumentsName);
 		$composition = $parser->parseMusicXML($_REQUEST["file"]);
-		//$editor = new SOMUSIC_CTRL_Editor(false);
-		//$editor->setComposition($parser->parseMusicXML($_REQUEST["file"]));
-		//TODO: settare composizione nuova in preview
 		
-		$preview = unserialize(OW::getSession()->get("preview"));
+		$editor = new SOMUSIC_CTRL_Editor(false);
+		$editor->setComposition($composition);
+		
+		/*$preview = unserialize(OW::getSession()->get("preview"));
 		$preview->importedComposition = $composition;
 		$preview->instrumentsTable = array();
 		foreach ($composition->instrumentsUsed as $instrumentUsed)
 			array_push($preview->instrumentsTable, array("name"=>$instrumentUsed->labelName, "type"=>$instrumentUsed->name, "user"=>-1));
-		OW::getSession()->set("preview", serialize($preview));
+		OW::getSession()->set("preview", serialize($preview));*/
 
 		exit(json_encode(true));
 	}
@@ -37,8 +37,6 @@ class SOMUSIC_CTRL_Preview extends OW_ActionController {
 		
 		$editor = new SOMUSIC_CTRL_Editor(false);
 		$editor->initEditor($instrumentsUsed, $timeSignature, $keySignature);
-		
-		OW::getSession()->delete("assignment");
 		
 		exit(json_encode(true));
 	}

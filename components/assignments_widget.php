@@ -10,7 +10,8 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-grid.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
 		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'bootstrap.min.js', 'text/javascript');
-		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'assignments.js', 'text/javascript');
+		//OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'assignments.js', 'text/javascript');
+		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'assignment_manager.js', 'text/javascript');
 		
 		$groupId = $params->additionalParamList["entityId"];
 		$assignments = $service->getAssignmentsByGroupId($groupId);
@@ -48,7 +49,11 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 		$this->assign("isAdmin", $isAdmin);
 		$this->assign("groupId", $groupId);
 		
-		$this->assign("saveComment", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'saveComment'));
+		$this->assign("removeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'removeAssignment'));
+		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'closeAssignment'));
+		$this->assign("saveCommentURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'saveComment'));
+		$this->assign("newAssignmentURL", OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_AssignmentManager', 'newAssignment'));
+		$this->assign("completeAssignmentURL", OW::getRouter ()->urlFor ( 'SOMUSIC_CTRL_AssignmentManager', 'completeAssignment'));
 	}
 
 	public static function getStandardSettingValueList() {

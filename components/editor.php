@@ -2,36 +2,21 @@
 
 class SOMUSIC_CMP_Editor extends OW_Component {
 	
-	public function __construct($compositionId = -1, $assignmentId = null) {
+	public function __construct($compositionId = -1) {
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-grid.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
 		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'bootstrap.min.js', 'text/javascript');
 		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'editor.js', 'text/javascript');
-
-		$assignment = null;
-		$isClose = 0;
-		if(isset($assignmentId)) {
-			$assignment = SOMUSIC_BOL_Service::getInstance()->getAssignment(intval($assignmentId));
-			OW::getSession()->set("assignment", json_encode($assignment));
-			$isClose = $assignment->close;
-		}
-		else OW::getSession()->delete("assignment");
-		$this->assign("assignment", json_encode($assignment));
+		
 		$composition = null;
+		$editor = new SOMUSIC_CTRL_Editor(false);
 		if($compositionId>=0) {
-			$editor = new SOMUSIC_CTRL_Editor(false);
-			if(!$editor->isCompositionInCache()) {
-				$composition = SOMUSIC_CLASS_Composition::getCompositionObject(SOMUSIC_BOL_Service::getInstance()->getComposition($compositionId));
-				$editor->setComposition($composition);
-			}
-			else{
-				$editor->loadDataFromCache();
-				$composition = $editor->getComposition();
-			}
+			$composition = SOMUSIC_CLASS_Composition::getCompositionObject(SOMUSIC_BOL_Service::getInstance()->getComposition($compositionId));
+			$editor->setComposition($composition);
 		}
-		else {
-			$editor = new SOMUSIC_CTRL_Editor();
+		else{
+			$editor->loadDataFromCache();
 			$composition = $editor->getComposition();
 		}
 		$this->assign("composition", json_encode($composition));
@@ -44,8 +29,9 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
 		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getJSONComposition'));
 		$this->assign("accidentalUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'accidentalUpdate'));
-		$this->assign("isClose", $isClose);
+		$this->assign("isClose", 0);		//TODO: passare qualcosa come parametro
 		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'close'));
+		$this->assign("removeInstrumentURL", OW::getRouter()->urlFor( 'SOMUSIC_CTRL_Editor', 'removeInstrument'));
 		$this->assign("exportURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'exportMusicXML'));
 	}
 	

@@ -7,10 +7,15 @@
 	display: block;
 }
 {/style}
+
+{script}
+SoMusic.assignmentManager = new AssignmentManager({$groupId}, "{$closeURL}", "{$removeURL}", "{$saveCommentURL}", "{$newAssignmentURL}", "{$completeAssignmentURL}");
+{/script}
+
 <div id="assignment_list" class="list-group">
 	{foreach $assignments as $assignment}
    		{if $isAdmin || $assignment["close"]==0}
-   		<a onclick='{if $isAdmin == true && $assignment["isMultiUser"]==0} SoMusic.assignmentDetails({$assignment["id"]}); {elseif $assignment["executionId"]!=-1} SoMusic.executionDetails({$assignment["id"]}, {$assignment["executionId"]}); {else} SoMusic.completeAssignment({$assignment["id"]}, {$assignment["compositionId"]}); {/if}' class='list-group-item assignment_item'>{$assignment['name']}</a>
+   		<a onclick='{if $isAdmin == true && $assignment["isMultiUser"]==0} SoMusic.assignmentManager.assignmentDetails({$assignment["id"]}); {elseif $assignment["executionId"]!=-1} SoMusic.assignmentManager.executionDetails({$assignment["id"]}, {$assignment["executionId"]}); {else} SoMusic.assignmentManager.completeAssignment({$assignment["id"]}); {/if}' class='list-group-item assignment_item'>{$assignment['name']}</a>
 		{/if}
 	{/foreach}
 </div>
@@ -18,7 +23,7 @@
 	<div class="ow_box_toolbar_cont clearfix">	
 		<ul class="ow_box_toolbar ow_remark ow_bl">    
     		<li>
-				<a onclick="{literal}SoMusic.closeAllFloatBox(); SoMusic.floatBox.push({'name':'NewAssignment', 'floatBox':OW.ajaxFloatBox('SOMUSIC_CMP_NewAssignment', {'groupId':{/literal}{$groupId}{literal}}, {top:'calc(5vh)', width:'calc(30vw)', height:'calc(50vh)', iconClass: 'ow_ic_add', title: ''})});{/literal}">Add</a>
+				<a onclick="SoMusic.assignmentManager.openNewAssignment({$groupId});">Add</a>
             </li>
     	</ul>
     </div>
@@ -37,11 +42,10 @@
       </div>
       <div class="modal-body">
       	<textarea id="commentText" style="width:100%"></textarea>
-      	<input id="commentExecutionId" type="hidden" value=""></input>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" onclick="SoMusic.saveComment('{$saveComment}', document.getElementById('commentExecutionId').value, document.getElementById('commentText').value);">Save changes</button>
+        <button type="button" class="btn btn-primary" onclick="SoMusic.assignmentDetails.saveComment(document.getElementById('commentText').value);">Save changes</button>
       </div>
     </div>
   </div>

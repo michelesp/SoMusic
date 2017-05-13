@@ -33,6 +33,9 @@
     float: left;
 }
 {/style}
+{script}
+//SoMusic.preview.setInstrumentsTable(new InstrumentsTable("{$addURL}", "{$deleteURL}", "{$getURL}", "{$commitChangeURL}", "{$changeTypeURL}", "{$changeUserURL}"));
+{/script}
 <div id="instrumentsTableDiv">
 	<label class="descr">Instruments:</label> <br />
 	<table class="table table-hover table-striped" id="tabInstruments">
@@ -48,9 +51,9 @@
 			{foreach from=$tableRows key=$i item=$row}
 			<tr>
 				<td><input type="text" class="form-control" name="instrumentName"
-					value="{$row['name']}" onkeyup="instrumentsTable.textEdited({$i}, value)" /></td>
+					value="{$row['name']}" onkeyup="SoMusic.preview.instrumentsTable.textEdited({$i}, value)" /></td>
 				<td><select class="form-control selectpicker" name="instrumentType"
-					onchange="instrumentsTable.changeType({$i}, value)">
+					onchange="SoMusic.preview.instrumentsTable.changeType({$i}, value)">
 						{foreach from=$instrumentGroups item=$group}
 						<optgroup label="{$group['name']}">
 							{foreach from=$group['instruments'] item=$instrument}
@@ -61,7 +64,7 @@
 				</select></td>
 				{if $usersCount>1}
 				<td>
-					<select name="instrumentUser" onchange="instrumentsTable.changeUser({$i}, value)">
+					<select name="instrumentUser" onchange="SoMusic.preview.instrumentsTable.changeUser({$i}, value)">
 						{foreach from=$users key=$uid item=$username}
 						<option value="{$uid}" {if $uid==$row['userId']}selected{/if}>{$username}</option>
 						{/foreach}
@@ -73,12 +76,11 @@
 				{/foreach}
 				{/if}
 				<td><a class="form-control btn btn-default pull-left"
-					onclick="instrumentsTable.deleteInstrument({$i})">X</a></td>
+					onclick="SoMusic.preview.instrumentsTable.deleteInstrument({$i})">X</a></td>
 			</tr>
 			{/foreach}
 		</tbody>
 	</table>
 	<button id="add_instrument" type="button" class="btn btn-default pull-left"
-		onclick="instrumentsTable.addInstrument()">Add Instrument</button>
+		onclick="SoMusic.preview.instrumentsTable.addInstrument()">Add Instrument</button>
 </div>
-

@@ -52,8 +52,8 @@
 						{if isset($compositions[$user->id])}
 						<td>{$compositions[$user->id]["timestamp_c"]}</td>
 						<td>{$compositions[$user->id]["timestamp_m"]}</td>
-						<td><input onclick='SoMusic.viewAssignmentExecution({$compositions[$user->id]["executionId"]}, "{$compositions[$user->id]["compositionId"]}")' type="button" value="view"></input></td>
-						<td><input onclick='document.getElementById("commentExecutionId").value={$compositions[$user->id]["executionId"]}; document.getElementById("commentText").innerHTML={$compositions[$user->id]["comment"]}; $("#commentModal").modal("show");' type="button" value="comment"></input></td>
+						<td><input onclick='SoMusic.assignmentManager.viewAssignmentExecution({$compositions[$user->id]["executionId"]}, "{$compositions[$user->id]["compositionId"]}")' type="button" value="view"></input></td>
+						<td><input onclick='SoMusic.assignmentManager.viewComment({$compositions[$user->id]["executionId"]}, {$compositions[$user->id]["comment"]});' type="button" value="comment"></input></td>
 						{else}
 						<td>---</td>
 						<td>---</td>
@@ -69,10 +69,10 @@
 	<div class="row">
 		<div class="col-md-3"></div>
 		<div class="col-md-4 text-center">
-			<a onclick="SoMusic.closeAssignment('{$closeURL}', {$id});" class='list-group-item assignment_item'>Close Assignment</a>
+			<a onclick="SoMusic.assignmentManager.closeAssignment();" class='list-group-item assignment_item'>Close Assignment</a>
 		</div>
 		<div class="col-md-2 text-center">
-			<a onclick="SoMusic.removeAssignment('{$removeURL}', {$id});" class='list-group-item assignment_item'>Remove</a>
+			<a onclick="SoMusic.assignmentManager.removeAssignment();" class='list-group-item assignment_item'>Remove</a>
 		</div>
 		<div class="col-md-3"></div>
 	</div>

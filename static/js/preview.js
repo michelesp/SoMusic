@@ -1,11 +1,11 @@
 
-function Preview(floatBox, timeSignature, keySignature, scoreDiv, nextButton, instrumentsTable, commitURL) {
-	this.floatBox = floatBox;
+function Preview(timeSignature, keySignature, scoreDiv, nextButton, instrumentsTable, commitURL, importURL) {
 	this.timeSignature = timeSignature;
 	this.keySignature = keySignature;
 	this.scoreDiv = scoreDiv;
 	this.instrumentsTable = instrumentsTable;
 	this.commitURL = commitURL;
+	this.importURL = importURL;
 	this.renderer = new Vex.Flow.Renderer(scoreDiv, Vex.Flow.Renderer.Backends.SVG);
 	this.instrumentsTable.toUpdate.push(this);
 	var preview = this;
@@ -77,3 +77,32 @@ Preview.prototype.commitPreview = function() {
 			{"timeSignature": this.timeSignature.value, "keySignature": this.keySignature.value, "instrumentsUsed": this.instrumentsTable.instrumentsUsed},
 			{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})});
 */}
+
+Preview.prototype.importMusicXML = function(fileInput) {
+	var preview = this;
+	var file = fileInput.files[0];
+	var reader = new FileReader();
+	reader.onload = function(e) {
+		document.getElementById("xmlFile").value = reader.result;
+		 $.ajax({
+		        url: preview.importURL,
+		        type: 'POST',
+		        data: new FormData($('form[name="preview_form"]')[0]),
+		        cache: false,
+		        contentType: false,
+		        processData: false,
+		        //contentType: "multipart/form-data",
+		        dataType: 'JSON',
+		        success: function(data){
+					console.log(data);
+					/*SoMusic.preview.instrumentsTable.loadTable();
+					setTimeout(() => {
+						SoMusic.preview.commitPreview();
+					}, 1500);*/
+					SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor', {},
+							{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})})
+				},
+		    });
+	}
+	reader.readAsText(file);	
+}

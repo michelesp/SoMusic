@@ -16,7 +16,7 @@
 						{foreach from=$inst key=$key item=$value}
 						<td>{$value}</td>
 						{/foreach}
-						<td><button onclick="SoMusic.removeCompositionInstrument('{$removeInstrumentURL}', {$i})">X</button></td>
+						<td><button onclick="SoMusic.editor.removeCompositionInstrument(document.getElementsByClassName('instrumentsSettings')[i], {$i})">X</button></td>
 					</tr>
 					{/foreach}
 				</tbody>

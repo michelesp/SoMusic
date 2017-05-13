@@ -10,16 +10,23 @@ SoMusic.init = function () {
 	SoMusic.floatBox = [];
 	var oldClose = OW_FloatBox.prototype.close;
 	OW_FloatBox.prototype.close = function() {
-		/*if(typeof SoMusic.assignmentId!=="undefined")
-			delete SoMusic.assignmentId;
-		if(typeof SoMusic.assignment!=="undefined")
-			delete SoMusic.assignment;*/
 		if(SoMusic.floatBox.length>0) {
 			var fb = SoMusic.floatBox.pop();
 			console.log(fb);
 			if(fb.name=="Editor") {
 				SoMusic.editor.close();
 				delete SoMusic.editor;
+				/*if(typeof SoMusic.assignmentManager!=="undefined") {
+					if(SoMusic.floatBox.length>0 && SoMusic.floatBox[SoMusic.floatBox.length-1].name=="AssignmentDetails")
+						SoMusic.assignmentManager.closeViewAssignmentExecution();
+				}*/
+			}
+			else if(fb.name=="AssignmentDetails" || fb.name=="AssignmentExecutionDetails") {
+				SoMusic.assignmentManager.reset();
+			}
+			else if(fb.name=="Preview") {
+				if(typeof SoMusic.assignmentManager!=="undefined" && typeof SoMusic.assignmentManager.newAssignment!=="undefined")
+					delete SoMusic.assignmentManager.assignment;
 			}
 		}
 		oldClose.call(this);
@@ -122,16 +129,14 @@ SoMusic.modScore = function (vmData) {
 }
 
 SoMusic.save = function(composition) {
-	console.log("save");
-	if(typeof SoMusic.executionId!=="undefined"){
+	if(typeof SoMusic.assignmentManager!=="undefined" && SoMusic.assignmentManager.executionId>=0){
 		$.ajax({
 			type: 'post',
 			url: SoMusic.editExecutionURL,
-			data: { "executionId": SoMusic.executionId, "composition": composition },
+			data: {},
 			dataType: 'JSON',
 			success: function(data){
 				console.log(data);
-				delete SoMusic.assignmentId;
 				if(data)
 					setTimeout(function(){ location.reload(); }, 50);
 			},
@@ -142,30 +147,29 @@ SoMusic.save = function(composition) {
 		});
 		return;
 	}
-	if(typeof SoMusic.assignmentId!=="undefined"){
-		$.ajax({
-			type: 'post',
-			url: SoMusic.commitExecutionURL,
-			data: { "assignmentId": SoMusic.assignmentId, "composition": composition },
-			dataType: 'JSON',
-			success: function(data){
-				console.log(data);
-				delete SoMusic.assignmentId;
-				if(data)
-					setTimeout(function(){ location.reload(); }, 50);
-			},
-			error: function( XMLHttpRequest, textStatus, errorThrown ){
-				OW.error(textStatus);
-			},
-			complete: function(){ }
-		});
-		return;
-	}
-	if(typeof SoMusic.assignment!=="undefined") {
+	if(typeof SoMusic.assignmentManager!=="undefined" && typeof SoMusic.assignmentManager.assignment!=="undefined") {
 		$.ajax({
 			type: 'post',
 			url: SoMusic.saveAssignmentURL,
-			data: { "composition": composition },
+			data: {},
+			dataType: 'JSON',
+			success: function(data){
+				console.log(data);
+				if(data)
+					setTimeout(function(){ location.reload(); }, 50);
+			},
+			error: function( XMLHttpRequest, textStatus, errorThrown ){
+				OW.error(textStatus);
+			},
+			complete: function(){ }
+		});
+		return;
+	}
+	if(typeof SoMusic.assignmentManager!=="undefined" && SoMusic.assignmentManager.executionId<0){
+		$.ajax({
+			type: 'post',
+			url: SoMusic.commitExecutionURL,
+			data: {},
 			dataType: 'JSON',
 			success: function(data){
 				console.log(data);
@@ -206,43 +210,6 @@ SoMusic.save = function(composition) {
 	document.getElementsByTagName('BODY')[0].classList.remove('floatbox_nooverflow');
 }
 
-SoMusic.newAssignment = function(url, groupId, name, multiUserMod) {
-	SoMusic.assignment = { "groupId": groupId, "name": name, "isMultiUser": multiUserMod };
-	console.log(SoMusic.assignment);
-	$.ajax({
-		type: 'post',
-		url: url,
-		data: SoMusic.assignment,
-		dataType: 'JSON',
-		success: function(data){
-			console.log(data);
-			if(data){
-				var fb = SoMusic.floatBox.pop();
-				fb.floatBox.close();
-				SoMusic.floatBox.push({"name":"preview", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})});
-			}
-			else console.log("errore");
-		},
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		},
-		complete: function(){ }
-	});
-}
-
-SoMusic.assignmentDetails = function(assignmentId) {
-	SoMusic.closeAllFloatBox();
-	SoMusic.floatBox.push({"name":"AssignmentDetails", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentDetails", {"assignmentId": assignmentId}, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
-}
-
-SoMusic.completeAssignment = function(assignmentId, compositionId) {
-	//SoMusic.closeAllFloatBox();
-	var toSend = {"compositionId":compositionId, "assignmentId":assignmentId};
-	console.log(toSend);
-	SoMusic.assignmentId = assignmentId;
-	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(80vw)", height:"calc(80vh)", iconClass: "ow_ic_add", title: ""})});
-}
-
 SoMusic.closeAllFloatBox = function() {
 	while(SoMusic.floatBox.length>0) {
 		var fb = SoMusic.floatBox.pop();
@@ -250,124 +217,3 @@ SoMusic.closeAllFloatBox = function() {
 	}
 }
 
-SoMusic.executionDetails = function(assignmentId, executionId) {
-	SoMusic.closeAllFloatBox();
-	var toSend = {
-			"assignmentId": assignmentId,
-			"executionId": executionId
-	};
-	console.log(toSend);
-	SoMusic.floatBox.push({"name":"AssignmentExecutionDetails", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_AssignmentExecutionDetails", toSend, {top:"calc(5vh)", width:"calc(60vw)", height:"calc(60vh)", iconClass: "ow_ic_add", title: ""})});
-}
-
-SoMusic.viewAssignmentExecution = function(executionId, compositionId) {
-	var toSend = {"compositionId":compositionId};
-	SoMusic.executionId = executionId;
-	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor", toSend, {top:"calc(5vh)", width:"calc(80vw)", height:"calc(80vh)", iconClass: "ow_ic_add", title: ""})});
-}
-
-SoMusic.removeAssignment = function(url, id) {
-	$.ajax({
-		type: 'post',
-		url: url,
-		data: {"id": id},
-		dataType: 'JSON',
-		success: function(data){
-			console.log(data);
-			if(data)
-				setTimeout(function(){ location.reload(); }, 50);
-		},
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		}
-	});
-}
-
-SoMusic.closeAssignment = function(url, id) {
-	$.ajax({
-		type: 'post',
-		url: url,
-		data: {"id": id},
-		dataType: 'JSON',
-		success: function(data){
-			console.log(data);
-			if(data)
-				setTimeout(function(){ location.reload(); }, 50);
-		},
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		}
-	});
-}
-
-SoMusic.saveComment = function(url, id, comment) {
-	$.ajax({
-		type: 'post',
-		url: url,
-		data: {"id": id, "comment": comment},
-		dataType: 'JSON',
-		success: function(data){
-			console.log(data);
-			if(data)
-				$("#commentModal").modal("hide");
-		},
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		}
-	});
-}
-
-SoMusic.removeCompositionInstrument = function(url, i) {
-	var row = document.getElementsByClassName("instrumentsSettings")[i];
-	$.ajax({
-		type: 'post',
-		url: url,
-		data: {"index": i},
-		dataType: 'JSON',
-		success: function(data){
-			console.log(data);
-			if(data) {
-				row.parentNode.removeChild(row);
-				SoMusic.editor.update();
-			}
-		},
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		}
-	});
-}
-
-SoMusic.importMusicXML = function(url, fileInput) {
-	var file = fileInput.files[0];
-	var reader = new FileReader();
-	reader.onload = function(e) {
-		document.getElementById("xmlFile").value = reader.result;
-		 $.ajax({
-		        url: url,
-		        type: 'POST',
-		        data: new FormData($('form[name="preview_form"]')[0]),
-		        cache: false,
-		        contentType: false,
-		        processData: false,
-		        //contentType: "multipart/form-data",
-		        dataType: 'JSON',
-		        success: function(data){
-					console.log(data);
-					SoMusic.preview.instrumentsTable.loadTable();
-					setTimeout(() => {
-						SoMusic.preview.commitPreview();
-					}, 1000);
-				},
-		    });
-	}
-	reader.readAsText(file);	
-}
-
-SoMusic.exportMusicXML = function(url) {
-	var a = document.createElement('a');
-	a.setAttribute('download', 'music.xml');
-	a.href = url;
-	a.style.display = 'none';
-	document.body.appendChild(a);
-	a.click();
-}

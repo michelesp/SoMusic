@@ -7,20 +7,27 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	private $instrumentsScore;
 	private $assignment;
 
-	public function __construct($loadData=true) {
-		$this->userId = OW::getUser ()->getId ();
-		$this->cache = new Memcached ();
+	public function __construct($loadData=true, $id=null) {
+		$this->userId = OW::getUser()->getId();
+		$this->cache = new Memcached();
 		$this->cache->addServer("localhost", 11211);
-		//$assignment = OW::getSession()->get("newAssignment");
-		//if($assignment==null)
-		$assignment = json_decode(OW::getSession()->get("assignment"));
+		if(isset($id)) {
+			$this->id = $id;
+			OW::getSession()->set("editorId", $this->id);
+		}
+		else $this->id = OW::getSession()->get("editorId");
+		if(!isset($this->id))
+			$this->id = "userId#".$this->userId;
+		/*$assignment = json_decode(OW::getSession()->get("newAssignment"));
+		if($assignment==null)
+			$assignment = json_decode(OW::getSession()->get("assignment"));
 		if(isset($assignment)){
 			$this->assignment = (object)$assignment;
 			if($this->assignment->group_id==null || $this->assignment->name==null || (isset($this->assignment->is_multi_user)?$this->assignment->is_multi_user:$this->assignment->mode)==null)
 				$this->id = "userId#".$this->userId;
 			else $this->id = json_encode((object)array("groupId"=>$this->assignment->group_id, "name"=>$this->assignment->name));
 		}
-		else $this->id = "userId#".$this->userId;
+		else $this->id = "userId#".$this->userId;*/
 		if($loadData) 
 			$this->loadDataFromCache();
 	}
@@ -37,9 +44,12 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		OW::getSession()->set($this->id, serialize($this->composition));
 	}
 	
-	public function loadDataFromCache() {
+	public function loadDataFromCache($composition = null) {
 		$this->instrumentsScore = array();
-		$this->composition = unserialize(OW::getSession()->get($this->id));
+		if(isset($composition))
+			$this->composition = $composition;
+		else
+			$this->composition = unserialize(OW::getSession()->get($this->id));
 		//if(!is_object($this->composition))
 		//	$this->composition = $this->getCompositionObject((array)$this->composition);
 		$nMeasures = 0;
@@ -279,6 +289,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		for($i=0; $i<count($this->instrumentsScore); $i++)
 			$this->cache->delete($this->id."#instrumentScore#".$i);
 		//OW::getSession()->delete($this->id);
+		OW::getSession()->delete("editorId");
 		$this->instrumentsScore = null;
 		$this->composition = null;
 		return $composition;
@@ -300,8 +311,17 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		exit(json_encode($this->composition));
 	}
 	
-	public function isCompositionInCache() {
-		return !is_bool($this->cache->get($this->id."#instrumentScore#0"));
+	public function isCompositionInCache($composition) {
+		foreach ($composition->instrumentsScore as $i=>$instrumentScore) {
+			if(is_bool($this->cache->get($this->id."#instrumentScore#".$i)))
+				return false;
+			$is = $this->cache->get($this->id."#instrumentScore#".$i);
+			if($instrumentScore->name!=$is->name || $instrumentScore->user!=$is->user || $instrumentScore->instrument!=$is->instrument)
+				return false;
+		}
+		//TODO: controllare che non ci sono più strumenti dei necessari in cache
+		//return is_bool($this->cache->get($this->id."#instrumentScore#".count($composition->istrumentsScore)));
+		return true;
 	}
 	
 	public function getInstrumentsUsed() {
@@ -352,6 +372,11 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$parser = new SOMUSIC_CLASS_MusicXmlParser($instrumentsName);
 		//exit(json_encode($parser->parseComposition($this->composition)));
 		exit($parser->parseComposition($this->composition));
+	}
+	
+	//TODO: rimuovere
+	public function getId() {
+		return $this->id;
 	}
 	
 	private function getCompositionObject($compositionArray) {

@@ -15,7 +15,7 @@ input[type=button] {
 			<div class="ow_box_toolbar_cont clearfix">	
 				<ul class="ow_box_toolbar ow_remark ow_bl">    
     				<li>
-						<a onclick="SoMusic.newAssignment('{$newAssignmentURL}', {$groupId}, document.getElementsByName('name')[0].value, false);">Single-user</a>
+						<a onclick="SoMusic.assignmentManager.newAssignment(document.getElementsByName('name')[0].value, 0);">Single-user</a>
            			 </li>
     			</ul>
   		 	</div>
@@ -24,7 +24,7 @@ input[type=button] {
 			<div class="ow_box_toolbar_cont clearfix">	
 				<ul class="ow_box_toolbar ow_remark ow_bl">    
     				<li>
-						<a onclick="SoMusic.newAssignment('{$newAssignmentURL}', {$groupId}, document.getElementsByName('name')[0].value, true);">Multi-user</a>
+						<a onclick="SoMusic.assignmentManager.newAssignment(document.getElementsByName('name')[0].value, 1);">Multi-user</a>
            			 </li>
     			</ul>
   		 	</div>

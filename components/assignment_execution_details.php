@@ -18,15 +18,13 @@ class SOMUSIC_CMP_AssignmentExecutionDetails extends OW_Component {
 		$compositionId = SOMUSIC_CLASS_Composition::getCompositionObject($composition)->getId();
 
 		$this->assign("assignmentId", $assignmentId);
-		$this->assign("compositionId", $compositionId);
 		
 		$originalComposition = SOMUSIC_CLASS_Composition::getCompositionObject(SOMUSIC_BOL_Service::getInstance()->getComposition($assignment->composition_id));
-		$this->assign("originalCompositionId", $originalComposition->getId());
-	
+		$this->assign("executionId", $executionId);
+
 		$userId = OW::getUser()->getId();
 		$group = GROUPS_BOL_Service::getInstance()->findGroupById($assignment->group_id);
 		$this->assign("isAdmin", ($userId==$group->userId));
-		$this->assign("removeAssignmentURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'removeAssignment'));
 	}
 	
 }

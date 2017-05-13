@@ -1,6 +1,7 @@
 
-function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addButton, composition,
-		deteleNotesURL, addTieURL, addNoteURL, getCompositionURL, accidentalUpdateURL, closeURL) {
+function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
+		addButton, composition, deteleNotesURL, addTieURL, addNoteURL,getCompositionURL,
+		accidentalUpdateURL, closeURL, removeInstrumentURL, exportURL) {
 	var editor = this;
 	this.floatBox = floatBox;
 	this.notesInput = notesInput;
@@ -13,6 +14,8 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addB
 	this.getCompositionURL = getCompositionURL;
 	this.accidentalUpdateURL = accidentalUpdateURL;
 	this.closeURL = closeURL;
+	this.removeInstrumentURL = removeInstrumentURL;
+	this.exportURL = exportURL;
 	this.lastUpdate = Date.now();
 	this.interval = setInterval(() => {
 		if(Date.now()>editor.lastUpdate-5000 && this.renderer.selectedNotes.length==0)
@@ -46,9 +49,9 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas, addB
 		editor.tie(e);
 	}, false);
 	addButton.addEventListener("click", function() {
+		SoMusic.save(editor.renderer.composition);
 		var fb = SoMusic.floatBox.pop();
 		fb.floatBox.close();
-		SoMusic.save(editor.renderer.composition);
 	}, false);
 	this.notesInput[2].click();
 	this.accidentalsInput[0].click();
@@ -248,6 +251,35 @@ Editor.prototype.close = function() {
 
 Editor.prototype.update = function() {
 	this.ajaxRequest(this.getCompositionURL, {}, false);
+}
+
+Editor.prototype.removeCompositionInstrument = function(row, index){
+	var editor = this;
+	$.ajax({
+		type: 'post',
+		url: this.removeInstrumentURL,
+		data: {"index": index},
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data) {
+				row.parentNode.removeChild(row);
+				SoMusic.editor.update();
+			}
+		},
+		error: function( XMLHttpRequest, textStatus, errorThrown ){
+			OW.error(textStatus);
+		}
+	});
+}
+
+Editor.prototype.exportMusicXML = function() {
+	var a = document.createElement('a');
+	a.setAttribute('download', 'music.xml');
+	a.href = this.exportURL;
+	a.style.display = 'none';
+	document.body.appendChild(a);
+	a.click();
 }
 
 Editor.prototype.restoreData = function (data, instruments, isUsed) {

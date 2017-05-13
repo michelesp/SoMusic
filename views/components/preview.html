@@ -27,7 +27,7 @@
 		<div class="col-md-2 text-center">
 			<br>
 			    <label class="btn btn-default btn-file">
-        			Import MusicXML<input type="file" name="xmlFile" onchange="SoMusic.importMusicXML('{$importURL}', this)" style="display: none;">
+        			Import MusicXML<input type="file" name="xmlFile" onchange="SoMusic.preview.importMusicXML(this)" style="display: none;">
    			 	</label>
    			 	<input type="hidden" name="file" value="" id="xmlFile"></input>
 		</div>
@@ -44,11 +44,11 @@
 </div>
 {/form}
 <script>
-	SoMusic.preview = new Preview(SoMusic.floatBox,
-			document.getElementsByName("timeSignature")[0],
+	SoMusic.preview = new Preview(document.getElementsByName("timeSignature")[0],
 			document.getElementsByName("keySignature")[0],
 			document.getElementById("scorePreview"),
 			document.getElementById("next"),
 			instrumentsTable,
-			"{$commitURL}");
+			"{$commitURL}",
+			"{$importURL}");
 </script>
