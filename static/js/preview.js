@@ -73,10 +73,7 @@ Preview.prototype.commitPreview = function() {
 			OW.error(textStatus);
 		}
 	});
-	/*SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor',
-			{"timeSignature": this.timeSignature.value, "keySignature": this.keySignature.value, "instrumentsUsed": this.instrumentsTable.instrumentsUsed},
-			{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})});
-*/}
+}
 
 Preview.prototype.importMusicXML = function(fileInput) {
 	var preview = this;
@@ -91,14 +88,9 @@ Preview.prototype.importMusicXML = function(fileInput) {
 		        cache: false,
 		        contentType: false,
 		        processData: false,
-		        //contentType: "multipart/form-data",
 		        dataType: 'JSON',
 		        success: function(data){
 					console.log(data);
-					/*SoMusic.preview.instrumentsTable.loadTable();
-					setTimeout(() => {
-						SoMusic.preview.commitPreview();
-					}, 1500);*/
 					SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor', {},
 							{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})})
 				},

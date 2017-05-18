@@ -106,40 +106,6 @@ class SOMUSIC_CLASS_MusicXmlParser {
 				$staffDetails = $attributes->addChild("staff-details");
 				$staffDetails->addChild("staff-lines", 5);
 				
-				/*for($k=0; $k<$nVoices; $k++) {
-					$scoreIndex = $k%count($scores);
-					$voiceIndex = (int)($k/count($scores));
-					$voice = $scores[$scoreIndex]->measures[$j]->voices[$voiceIndex];
-					for($l=0; $l<count($voice); $l++) {
-						for($m=0; $m<count($voice[$l]->step); $m++) {
-							$note = $measure->addChild("note");
-							if($m>1)
-								$note->addChild("chord");
-							if(!$voice[$l]->isRest) {
-								$pitch = $note->addChild("pitch");
-								$pitch->addChild("step", strtoupper($voice[$l]->step[$m]));
-								$pitch->addChild("octave", $voice[$l]->octave[$m]);
-							}
-							else $note->addChild("rest");
-							$note->addChild("duration", $voice[$l]->duration);
-							$note->addChild("voice", $k+1);
-							$note->addChild("staff", $scoreIndex+1);
-							
-							if(count($voice[$l]->isTieStart)>0) {
-								$tie = $note->addChild("tie");
-								$tie->addAttribute("type", "start");
-							}
-							if(count($voice[$l]->isTieEnd)>0) {
-								$tie = $note->addChild("tie");
-								$tie->addAttribute("type", "stop");
-							}
-						}
-					}
-					if($k!=$nVoices-1) {
-						$backup = $measure->addChild("backup");
-						$backup->addChild("duration", 64);
-					}
-				}*/
 				$n = 0;
 				for($k=0; $k<count($scores); $k++) {
 					for($h=0; $h<count($scores[$k]->measures[$j]->voices); $h++) {

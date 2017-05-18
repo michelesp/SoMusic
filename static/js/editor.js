@@ -1,12 +1,8 @@
 
-function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
-		addButton, composition, deteleNotesURL, addTieURL, addNoteURL,getCompositionURL,
+function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,
+		composition, deteleNotesURL, addTieURL, addNoteURL,getCompositionURL,
 		accidentalUpdateURL, closeURL, removeInstrumentURL, exportURL) {
 	var editor = this;
-	this.floatBox = floatBox;
-	this.notesInput = notesInput;
-	this.restsInput = restsInput;
-	this.accidentalsInput = accidentalsInput;
 	this.canvas = canvas;
 	this.deleteNotesURL = deteleNotesURL;
 	this.addTieURL = addTieURL;
@@ -21,21 +17,21 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
 		if(Date.now()>editor.lastUpdate-5000 && this.renderer.selectedNotes.length==0)
 			editor.ajaxRequest(editor.getCompositionURL, {}, false);
 	}, 10000);
-	this.notesInput.forEach(function(element, index){
+	notesInput.forEach(function(element, index){
 		element.addEventListener("click", function(){
 			var rest = document.querySelector("input[name='rests']:checked");
 			if(rest!=null)
 				rest.checked = false;
 		});
 	});
-	this.restsInput.forEach(function(element, index){
+	restsInput.forEach(function(element, index){
 		element.addEventListener("click", function(){
 			var note = document.querySelector("input[name='notes']:checked");
 			if(note!=null)
 				note.checked = false;
 		});
 	});
-	this.accidentalsInput.forEach(function(element, index){
+	accidentalsInput.forEach(function(element, index){
 		element.addEventListener("click", function(){
 			editor.accidentalUpdate(this.value);
 		});
@@ -45,7 +41,7 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
 	document.getElementById("del").addEventListener("click", function (e) {
 		editor.delNotes(e);
 	}, false);
-	document.getElementById("tie").addEventListener("click", function (e) {
+	document.getElementById("tie").parentNode.addEventListener("click", function (e) {
 		editor.tie(e);
 	}, false);
 	addButton.addEventListener("click", function() {
@@ -53,8 +49,8 @@ function Editor(floatBox, notesInput, restsInput, accidentalsInput, canvas,
 		var fb = SoMusic.floatBox.pop();
 		fb.floatBox.close();
 	}, false);
-	this.notesInput[2].click();
-	this.accidentalsInput[0].click();
+	notesInput[2].click();
+	accidentalsInput[0].click();
 	this.renderer.updateComposition(composition);
 }
 
@@ -280,34 +276,6 @@ Editor.prototype.exportMusicXML = function() {
 	a.style.display = 'none';
 	document.body.appendChild(a);
 	a.click();
-}
-
-Editor.prototype.restoreData = function (data, instruments, isUsed) {
-	/*this.instrumentsUsed = [];
-	if(!isUsed) {
-		this.instrumentsUsed.push({
-			labelName: data.instrumentsScore[0].name.split("#score")[0],
-			name: data.instrumentsScore[0].instrument,
-			braces: instruments[data.instrumentsScore[0].instrument]["braces"],
-			scoresClef: instruments[data.instrumentsScore[0].instrument]["scoresClef"]
-		});
-		for(var i=1; i<data.instrumentsScore.length; i++) {
-			var label = data.instrumentsScore[i].name.split("#score")[0];
-			if(label != this.instrumentsUsed[this.instrumentsUsed.length-1].labelName)
-				this.instrumentsUsed.push({
-					labelName: label,
-					name: data.instrumentsScore[i].instrument,
-					braces: instruments[data.instrumentsScore[i].instrument]["braces"],
-					scoresClef: instruments[data.instrumentsScore[i].instrument]["scoresClef"]
-				});
-		}
-	}
-	else this.instrumentsUsed = instruments;
-	this.keySign = data.instrumentsScore[0].measures[0].keySignature;
-	this.timeSign = data.instrumentsScore[0].measures[0].timeSignature;
-	this.beatNum = this.timeSign.split("/")[0];
-	this.beatValue = this.timeSign.split("/")[1];
-	this.updateComposition(data);*/
 }
 
 Editor.prototype.shakeScore = function(err){

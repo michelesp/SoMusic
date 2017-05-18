@@ -170,12 +170,38 @@ class SOMUSIC_BOL_Service {
 		return $this->musicInstrumentDao->findAll();
 	}
 	
+	public function getMusicInstrumentById($id) {
+		return $this->musicInstrumentDao->findById($id);
+	}
+	
+	public function addMusicInstrument($name, $idGroup, $scoresClef, $braces) {
+		$musicInstrument = new SOMUSIC_BOL_MusicInstrument();
+		$musicInstrument->name = $name;
+		$musicInstrument->id_group = $idGroup;
+		$musicInstrument->scoresClef = $scoresClef;
+		$musicInstrument->braces = $braces;
+		$this->musicInstrumentDao->save($musicInstrument);
+	}
+	
+	public function editMusicInstrument($id, $name, $idGroup, $scoresClef, $braces) {
+		$musicInstrument = $this->musicInstrumentDao->findById($id);
+		$musicInstrument->name = $name;
+		$musicInstrument->id_group = $idGroup;
+		$musicInstrument->scoresClef = $scoresClef;
+		$musicInstrument->braces = $braces;
+		$this->musicInstrumentDao->save($musicInstrument);
+	}
+	
+	public function removeMusicInsturment($id) {
+		exit(json_encode($this->musicInstrumentDao->deleteById($id)>=0?true:false));
+	}
+	
 	public function getMusicInstrumentsByGroup($id_group) {
 		return $this->musicInstrumentDao->getMusicInstrumentsByGroup($id_group);
 	}
 	
 	public function getComposition($id) {
-		return SOMUSIC_BOL_CompositionDao::getInstance()->findById($id);
+		return $this->compositionDao->findById($id);
 	}
 	
 	public function updateComposition($id, $instrumentsScores, $instrumentsUsed) {
@@ -204,7 +230,7 @@ class SOMUSIC_BOL_Service {
 		foreach ($compositions as $i=>$composition)
 			array_push($toReturn, SOMUSIC_CLASS_Composition::getCompositionObject(json_decode($composition["data"], true)));
 			return $toReturn;*/
-		$compositions = $this->compositionDao->getUserCompositions($userId);
+		$compositions = $this->compositionDao->getUserCompositions(intval($userId));
 		$executions = $this->getUserAssignmentExecutions($userId);
 		foreach ($executions as $ex) {
 			$deleted = false;
@@ -229,11 +255,11 @@ class SOMUSIC_BOL_Service {
 		$composition->user_m = $userId;
 		$composition->instrumentsScore = $instrumentsScore;
 		$composition->instrumentsUsed = $instrumentsUsed;
-		SOMUSIC_BOL_CompositionDao::getInstance()->save($composition);
+		$this->compositionDao->save($composition);
 		$post = new SOMUSIC_BOL_SomusicPost();
 		$post->id_melody = $composition->id;
 		$post->id_post = $id_post;
-		SOMUSIC_BOL_SomusicPostDao::getInstance()->save($post);
+		$this->somusicPostDao->save($post);
 		return $composition;
 	}
 	

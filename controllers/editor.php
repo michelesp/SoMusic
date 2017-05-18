@@ -376,7 +376,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	
 	//TODO: rimuovere
 	public function getId() {
-		return $this->id;
+		exit(json_encode($this->id));
 	}
 	
 	private function getCompositionObject($compositionArray) {

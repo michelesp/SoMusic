@@ -37,7 +37,7 @@ class SOMUSIC_BOL_CompositionDao extends OW_BaseDao {
 	
 	public function getUserCompositions($userId) {
 		$example = new OW_Example();
-		$example->andFieldEqual("user_c ", $userId);
+		$example->andFieldEqual("user_c", $userId);
 		return $this->findListByExample($example);
 	}
 	

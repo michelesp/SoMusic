@@ -37,20 +37,30 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 	
 	private function makeForm() {
 		$imgUrl =  OW::getPluginManager()->getPlugin('somusic')->getStaticUrl()."img/";
-		$notes = array("1"=>$imgUrl."whole-note.png",
+		$notes = array(
+				"1"=>$imgUrl."whole-note.png",
 				"2"=>$imgUrl."half-note.png",
 				"4"=>$imgUrl."quarter-note.png",
 				"8"=>$imgUrl."eighth-note.png",
-				"16"=>$imgUrl."sixteenth-note.png");
-		$rests = array("1r"=>$imgUrl."whole-rest.png",
+				"16"=>$imgUrl."sixteenth-note.png"
+		);
+		$rests = array(
+				"1r"=>$imgUrl."whole-rest.png",
 				"2r"=>$imgUrl."half-rest.png",
 				"4r"=>$imgUrl."quarter-rest.png",
 				"8r"=>$imgUrl."eighth-rest.png",
-				"16r"=>$imgUrl."sixteenth-rest.png");
-		$accidentals = array("clear"=>$imgUrl."clear.png",
+				"16r"=>$imgUrl."sixteenth-rest.png"
+		);
+		$accidentals = array(
+				"clear"=>$imgUrl."clear.png",
 				"b"=>$imgUrl."flat.png",
 				"#"=>$imgUrl."sharp.png",
-				"n"=>$imgUrl."restore.png");
+				"n"=>$imgUrl."restore.png"
+		);
+		$additional = array(
+				"tie"=>$imgUrl."tie.png",
+				"dot"=>$imgUrl."dot.png"
+		);
 		$form = new Form("editor_form");
 		$notesField = new RadioField("notes");
 		foreach ($notes as $key=>$value)
@@ -64,6 +74,10 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		foreach ($accidentals as $key=>$value)
 			$accidentalsField->addOption($key, "<img src='$value' class='noteImg'/>");
 		$form->addElement($accidentalsField);
+		$additionalField = new CheckboxGroup("additional");
+		foreach ($additional as $key=>$value)
+			$additionalField->addOption($key, "<img src='$value' id='$key' class='noteImg'/>");
+		$form->addElement($additionalField);
 		return $form;
 	}
 	

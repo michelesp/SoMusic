@@ -51,7 +51,7 @@
 			{foreach from=$tableRows key=$i item=$row}
 			<tr>
 				<td><input type="text" class="form-control" name="instrumentName"
-					value="{$row['name']}" onkeyup="SoMusic.preview.instrumentsTable.textEdited({$i}, value)" /></td>
+					value="{$row['name']}" onkeydown="return SoMusic.preview.instrumentsTable.checkNameLength(event);" onkeyup="SoMusic.preview.instrumentsTable.textEdited({$i}, value)" /></td>
 				<td><select class="form-control selectpicker" name="instrumentType"
 					onchange="SoMusic.preview.instrumentsTable.changeType({$i}, value)">
 						{foreach from=$instrumentGroups item=$group}

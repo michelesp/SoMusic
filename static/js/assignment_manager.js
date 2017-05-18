@@ -21,11 +21,17 @@ AssignmentManager.prototype.viewAssignmentExecution = function(executionId, comp
 }
 
 AssignmentManager.prototype.closeAssignment = function() {
-	this.ajaxRequest(this.closeURL, {"id": this.assignmentId});
+	this.ajaxRequest(this.closeURL, {"id": this.assignmentId}, function(result) {
+		if(result)
+			setTimeout(function(){ location.reload(); }, 50);
+	});
 }
 
 AssignmentManager.prototype.removeAssignment = function() {
-	this.ajaxRequest(this.removeURL, {"id": this.assignmentId});
+	this.ajaxRequest(this.removeURL, {"id": this.assignmentId}, function(result) {
+		if(result)
+			setTimeout(function(){ location.reload(); }, 50);
+	});
 }
 
 AssignmentManager.prototype.viewComment = function(executionId, comment) {
@@ -39,7 +45,10 @@ AssignmentManager.prototype.viewComment = function(executionId, comment) {
 }
 
 AssignmentManager.prototype.saveComment = function(comment) {
-	this.ajaxRequest(this.saveCommentURL, {"id": this.assignmentId, "comment": comment});
+	this.ajaxRequest(this.saveCommentURL, {"id": this.assignmentId, "comment": comment}, function(result) {
+		if(result)
+			setTimeout(function(){ location.reload(); }, 50);
+	});
 	this.executionId = -1;
 }
 
@@ -103,39 +112,25 @@ AssignmentManager.prototype.openNewAssignment = function () {
 AssignmentManager.prototype.newAssignment = function(name, multiUserMod) {
 	var assignmentManager = this;
 	this.assignment = { "groupId": this.groupId, "name": name, "isMultiUser": multiUserMod };
-	$.ajax({
-		type: 'post',
-		url: assignmentManager.newAssignmentURL,
-		data: assignmentManager.assignment,
-		dataType: 'JSON',
-		success: function(data){
-			console.log(data);
-			if(data){
-				var fb = SoMusic.floatBox.pop();
-				fb.floatBox.close();
-				SoMusic.floatBox.push({
-					"name": "Preview",
-					"floatBox": OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":this.groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})
-				});
-			}
-		},
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		},
-		complete: function(){ }
+	this.ajaxRequest(this.newAssignmentURL, this.assignment, function(result){
+		if(result){
+			var fb = SoMusic.floatBox.pop();
+			fb.floatBox.close();
+			SoMusic.floatBox.push({
+				"name": "Preview",
+				"floatBox": OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":assignmentManager.groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})
+			});
+		}
 	});
 }
 
-AssignmentManager.prototype.ajaxRequest = function(url, data) {
+AssignmentManager.prototype.ajaxRequest = function(url, data, succFunc) {
 	$.ajax({
 		type: 'post',
 		url: url,
 		data: data,
 		dataType: 'JSON',
-		success: function(data){
-			if(data)
-				setTimeout(function(){ location.reload(); }, 50);
-		},
+		success: succFunc,
 		error: function( XMLHttpRequest, textStatus, errorThrown ){
 			OW.error(textStatus);
 		}

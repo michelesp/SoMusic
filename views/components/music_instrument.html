@@ -1,0 +1,48 @@
+<div class="container-fluid">
+	{form name="music_instrument"}
+	{input name="instrumentId"}
+	<div class="row">
+		<div class="col-md-6"> {label name="name"} </div>
+		<div class="col-md-6"> {input name="name"} </div>
+	</div>
+	<div class="row">
+		<div class="col-md-6"> {label name="groupId"} </div>
+		<div class="col-md-6"> {input name="groupId"} </div>
+	</div>
+	<div class="row" id="newInst" style="display:none;">
+		<div class="col-md-6"> {label name="newInstGroup"} </div>
+		<div class="col-md-6"> {input name="newInstGroup"} </div>
+	</div>
+	<div class="row">
+		<div class="col-md-6"> Scores: </div>
+		<div class="col-md-6">
+			<table>
+				<tbody id="scoresContainer">
+					{foreach from=$clefs key=$i item=$clef}
+					<tr>
+						<td>
+							<select name="scores[]">
+								<option value="treble" {if $clef->name=="treble"}selected{/if}>treble</option>
+								<option value="bass" {if $clef->name=="bass"}selected{/if}>bass</option>
+								<option value="alto" {if $clef->name=="alto"}selected{/if}>alto</option>
+							</select>
+						</td>
+						<td><input type="checkbox" name="braces[]" value="{$i}" {if $clef->inBraces}checked{/if}></td>
+						<td><i class="fa fa-times" aria-hidden="true" onclick="SoMusic.admin.removeClefToTable(document.getElementById('scoresContainer'),  this.parentNode.parentNode)"></i></td>
+					</tr>
+					{/foreach}
+				</tbody>
+			</table>
+			<input type="button" value="Add Clef" onclick="SoMusic.admin.addClefToTable(document.getElementById('scoresContainer'))"/>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-5"></div>
+		<div class="col-md-2">
+			<!-- <a onclick="SoMusic.admin.{$operation}({if isset({$id})}{$id}{/if});" class='list-group-item assignment_item'>Save</a> -->
+			{submit name='save' class='ow_button'}
+		</div>
+		<div class="col-md-5"></div>
+	</div>
+	{/form}
+</div>

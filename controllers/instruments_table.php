@@ -2,98 +2,73 @@
 
 class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 	private $instruments;
+	private $preview;
 	
 	public function __construct() {
-		//parent::_construct();
 		$this->instruments = array();
 		$musicIntruments = SOMUSIC_BOL_Service::getInstance()->getMusicInstruments();
 		foreach ($musicIntruments as $mi)
 			$this->instruments[strtolower(str_replace(" ", "_", $mi->name))] = array("scoresClef"=>json_decode($mi->scoresClef), "braces"=>json_decode($mi->braces));
+		$this->preview = unserialize(OW::getSession()->get("preview"));
+	}
+	
+	public function __destruct() {
+		OW::getSession()->set("preview", serialize($this->preview));
 	}
 	
 	public function addInstrument() {
-		if(empty($_REQUEST["addInstrument"]) || empty($_REQUEST["instruments"]))
-			exit(json_encode("error"));
-		$preview = unserialize(OW::getSession()->get("preview"));
-		$preview->instrumentsTable = $_REQUEST["instruments"];
 		$userId = OW::getUser()->getId();
 		$firstInstrument = SOMUSIC_BOL_Service::getInstance()->getInstrumentGroups()[0]["instruments"][0];
-		array_push($preview->instrumentsTable, array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"], "user"=>($preview->multiUserMod?$userId:-1)));
-		$preview->instrumentsTable = $this->changeName($preview->instrumentsTable, $this->getDuplicated($preview->instrumentsTable));
-		OW::getSession()->set("preview", serialize($preview));
-		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
-		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
-		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
-		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
+		array_push($this->preview->instrumentsTable, array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"], "user"=>($this->preview->multiUserMod==1?$userId:-1)));
+		$this->changeNamesInstruments();
+		$this->getTable();
 	}
 	
 	public function deleteInstrument() {
-		if(!ctype_digit($_REQUEST["deleteInstrument"]) || empty($_REQUEST["instruments"]))
+		if(!ctype_digit($_REQUEST["index"]))
 			exit(json_encode("error"));
-		$preview = unserialize(OW::getSession()->get("preview"));
-		$preview->instrumentsTable = $_REQUEST["instruments"];
-		if(count($preview->instrumentsTable)>1)
-			array_splice($preview->instrumentsTable, intval($_REQUEST["deleteInstrument"]), 1);
-		$preview->instrumentsTable = $this->changeName($preview->instrumentsTable, $this->getDuplicated($preview->instrumentsTable));
-		OW::getSession()->set("preview", serialize($preview));
-		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
-		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
-		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
-		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
+		if(count($this->preview->instrumentsTable)>1)
+			array_splice($this->preview->instrumentsTable, intval($_REQUEST["index"]), 1);
+		$this->changeNamesInstruments();
+		$this->getTable();
 	}
 	
 	public function getTable() {
-		$preview = unserialize(OW::getSession()->get("preview"));
-		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
-		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
-		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
+		$users = $this->getUsers();
+		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $this->preview->instrumentsTable);
+		$instrumentsUsed = $this->getInstrumentsUsed();
 		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
-	}
-	
-	public function commitChange() {
-		if(empty($_REQUEST["instruments"]))
-			exit(json_encode("error"));
-		$preview = unserialize(OW::getSession()->get("preview"));
-		$preview->instrumentsTable = $_REQUEST["instruments"];
-		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
-		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
-		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
-		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
-		
 	}
 	
 	public function changeType() {
 		if(!ctype_digit($_REQUEST["index"]) || empty($_REQUEST["value"]))
 			exit(json_encode("error"));
-		$preview = unserialize(OW::getSession()->get("preview"));
-		$preview->instrumentsTable[intval($_REQUEST["index"])]["name"] = ucwords(implode(" ", explode("_", $_REQUEST["value"])));
-		$preview->instrumentsTable[intval($_REQUEST["index"])]["type"] = $_REQUEST["value"];
-		$preview->instrumentsTable = $this->changeName($preview->instrumentsTable, $this->getDuplicated($preview->instrumentsTable));
-		OW::getSession()->set("preview", serialize($preview));
-		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
-		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
-		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
-		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
+		$this->preview->instrumentsTable[intval($_REQUEST["index"])]["name"] = ucwords(implode(" ", explode("_", $_REQUEST["value"])));
+		$this->preview->instrumentsTable[intval($_REQUEST["index"])]["type"] = $_REQUEST["value"];
+		$this->changeNamesInstruments();
+		$this->getTable();
 	}
 	
 	public function changeUser() {
 		if(!ctype_digit($_REQUEST["index"]) || empty($_REQUEST["id"]))
 			exit(json_encode("error"));
-		$preview = unserialize(OW::getSession()->get("preview"));
-		$preview->instrumentsTable[intval($_REQUEST["index"])]["user"] = $_REQUEST["id"];
-		OW::getSession()->set("preview", serialize($preview));
-		$users = $this->getUsers($preview->groupId, $preview->multiUserMod);
-		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTable($users, $preview->instrumentsTable);
-		$instrumentsUsed = $this->getInstrumentsUsed($preview->instrumentsTable);
-		exit(json_encode(array("html"=>$instrumentsTable->render(), "instrumentsUsed"=>$instrumentsUsed, "totNScores"=>$this->getTotNScores($instrumentsUsed))));
+		$this->preview->instrumentsTable[intval($_REQUEST["index"])]["user"] = $_REQUEST["id"];
+		$this->getTable();
 	}
 	
-	private function getUsers($groupId, $multiUserMod) {
+	public function changeName() {
+		if(!ctype_digit($_REQUEST["index"]) || empty($_REQUEST["value"]))
+			exit(json_encode("error"));
+		$this->preview->instrumentsTable[intval($_REQUEST["index"])]["name"] = $_REQUEST["value"];
+		$this->getTable();
+	}
+	
+	private function getUsers() {
 		$userId = OW::getUser()->getId();
 		$username = OW::getUser()->getUserObject()->username;
-		if($multiUserMod && $groupId>=0) {
+		if($this->preview->multiUserMod==1 && $this->preview->groupId>=0) {
 			$users = array($userId=>$username);
-			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($groupId);
+			$userIdList = GROUPS_BOL_Service::getInstance()->findGroupUserIdList($this->preview->groupId);
 			foreach ($userIdList as $uid)
 				$users[$uid] = BOL_UserService::getInstance()->findByIdWithoutCache($uid)->username;
 		}
@@ -101,21 +76,21 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		return $users;
 	}
 	
-	private function getDuplicated($instrumentsTable) {
+	private function getDuplicated() {
 		$readed = array();
 		$duplicated = array();
 		$instrumentsTableName = array();
-		foreach ($instrumentsTable as $i=>$instrument) {
+		foreach ($this->preview->instrumentsTable as $i=>$instrument) {
 			$name = explode(" ", $instrument["name"]);
 			if(is_numeric($name[count($name)-1]))
 				array_pop($name);
 			array_push($instrumentsTableName, implode(" ", $name));
 		}
-		foreach ($instrumentsTable as $i=>$instrument) {
+		foreach ($this->preview->instrumentsTable as $i=>$instrument) {
 			if(in_array($instrumentsTableName[$i], $readed)) {
 				for($j=0; $j<$i; $j++)
 					if($instrumentsTableName[$i]==$instrumentsTableName[$j])
-						array_push($duplicated, $instrumentsTable[$j]["name"]);
+						array_push($duplicated, $this->preview->instrumentsTable[$j]["name"]);
 				array_push($duplicated, $instrument["name"]);
 			}
 			else array_push($readed, $instrumentsTableName[$i]);
@@ -123,16 +98,17 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		return $duplicated;
 	}
 	
-	private function changeName($instrumentsTable, $duplicated) {
+	private function changeNamesInstruments() {
+		$duplicated = $this->getDuplicated();
 		$instruments = $this->getInstruments(SOMUSIC_BOL_Service::getInstance()->getMusicInstruments());
 		$instrumentsIndexes = array();
 		foreach ($instruments as $key=>$value)
 			$instrumentsIndexes[$key] = 1;
-		foreach ($instrumentsTable as $i=>$instrument) {
+		foreach ($this->preview->instrumentsTable as $i=>$instrument) {
 			if(in_array($instrument["name"], $duplicated))
-				$instrumentsTable[$i]["name"] = $instruments[$instrument["type"]]." ".($instrumentsIndexes[$instrument["type"]]++);
+				$this->preview->instrumentsTable[$i]["name"] = $instruments[$instrument["type"]]." ".($instrumentsIndexes[$instrument["type"]]++);
 		}
-		return $instrumentsTable;
+		return $this->preview->instrumentsTable;
 	}
 	
 	private function getInstruments($instruments) {
@@ -142,9 +118,9 @@ class SOMUSIC_CTRL_InstrumentsTable extends OW_ActionController {
 		return $instruments1;
 	}
 	
-	private function getInstrumentsUsed($instrumentsTable) {
+	private function getInstrumentsUsed() {
 		$instrumentsUsed = array();
-		foreach ($instrumentsTable as $instrumentRow) {
+		foreach ($this->preview->instrumentsTable as $instrumentRow) {
 			$name = $instrumentRow["type"];
 			$instrument = $this->instruments[$name];
 			array_push($instrumentsUsed, array("labelName"=>$instrumentRow["name"],

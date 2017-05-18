@@ -15,8 +15,8 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		foreach ($users as $user)
 			array_push($this->idList, $user->id);
 		//$this->updateInterval = 60*60*24;
-		$this->updateInterval = 60*60;
-		//$this->updateInterval = 0;
+		//$this->updateInterval = 60*60;
+		$this->updateInterval = 0;
 		$this->threshold = 0.05;
 		$this->memory = new Memcached ();
 		$this->memory->addServer("localhost", 11211);
@@ -42,6 +42,7 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 			$ucs = $this->service->getUsersCompositionsSimilarity($userId, $uid);
 			$toUpdate = true;
 			if(count($ucs)==0) {
+			//if(!isset($ucs)==0) {
 				$ucs = new SOMUSIC_BOL_UsersCompositionsSimilarity();
 				$ucs->userId1 = $userId;
 				$ucs->userId2 = $uid;

@@ -1,40 +1,50 @@
-{$menu}
+{script}
+SoMusic.admin = new Admin("{$addInstrumentURL}", "{$editInstrumentURL}", "{$removeInstrumentURL}");
+{/script}
 
+{$menu}
+<script>
+console.log({$data});
+</script>
 <div class="container-fluid">
-	{foreach from=$instrumentsGroups key=$group item=$instruments}
 	<div class="row">
 		<div class="col-md-12">
-			<div class="row">
-				<div class="col-md-12">
-					<h1>{$group}</h1>
-				</div>
-			</div>
 			<form>
 				<table class="table">
 					<thead>
 						<tr>
 							<th>Name</th>
+							<th>Group</th>
 							<th>Staves</th>
+							<th> &nbsp; </th>
 						</tr>
 					</thead>
 					<tbody>
+						{foreach from=$instrumentsGroups key=$group item=$instruments}
 						{foreach from=$instruments item=$instrument}
 						<tr>
 							<td>{$instrument["name"]}</td>
+							<td>{$group}</td>
 							<td>
 								{foreach from=$instrument["clefs"] item=$clef}
 								{$clef}<br>
 								{/foreach}
 							</td>
+							<td>
+								<i class="fa fa-times fa-2x" aria-hidden="true" onclick="SoMusic.admin.removeInstrument({$instrument['id']});"></i> 
+								&nbsp; 
+								<i class="fa fa-pencil-square-o fa-2x" aria-hidden="true" onclick="SoMusic.admin.editInstrument({$instrument['id']});"></i>
+							</td>
 						</tr>
 						{/foreach}
+						{/foreach}
 						<tr>
-							<td collspan="2"><input type="button" value="aggiungi"></input></td>
+							<td collspan="3"><input type="button" value="add instrument" onclick="SoMusic.admin.addInstrument()"></input></td>
 						</tr>
 					</tbody>
 				</table>
 			</form>
 		</div>
 	</div>
-	{/foreach}
 </div>
+

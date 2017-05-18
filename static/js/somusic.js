@@ -81,7 +81,7 @@ SoMusic.commentSendMessage = function(message, context) {
 	self.$textarea.val('').keyup().trigger('input.autosize');
 };
 
-SoMusic.loadScore = function (data, id, title) {
+SoMusic.loadScore = function (data, id, idPost, compositionId) {
 	console.log(data);
 	var scoreDiv = document.getElementById(id);
 	scoreDiv.parentElement.style.display = "none";
@@ -91,7 +91,7 @@ SoMusic.loadScore = function (data, id, title) {
 	titleField.style.fontWeight = "bold";
 	titleField.style.paddingTop = "20px";
 	titleField.style.marginBottom = "20px";
-	var nodeText = document.createTextNode(title);
+	var nodeText = document.createTextNode(data.name);
 	titleField.appendChild(nodeText);
 	scoreDiv.parentElement.insertBefore(titleField, scoreDiv);
 	var scoreCanvas =  document.createElement('canvas');
@@ -105,6 +105,23 @@ SoMusic.loadScore = function (data, id, title) {
 	var renderer = new Renderer(scoreCanvas, data.instrumentsUsed);
 	renderer.updateComposition(data);
 	scoreDiv.parentElement.style.display = "block";
+	scoreDiv.addEventListener("click", function(e) {
+		if(typeof previewFloatBox != "undefined" || document.getElementsByName("floatbox_canvas").length > 0) {
+            $(".floatbox_canvas").each(function(i, obj) {
+                obj.style.display = "block";
+            });
+            if(document.getElementById("floatbox_overlay") != null)
+                document.getElementById("floatbox_overlay").style.display = "block";
+            var fb = SoMusic.floatBox.pop();
+			fb.close();
+            //delete previewFloatBox;
+        }
+		SoMusic.idPost = idPost;
+		SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_Editor",
+			{"compositionId": data.id},
+			{top:"calc(5vh)", width:"calc(80vw)", height:"calc(85vh)", iconClass: "ow_ic_add", title: ""})});
+		document.getElementById("vm_placeholder").style.display = "none";
+	});
 }
 
 SoMusic.removeScore = function () {
