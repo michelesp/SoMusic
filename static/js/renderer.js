@@ -41,6 +41,7 @@ Renderer.prototype.updateComposition = function(data, cleanVars) {
 			for(var k=0; k<voice.length; k++) {
 				var note = voice[k];
 				var keys = [];
+				var duration;
 				for(var l=0; l<note.step.length; l++)
 					keys[l] = note.step[l]+"/"+note.octave[l];
 				if(note.step.length==0) {
@@ -51,12 +52,16 @@ Renderer.prototype.updateComposition = function(data, cleanVars) {
 					else if(m1.clef=="alto")
 						keys[0] = "c/4";
 				}
-				console.log(note.duration+"     "+(64/note.duration)+(note.isRest?"r":""));
-				var note1 = new Vex.Flow.StaveNote({clef: m1.clef, keys: keys, duration: (64/note.duration)+(note.isRest?"r":"")});
+				if(note.dots>0)
+					duration = 64/(note.duration*(2*note.dots)/(Math.pow(2, note.dots+1)-1));
+				else duration = 64/note.duration;
+				var note1 = new Vex.Flow.StaveNote({clef: m1.clef, keys: keys, duration: duration+(note.step.length==0?"r":"")});
 				if(note.accidental!=null)
 					for(var l=0; l<note.accidental.length; l++)
 						if(note.accidental[l]!="clear")
 							note1.addAccidental(l, new Vex.Flow.Accidental(note.accidental[l]));
+				if(note.dots>0)
+					note1.addDotToAll();
 				m.addNote(note1, instrumentsScore[j].name, k);
 			}
 		}

@@ -33,6 +33,7 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'close'));
 		$this->assign("removeInstrumentURL", OW::getRouter()->urlFor( 'SOMUSIC_CTRL_Editor', 'removeInstrument'));
 		$this->assign("exportURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'exportMusicXML'));
+		$this->assign("dotsUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'dotsUpdate'));
 	}
 	
 	private function makeForm() {

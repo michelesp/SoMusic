@@ -1,7 +1,6 @@
 <?php
 
 class SOMUSIC_CLASS_Tie implements Serializable, JsonSerializable {
-	private $id;
 	public $firstMeasure;
 	public $firstNote;
 	public $lastMeasure;
@@ -14,16 +13,13 @@ class SOMUSIC_CLASS_Tie implements Serializable, JsonSerializable {
 		$this->lastNote = $lastNote;
 	}
 	
-	public function getId() {
-		return $this->id;
-	}
 	
 	public function serialize() {
-		return serialize([$this->id, $this->firstMeasure, $this->firstNote, $this->lastMeasure, $this->lastNote]);
+		return serialize([$this->firstMeasure, $this->firstNote, $this->lastMeasure, $this->lastNote]);
 	}
 	
 	public function unserialize($data) {
-		list($this->id, $this->firstMeasure, $this->firstNote, $this->lastMeasure, $this->lastNote) = unserialize($data);
+		list($this->firstMeasure, $this->firstNote, $this->lastMeasure, $this->lastNote) = unserialize($data);
 	}
 	
 	public function jsonSerialize () {

@@ -37,10 +37,10 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 					foreach ($measureArray["voices"] as $voiceArray) {
 						$voice = array();
 						foreach ($voiceArray as $noteArray)
-							array_push($voice, new SOMUSIC_CLASS_Note($noteArray["id"], $noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["duration"], $noteArray["isRest"], $noteArray["isTieStart"], $noteArray["isTieEnd"]));
+							array_push($voice, new SOMUSIC_CLASS_Note($noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["duration"], $noteArray["isRest"], $noteArray["isTieStart"], $noteArray["isTieEnd"], $noteArray["dots"]));
 							array_push($voices, $voice);
 					}
-					$measure = new SOMUSIC_CLASS_Measure($measureArray["id"], $measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
+					$measure = new SOMUSIC_CLASS_Measure($measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
 					array_push($instrumentScore->measures, $measure);
 				}
 				foreach ($instrumentScoreArray["ties"] as $tieArray)

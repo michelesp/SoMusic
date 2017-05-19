@@ -1,7 +1,7 @@
 
 function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,
 		composition, deteleNotesURL, addTieURL, addNoteURL,getCompositionURL,
-		accidentalUpdateURL, closeURL, removeInstrumentURL, exportURL) {
+		accidentalUpdateURL, closeURL, removeInstrumentURL, exportURL, dotsUpdateURL) {
 	var editor = this;
 	this.canvas = canvas;
 	this.deleteNotesURL = deteleNotesURL;
@@ -12,6 +12,7 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,
 	this.closeURL = closeURL;
 	this.removeInstrumentURL = removeInstrumentURL;
 	this.exportURL = exportURL;
+	this.dotsUpdateURL = dotsUpdateURL;
 	this.lastUpdate = Date.now();
 	this.interval = setInterval(() => {
 		if(Date.now()>editor.lastUpdate-5000 && this.renderer.selectedNotes.length==0)
@@ -43,6 +44,9 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,
 	}, false);
 	document.getElementById("tie").parentNode.addEventListener("click", function (e) {
 		editor.tie(e);
+	}, false);
+	document.getElementById("dot").parentNode.addEventListener("click", function (e) {
+		editor.dotsUpdate(1);
 	}, false);
 	addButton.addEventListener("click", function() {
 		SoMusic.save(editor.renderer.composition);
@@ -238,6 +242,19 @@ Editor.prototype.accidentalUpdate = function (type) {
 			noteIndex: this.renderer.selectedNotes[i].noteIndex
 		});
 	this.ajaxRequest(this.accidentalUpdateURL, {"toUpdate":toUpdate, "accidental":type}, true);
+}
+
+Editor.prototype.dotsUpdate = function (value) {
+	if(this.renderer.selectedNotes.length==0)
+		return;
+	var toUpdate = [];
+	for(var i=0; i<this.renderer.selectedNotes.length; i++) 
+		toUpdate.push({
+			staveIndex: this.renderer.selectedNotes[i].index,
+			measureIndex: this.renderer.selectedNotes[i].measureIndex,
+			noteIndex: this.renderer.selectedNotes[i].noteIndex
+		});
+	this.ajaxRequest(this.dotsUpdateURL, {"toUpdate":toUpdate, "dotValue":value}, true);
 }
 
 Editor.prototype.close = function() {

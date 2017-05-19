@@ -1,34 +1,32 @@
 <?php
 
 class SOMUSIC_CLASS_Note implements Serializable, JsonSerializable {
-	private $id;
 	public $step;
 	public $octave;
 	public $accidental;
 	public $duration;
-	public $isRest;
 	public $isTieStart;
 	public $isTieEnd;
+	public $dots;
 	
-	public function __construct($id, $step, $octave, $accidental, $duration, $isRest, $isTieStart, $isTieEnd) {
-		$this->id = $id;
+	public function __construct($duration, $step, $octave, $accidental, $isTieStart=-1, $isTieEnd=-1, $dots=0) {
+		$this->duration = $duration;
 		$this->step = $step;
 		$this->octave = $octave;
 		$this->accidental = $accidental;
-		$this->duration = $duration;
-		$this->isRest = $isRest;
 		$this->isTieStart = $isTieStart;
 		$this->isTieEnd = $isTieEnd;
+		$this->dots = $dots;
 	}
 	
 	public function serialize() {
-		return serialize([$this->id, $this->step, $this->octave, $this->accidental,
-				$this->duration, $this->isRest, $this->isTieStart, $this->isTieEnd]);
+		return serialize([$this->duration,$this->step, $this->octave, 
+				$this->accidental, $this->isTieStart, $this->isTieEnd, $this->dots]);
 	}
 	
 	public function unserialize($data) {
-		list($this->id, $this->step, $this->octave,$this->accidental, $this->duration,
-				$this->isRest, $this->isTieStart, $this->isTieEnd) = unserialize($data);
+		list($this->duration, $this->step, $this->octave, $this->accidental, 
+				$this->isTieStart, $this->isTieEnd, $this->dots) = unserialize($data);
 	}
 	
 	public function jsonSerialize () {

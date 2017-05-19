@@ -118,26 +118,26 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		if ($duration > $note->duration)
 			$this->error("error note duration");
 		$durationDif = $note->duration - $duration;
-		if ($note->isRest) {
+		if (count($note->step)==0) {
 			$toAdd = array ();
 			while ( $durationDif > 0 ) {
 				$max = $this->getMax2Pow ( $durationDif );
-				array_unshift ( $toAdd, new SOMUSIC_CLASS_Note ( - 1, array (), array (), null, $max, true, array (), array () ) );
+				array_unshift($toAdd, new SOMUSIC_CLASS_Note($max, array(), array(), array()));
 				$durationDif -= $max;
 			}
 			if ($_REQUEST ["isPause"] == "true")
-				array_unshift ( $toAdd, new SOMUSIC_CLASS_Note ( - 1, array (), array (), null, $duration, true, array (), array () ) );
-			else array_unshift ( $toAdd, new SOMUSIC_CLASS_Note ( - 1, array($newNote[0]), array($newNote[1]), array($_REQUEST["accidental"]), $duration, false, array(), array()));
-			for($i = $noteIndex + 1; $i < count ( $measure->voices [0] ); $i ++) {
-				$n = $measure->voices [0] [$i];
-				for($j = 0; $j < count ( $n->isTieStart ); $j ++)
-					$instrumentScore->ties [$n->isTieStart [$j]]->firstNote += count ( $toAdd ) - 1;
-				for($j = 0; $j < count ( $n->isTieEnd ); $j ++)
-					$instrumentScore->ties [$n->isTieEnd [$j]]->lastNote += count ( $toAdd ) - 1;
+				array_unshift($toAdd, new SOMUSIC_CLASS_Note($duration, array(), array(), array()));
+			else array_unshift($toAdd, new SOMUSIC_CLASS_Note($duration, array($newNote[0]), array($newNote[1]), array($_REQUEST["accidental"])));
+			for($i = $noteIndex+1; $i<count($measure->voices[0]); $i++) {
+				$n = $measure->voices[0][$i];
+				if($n->isTieStart!=-1)
+					$instrumentScore->ties[$n->isTieStart]->firstNote += count($toAdd)-1;
+				if($n->isTieEnd!=-1)
+					$instrumentScore->ties[$n->isTieEnd]->lastNote += count($toAdd)-1;
 			}
 			array_splice ( $measure->voices [0], $noteIndex, 1, $toAdd );
 		}
-		else if ($duration == $note->duration && $_REQUEST["isPause"] == "false") {
+		else if ($duration == ($note->dots==0?$note->duration:$note->duration*(2*$note->dots)/(pow(2, $note->dots+1)-1)) && $_REQUEST["isPause"] == "false") {
 			array_push($note->step, $newNote[0]);
 			array_push($note->octave, $newNote[1]);
 			array_push($note->accidental, $_REQUEST["accidental"]);
@@ -169,51 +169,50 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			$note->step = array ();
 			$note->octave = array ();
 			$note->accidental = null;
-			$note->isRest = true;
-			foreach ( $note->isTieStart as $i => $tieIndex ) {
-				$tie = $is->ties [$tieIndex];
+			if($note->isTieStart!=-1) {
+				$tie = $is->ties [$note->isTieStart];
 				$found = false;
 				$alreadyTied = false;
 				for($i = $tie->firstMeasure; $i <= $tie->lastMeasure && ! $found; $i ++) {
 					$firstMeasure = $is->measures [$i];
 					for($j = $tie->firstNote + 1; $j < count ( $firstMeasure->voices [0] ) && ! $found; $j ++) {
 						$n = $firstMeasure->voices [0] [$j];
-						if (! $n->isRest && ! ($tie->lastMeasure == $i && $tie->lastNote == $j)) {
+						if (count($n->step)>0 && ! ($tie->lastMeasure == $i && $tie->lastNote == $j)) {
 							$found = true;
 							if (! $this->areTied ( $is, $i, $j, $tie->lastMeasure, $tie->lastNote )) {
 								$tie->firstMeasure = $i;
 								$tie->firstNote = $j;
-								array_push ( $is->measures [$i]->voices [0] [$j]->isTieStart, $tieIndex );
+								$is->measures[$i]->voices[0][$j]->isTieStart = $note->isTieStart;
 							} else $alreadyTied = true;
 						}
 					}
 				}
 				if (! $found || $alreadyTied)
-					$this->removeTie ( $is, $tieIndex );
-				}
-				foreach ( $note->isTieEnd as $i => $tieIndex ) {
-					$tie = $is->ties [$tieIndex];
-					$found = false;
-					$alreadyTied = false;
-					for($i = $tie->lastMeasure; $i >= $tie->lastMeasure && ! $found; $i --) {
-						$lastMeasure = $is->measures [$i];
-						for($j = $tie->lastNote - 1; $j >= 0 && ! $found; $j --) {
-							$n = $lastMeasure->voices [0] [$j];
-							if (! $n->isRest && ! ($tie->firstMeasure == $i && $tie->firstNote == $j)) {
-								$found = true;
+					$this->removeTie($is, $note->isTieStart);
+			}
+			if($note->isTieEnd!=-1) {
+				$tie = $is->ties[$note->isTieEnd];
+				$found = false;
+				$alreadyTied = false;
+				for($i = $tie->lastMeasure; $i >= $tie->lastMeasure && ! $found; $i --) {
+					$lastMeasure = $is->measures [$i];
+					for($j = $tie->lastNote - 1; $j >= 0 && ! $found; $j --) {
+						$n = $lastMeasure->voices [0] [$j];
+						if (count($n->step)>0 && ! ($tie->firstMeasure == $i && $tie->firstNote == $j)) {
+							$found = true;
 							if (! $this->areTied ( $is, $tie->firstMeasure, $tie->firstNote, $i, $j )) {
 								$tie->lastMeasure = $i;
 								$tie->lastNote = $j;
-								array_push ( $is->measures [$i]->voices [0] [$j]->isTieEnd, $tieIndex );
+								$is->measures[$i]->voices[0][$j]->isTieEnd = $note->isTieEnd;
 							} else $alreadyTied = true;
 						}
 					}
 				}
 				if (! $found || $alreadyTied)
-					$this->removeTie ( $is, $tieIndex );
+					$this->removeTie($is, $note->isTieEnd);
 			}
-			$note->isTieStart = [ ];
-			$note->isTieEnd = [ ];
+			$note->isTieStart = -1;
+			$note->isTieEnd = -1;
 		}
 		$this->composition->instrumentsScore = $this->instrumentsScore;
 		exit(json_encode($this->composition));
@@ -257,9 +256,9 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$startNote = $instrumentScore->measures [$firstMeasure]->voices [0] [$firstNote];
 		$endNote = $instrumentScore->measures [$lastMeasure]->voices [0] [$lastNote];
 		if ($tieIndex < 0) {
-			$pos = array_push ( $instrumentScore->ties, new SOMUSIC_CLASS_Tie ( $firstMeasure, $firstNote, $lastMeasure, $lastNote ) );
-			array_push ( $startNote->isTieStart, $pos - 1 );
-			array_push ( $endNote->isTieEnd, $pos - 1 );
+			$pos = array_push($instrumentScore->ties, new SOMUSIC_CLASS_Tie($firstMeasure, $firstNote, $lastMeasure, $lastNote));
+			$startNote->isTieStart = $pos-1;
+			$endNote->isTieEnd = $pos-1;
 		} else $this->removeTie ( $instrumentScore, $tieIndex );
 		$this->composition->instrumentsScore = $this->instrumentsScore;
 		exit ( json_encode ( $this->composition ) );
@@ -300,12 +299,31 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			$this->error("error accidental update");
 		foreach ($_REQUEST ["toUpdate"] as $obj) {
 			$is = $this->instrumentsScore[$obj["staveIndex"]];
-			if($is->user!=$this->userId && $this->instrumentsScore[$i]->user!=-1)
+			if($is->user!=$this->userId && $is->user!=-1)
 				continue;
 			$m = $is->measures [$obj ["measureIndex"]];
 			$note = $m->voices [0] [$obj ["noteIndex"]];
 			for($i=0; $i<count($note->accidental); $i++)
 				$note->accidental[$i] = $_REQUEST["accidental"];
+		}
+		$this->composition->instrumentsScore = $this->instrumentsScore;
+		exit(json_encode($this->composition));
+	}
+	
+	public function dotsUpdate() {
+		if(!isset($_REQUEST["toUpdate"]) || !isset($_REQUEST["dotValue"]))
+			$this->error("error dot update");
+		foreach ($_REQUEST ["toUpdate"] as $obj) {
+			$is = $this->instrumentsScore[$obj["staveIndex"]];
+			if($is->user!=$this->userId && $is->user!=-1)
+				continue;
+			$m = $is->measures[$obj["measureIndex"]];
+			$note = $m->voices[0][$obj["noteIndex"]];
+			if($note->dots>0)
+				$duration = $note->duration*(2*$note->dots)/(pow(2, $note->dots+1)-1);
+			else $duration = $note->duration;
+			$note->dots += intval($_REQUEST["dotValue"]);
+			$note->duration = $duration*(pow(2, $note->dots+1)-1)/(2*$note->dots);
 		}
 		$this->composition->instrumentsScore = $this->instrumentsScore;
 		exit(json_encode($this->composition));
@@ -388,10 +406,10 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 				foreach ($measureArray["voices"] as $voiceArray) {
 					$voice = array();
 					foreach ($voiceArray as $noteArray)
-						array_push($voice, new SOMUSIC_CLASS_Note($noteArray["id"], $noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["duration"], $noteArray["isRest"], $noteArray["isTieStart"], $noteArray["isTieEnd"]));
+						array_push($voice, new SOMUSIC_CLASS_Note($noteArray["duration"], $noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["isTieStart"], $noteArray["isTieEnd"]));
 					array_push($voices, $voice);
 				}
-				$measure = new SOMUSIC_CLASS_Measure($measureArray["id"], $measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
+				$measure = new SOMUSIC_CLASS_Measure($measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
 				array_push($instrumentScore->measures, $measure);
 			}
 			foreach ($instrumentScoreArray["ties"] as $tieArray)
@@ -437,22 +455,18 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$firstNote = $instrumentScore->measures [$tie->firstMeasure]->voices [0] [$tie->firstNote];
 		$lastNote = $instrumentScore->measures [$tie->lastMeasure]->voices [0] [$tie->lastNote];
 		array_splice ( $instrumentScore->ties, $tieIndex, 1 );
-		if (($key = array_search ( $tieIndex, $firstNote->isTieStart )) !== false)
-			array_splice ( $firstNote->isTieStart, $key, 1 );
-		if (($key = array_search ( $tieIndex, $lastNote->isTieEnd )) !== false)
-			array_splice ( $lastNote->isTieEnd, $key, 1 );
+		if($firstNote->isTieStart == $tieIndex)
+			$firstNote->isTieStart = -1;
+		if($lastNote->isTieEnd == $tieIndex)
+			$lastNote->isTieEnd = -1;
 		for($i = 0; $i < count ( $instrumentScore->measures ); $i ++) {
 			$m = $instrumentScore->measures [$i];
 			for($j = 0; $j < count ( $m->voices [0] ); $j ++) {
 				$note = $m->voices [0] [$j];
-				for($k = 0; $k < count ( $note->isTieStart ); $k ++) {
-					if ($note->isTieStart [$k] > $tieIndex)
-						$note->isTieStart [$k] --;
-				}
-				for($k = 0; $k < count ( $note->isTieEnd ); $k ++) {
-					if ($note->isTieEnd [$k] > $tieIndex)
-						$note->isTieEnd [$k] --;
-				}
+				if($note->isTieStart != -1 && $note->isTieStart > $tieIndex)
+					$note->isTieStart--;
+				if($note->isTieEnd != -1 && $note->isTieEnd > $tieIndex)
+					$note->isTieEnd--;
 			}
 		}
 	}
@@ -466,13 +480,13 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	}
 	
 	private function newMeasure($clef, $timeSign, $keySign) {
-		$measure = new SOMUSIC_CLASS_Measure ( - 1, $clef, $keySign, implode ( "/", $timeSign ), array () );
+		$measure = new SOMUSIC_CLASS_Measure($clef, $keySign, implode("/", $timeSign), array());
 		$voice = array ();
 		for($j = 0; $j < intval ( $timeSign [0] ); $j ++) {
-			$pause = new SOMUSIC_CLASS_Note ( - 1, array (), array (), NULL, 64 / intval ( $timeSign [1] ), true, array (), array () );
-			array_push ( $voice, $pause );
+			$pause = new SOMUSIC_CLASS_Note(64/intval($timeSign[1]), array(), array(), array());
+			array_push($voice, $pause);
 		}
-		array_push ( $measure->voices, $voice );
+		array_push($measure->voices, $voice);
 		return $measure;
 	}
 	

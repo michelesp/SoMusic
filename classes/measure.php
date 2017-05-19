@@ -1,14 +1,12 @@
 <?php
 
 class SOMUSIC_CLASS_Measure implements Serializable, JsonSerializable {
-	private $id;
 	public $clef;
 	public $keySignature;
 	public $timeSignature;
 	public $voices;
 	
-	public function __construct($id, $clef, $keySignature, $timeSignature, $voices) {
-		$this->id = $id;
+	public function __construct($clef, $keySignature, $timeSignature, $voices) {
 		$this->clef = $clef;
 		$this->keySignature = $keySignature;
 		$this->timeSignature = $timeSignature;
@@ -16,16 +14,12 @@ class SOMUSIC_CLASS_Measure implements Serializable, JsonSerializable {
 	}
 
 	
-	public function getId() {
-		return $this->id;
-	}
-	
 	public function serialize() {
-		return serialize([$this->id, $this->clef, $this->keySignature, $this->timeSignature, $this->voices]);
+		return serialize([$this->clef, $this->keySignature, $this->timeSignature, $this->voices]);
 	}
 	
 	public function unserialize($data) {
-		list($this->id, $this->clef, $this->keySignature, $this->timeSignature, $this->voices) = unserialize($data);
+		list($this->clef, $this->keySignature, $this->timeSignature, $this->voices) = unserialize($data);
 	}
 	
 	public function jsonSerialize () {
