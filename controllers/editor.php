@@ -397,6 +397,49 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		exit(json_encode($this->id));
 	}
 	
+	public function moveNotes() {
+		if(!isset($_REQUEST["toUpdate"]) || !isset($_REQUEST["value"]))
+			$this->error("error move update");
+		$noteNames = array("C", "D", "E", "F", "G", "A", "B");
+		$value = intval($_REQUEST["value"]);
+		foreach ($_REQUEST ["toUpdate"] as $obj) {
+			$is = $this->instrumentsScore[$obj["staveIndex"]];
+			if($is->user!=$this->userId && $is->user!=-1)
+				continue;
+			$m = $is->measures[$obj["measureIndex"]];
+			$note = $m->voices[0][$obj["noteIndex"]];
+			for($i=0; $i<count($note->step); $i++) {
+				$step = strtoupper($note->step[$i]);
+				$octave = intval($note->octave[$i]);
+				$stepValue = array_search($step, $noteNames);
+				if($value>0 && $stepValue==6) {
+					$note->step[$i] = strtolower($noteNames[0]);
+					$note->octave[$i]++;
+				}
+				else if($value<0 && $stepValue==0) {
+					$note->step[$i] = strtolower($noteNames[6]);
+					$note->octave[$i]--;
+				}
+				else $note->step[$i] = strtolower($noteNames[$stepValue+$value]);
+			}
+		}
+		$this->composition->instrumentsScore = $this->instrumentsScore;
+		exit(json_encode($this->composition));
+	}
+	
+	public function setNoteAnnotationText() {
+		if(!isset($_REQUEST["measureIndex"]) || !isset($_REQUEST["staveIndex"]) || 
+				!isset($_REQUEST["noteIndex"]) || !isset($_REQUEST["text"]))
+			$this->error("error note annotation");
+		$measureIndex = intval($_REQUEST["measureIndex"]);
+		$staveIndex = intval($_REQUEST["staveIndex"]);
+		$noteIndex = intval($_REQUEST["noteIndex"]);
+		$note = $this->instrumentsScore[$staveIndex]->measures[$measureIndex]->voices[0][$noteIndex];
+		$note->text = $_REQUEST["text"];
+		exit(json_encode(true));
+		
+	}
+	
 	private function getCompositionObject($compositionArray) {
 		$this->composition = new SOMUSIC_CLASS_Composition($compositionArray["id"], $compositionArray["name"], $compositionArray["user_c"], $compositionArray["timestamp_c"], $compositionArray["user_m"], $compositionArray["timestamp_m"], array(), $compositionArray["instrumentsUsed"]);
 		foreach ($compositionArray["instrumentsScore"] as $instrumentScoreArray) {

@@ -3,35 +3,20 @@ function Renderer(canvas, instrumentsUsed) {
 	var renderer = this;
 	this.canvas = canvas;
 	this.renderer = new Vex.Flow.Renderer(this.canvas, Vex.Flow.Renderer.Backends.CANVAS);
-	this.selectedNotes = [];
 	this.measures = [];
 	this.ties = [];
-	renderer.totNScores = 0;
+	this.totNScores = 0;
 	instrumentsUsed.forEach(function(element, index){
 		renderer.totNScores += element["scoresClef"].length;
 	});
 }
 
-Renderer.prototype.renderAndDraw = function() {
-	var ctx = this.renderer.getContext();
-	ctx.clear();
-	console.log("rendereAndDraw");
-	this.renderMeasures();
-	for (var i = 0; i < this.measures.length; i++) 
-		this.measures[i].drawNotes(this.renderer.getContext());
-	this.ties.forEach(function (t) {
-		t[0].setContext(ctx).draw()
-	});
-}
-
-Renderer.prototype.updateComposition = function(data, cleanVars) {
+Renderer.prototype.updateComposition = function(data) {
 	console.log(data);
 	var instrumentsScore = data.instrumentsScore;
 	this.composition = data;
 	this.measures = [];
 	this.ties = [];
-	if(cleanVars)
-		this.selectedNotes = [];
 	for(var i=0; i<instrumentsScore[0].measures.length; i++) {
 		var timeSignature = instrumentsScore[0].measures[i].timeSignature.split("/");
 		var m = new Measure(i, timeSignature[0], timeSignature[1], instrumentsScore[0].measures[0].keySignature, data.instrumentsUsed);
@@ -60,6 +45,8 @@ Renderer.prototype.updateComposition = function(data, cleanVars) {
 					for(var l=0; l<note.accidental.length; l++)
 						if(note.accidental[l]!="clear")
 							note1.addAccidental(l, new Vex.Flow.Accidental(note.accidental[l]));
+				if(note.text!=null)
+					note1.addModifier(0, new Vex.Flow.Annotation(note.text).setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.TOP));
 				if(note.dots>0)
 					note1.addDotToAll();
 				m.addNote(note1, instrumentsScore[j].name, k);

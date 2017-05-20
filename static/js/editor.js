@@ -1,7 +1,7 @@
 
-function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,
-		composition, deteleNotesURL, addTieURL, addNoteURL,getCompositionURL,
-		accidentalUpdateURL, closeURL, removeInstrumentURL, exportURL, dotsUpdateURL) {
+function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,composition,
+		deteleNotesURL, addTieURL, addNoteURL,getCompositionURL, accidentalUpdateURL, 
+		closeURL, removeInstrumentURL, exportURL, dotsUpdateURL, moveNotesURL, setNoteAnnotationTextURL) {
 	var editor = this;
 	this.canvas = canvas;
 	this.deleteNotesURL = deteleNotesURL;
@@ -13,10 +13,13 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,
 	this.removeInstrumentURL = removeInstrumentURL;
 	this.exportURL = exportURL;
 	this.dotsUpdateURL = dotsUpdateURL;
+	this.moveNotesURL = moveNotesURL;
+	this.setNoteAnnotationTextURL = setNoteAnnotationTextURL;
 	this.lastUpdate = Date.now();
+	this.selectedNotes = [];
 	this.interval = setInterval(() => {
-		if(Date.now()>editor.lastUpdate-5000 && this.renderer.selectedNotes.length==0)
-			editor.ajaxRequest(editor.getCompositionURL, {}, false);
+		if(Date.now()>editor.lastUpdate-5000 && this.selectedNotes.length==0)
+			editor.ajaxRequest(editor.getCompositionURL, {});
 	}, 10000);
 	notesInput.forEach(function(element, index){
 		element.addEventListener("click", function(){
@@ -55,6 +58,19 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,
 	}, false);
 	notesInput[2].click();
 	accidentalsInput[0].click();
+	window.onkeyup = function(e) {
+	    var key = e.keyCode ? e.keyCode : e.which;
+	    if(key == 37)
+	    	editor.changeNoteSelection(-1);
+	    else if(key == 38)
+	    	editor.moveNotes(1);
+	    else if(key == 39)
+	    	editor.changeNoteSelection(1);
+	    else if (key == 40)
+	    	editor.moveNotes(-1);
+	    else if((key>=65 && key<=90) || key==32 || key==13)
+	    	editor.addAnnotationLetter(e.key);
+	}
 	this.renderer.updateComposition(composition);
 }
 
@@ -78,16 +94,16 @@ Editor.prototype.processClick = function (e) {
 			if(pitch==note.keys[j]) {
 				found = true;
 				var isSelected = false;
-				for(var k=0; k<this.renderer.selectedNotes.length && !isSelected; k++) {
-					var sn = this.renderer.selectedNotes[k];
+				for(var k=0; k<this.selectedNotes.length && !isSelected; k++) {
+					var sn = this.selectedNotes[k];
 					if(sn.note==note) {
-						this.renderer.selectedNotes.splice(k, 1);
+						this.selectedNotes.splice(k, 1);
 						note.setStyle({fillStyle: "balck"});
 						isSelected = true;
 					}
 				}
 				if(!isSelected) {
-					this.renderer.selectedNotes.push({"note": note,
+					this.selectedNotes.push({"note": note,
 						"voiceName": voice,
 						"index": staveIndex,
 						"measureIndex": measureIndex,
@@ -124,32 +140,32 @@ Editor.prototype.getMeasureIndex = function (x) {
 
 //delete the selected notes
 Editor.prototype.delNotes = function (e) {
-	if(this.renderer.selectedNotes.length == 0)
+	if(this.selectedNotes.length == 0)
 		this.shakeScore('No note selected');
 	var toRemove = [];
-	for(var i=0; i<this.renderer.selectedNotes.length; i++) 
+	for(var i=0; i<this.selectedNotes.length; i++) 
 		toRemove.push({
-			staveIndex: this.renderer.selectedNotes[i].index,
-			measureIndex: this.renderer.selectedNotes[i].measureIndex,
-			noteIndex: this.renderer.selectedNotes[i].noteIndex
+			staveIndex: this.selectedNotes[i].index,
+			measureIndex: this.selectedNotes[i].measureIndex,
+			noteIndex: this.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest(this.deleteNotesURL, {"toRemove":toRemove}, true);
+	this.ajaxRequest(this.deleteNotesURL, {"toRemove":toRemove});
 }
 
 Editor.prototype.tie = function (e) {
-	if(this.renderer.selectedNotes.length==0) {
+	if(this.selectedNotes.length==0) {
 		this.shakeScore('Tie error');
 		return;
 	}
 	var toTie = [];
-	for(var i=0; i<this.renderer.selectedNotes.length; i++) 
+	for(var i=0; i<this.selectedNotes.length; i++) 
 		toTie.push({
-			voiceName: this.renderer.selectedNotes[i].voiceName,
-			staveIndex: this.renderer.selectedNotes[i].index,
-			measureIndex: this.renderer.selectedNotes[i].measureIndex,
-			noteIndex: this.renderer.selectedNotes[i].noteIndex
+			voiceName: this.selectedNotes[i].voiceName,
+			staveIndex: this.selectedNotes[i].index,
+			measureIndex: this.selectedNotes[i].measureIndex,
+			noteIndex: this.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest(this.addTieURL, {"toTie":toTie}, true);
+	this.ajaxRequest(this.addTieURL, {"toTie":toTie});
 }
 
 //TODO pass x and y from processClick
@@ -232,38 +248,38 @@ Editor.prototype.getNote = function (y, stave) {
 }
 
 Editor.prototype.accidentalUpdate = function (type) {
-	if(this.renderer.selectedNotes.length==0)
+	if(this.selectedNotes.length==0)
 		return;
 	var toUpdate = [];
-	for(var i=0; i<this.renderer.selectedNotes.length; i++) 
+	for(var i=0; i<this.selectedNotes.length; i++) 
 		toUpdate.push({
-			staveIndex: this.renderer.selectedNotes[i].index,
-			measureIndex: this.renderer.selectedNotes[i].measureIndex,
-			noteIndex: this.renderer.selectedNotes[i].noteIndex
+			staveIndex: this.selectedNotes[i].index,
+			measureIndex: this.selectedNotes[i].measureIndex,
+			noteIndex: this.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest(this.accidentalUpdateURL, {"toUpdate":toUpdate, "accidental":type}, true);
+	this.ajaxRequest(this.accidentalUpdateURL, {"toUpdate":toUpdate, "accidental":type});
 }
 
 Editor.prototype.dotsUpdate = function (value) {
-	if(this.renderer.selectedNotes.length==0)
+	if(this.selectedNotes.length==0)
 		return;
 	var toUpdate = [];
-	for(var i=0; i<this.renderer.selectedNotes.length; i++) 
+	for(var i=0; i<this.selectedNotes.length; i++) 
 		toUpdate.push({
-			staveIndex: this.renderer.selectedNotes[i].index,
-			measureIndex: this.renderer.selectedNotes[i].measureIndex,
-			noteIndex: this.renderer.selectedNotes[i].noteIndex
+			staveIndex: this.selectedNotes[i].index,
+			measureIndex: this.selectedNotes[i].measureIndex,
+			noteIndex: this.selectedNotes[i].noteIndex
 		});
-	this.ajaxRequest(this.dotsUpdateURL, {"toUpdate":toUpdate, "dotValue":value}, true);
+	this.ajaxRequest(this.dotsUpdateURL, {"toUpdate":toUpdate, "dotValue":value});
 }
 
 Editor.prototype.close = function() {
 	clearInterval(this.interval);
-	this.ajaxRequest(this.closeURL, {}, false);
+	this.ajaxRequest(this.closeURL, {});
 }
 
 Editor.prototype.update = function() {
-	this.ajaxRequest(this.getCompositionURL, {}, false);
+	this.ajaxRequest(this.getCompositionURL, {});
 }
 
 Editor.prototype.removeCompositionInstrument = function(row, index){
@@ -286,6 +302,130 @@ Editor.prototype.removeCompositionInstrument = function(row, index){
 	});
 }
 
+Editor.prototype.moveNotes = function(value) {
+	if(this.selectedNotes.length==0)
+		return;
+	var editor = this;
+	var toUpdate = [];
+	var selected = this.selectedNotes;
+	for(var i=0; i<this.selectedNotes.length; i++) 
+		toUpdate.push({
+			staveIndex: this.selectedNotes[i].index,
+			measureIndex: this.selectedNotes[i].measureIndex,
+			noteIndex: this.selectedNotes[i].noteIndex
+		});
+	this.ajaxRequest(this.moveNotesURL, {"toUpdate":toUpdate, "value":value}, function(data) {
+		editor.lastUpdate=Date.now();
+		editor.renderer.updateComposition(data);
+		selected.forEach(function(item, index, array){
+			editor.selectedNotes.push(item);
+			editor.renderer.measures[item.measureIndex].notesArr[item.voiceName][item.noteIndex].setStyle({fillStyle: "red"});
+		});
+		editor.renderer.renderAndDraw();
+		console.log(selected);
+	});
+}
+
+
+Editor.prototype.changeNoteSelection = function(value) {
+	var editor = this;
+	var selectedNotes = [];
+	this.selectedNotes.forEach(function(item, index){
+		var notes = editor.renderer.measures[item.measureIndex].notesArr[item.voiceName];
+		notes[item.noteIndex].setStyle({fillStyle: "black"});
+		var notePos = editor.getCloseNote(item, value);
+		if(notePos.measureIndex>=0 && notePos.measureIndex<editor.renderer.measures.length && 
+				notePos.noteIndex>=0 && notePos.noteIndex<=editor.renderer.measures[notePos.measureIndex].notesArr[item.voiceName].length) {
+			selectedNotes.push({
+				note: editor.renderer.measures[notePos.measureIndex].notesArr[item.voiceName][notePos.noteIndex],
+				voiceName: item.voiceName,
+				index: item.index,
+				measureIndex: notePos.measureIndex,
+				noteIndex: notePos.noteIndex
+			});
+		}
+	});
+	this.selectedNotes = selectedNotes;
+	this.selectedNotes.forEach(function(item, index){
+		item.note.setStyle({fillStyle: "red"});
+	});
+	editor.renderer.renderAndDraw();
+}
+
+Editor.prototype.addAnnotationLetter = function(letter) {
+	if(this.selectedNotes.length!=1)
+		return;
+	var instrument = this.renderer.composition.instrumentsScore[this.selectedNotes[0].index].instrument;
+	console.log(instrument);
+	if(instrument!="4_voices" && instrument!="singer_voice")
+		return;
+	console.log(instrument);
+	var editor = this;
+	var notes = this.renderer.measures[this.selectedNotes[0].measureIndex].notesArr[this.selectedNotes[0].voiceName];
+	var note = notes[this.selectedNotes[0].noteIndex];
+	var text = "";
+	note.modifiers.forEach(function(item, index){
+		if(typeof item.text !== "undefined") {
+			text += item.text;
+			note.modifiers.splice(index, 1);
+		}
+	});
+	if(letter=="Backspace")
+		text = text.substring(0, text.length-1);
+	else if(letter==" " || letter=="Enter") {
+		var selectedNotes = this.selectedNotes;
+		selectedNotes[0].note.setStyle({fillStyle: "black"});
+		this.ajaxRequest(this.setNoteAnnotationTextURL, {
+			"measureIndex": editor.selectedNotes[0].measureIndex,
+			"staveIndex": editor.selectedNotes[0].index,
+			"noteIndex": editor.selectedNotes[0].noteIndex,
+			"text": text
+		}, function (data){
+			console.log(data);
+		});
+		if(letter==" ") {
+			var closeNote = this.getCloseNote(selectedNotes[0], 1);
+			if(closeNote.measureIndex>=0 && closeNote.measureIndex<editor.renderer.measures.length && 
+					closeNote.noteIndex>=0 && closeNote.noteIndex<=editor.renderer.measures[closeNote.measureIndex].notesArr[closeNote.voiceName].length) {
+				editor.selectedNotes = [closeNote];
+				closeNote.note.setStyle({fillStyle: "red"});
+			}
+		}
+	}
+	else text += letter;
+	note.addModifier(0, new Vex.Flow.Annotation(text).setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.TOP));
+	this.renderer.renderAndDraw();
+}
+
+Editor.prototype.getCloseNote = function(note, steps) {
+	var note1, measureIndex, noteIndex, j, n = steps;
+	for(var i=note.measureIndex; 
+			(steps>0 && n>0 && i<this.renderer.measures.length) || (steps<0 && n<0 && i>=0);
+			(steps>0?i++:i--)) {
+		if(i==note.measureIndex)
+			j = note.noteIndex+steps;
+		else (steps>0 ? j=0 : j=this.renderer.measures[i].notesArr[note.voiceName].length-1);
+		for(; (steps>0 && n>0 && j<this.renderer.measures[i].notesArr[note.voiceName].length) 
+				|| (steps<0 && n<0 && j>=0); (steps>0?j++:j--)) {
+			note1 = this.renderer.measures[i].notesArr[note.voiceName][j];
+			if(note1.noteType=="n") {
+				(steps>0 ? n-- : n++);
+				if(n==0){
+					measureIndex = i;
+					noteIndex = j;
+				}
+			}
+		}
+	}
+	return {
+		note: note1,
+		measureIndex: measureIndex,
+		index: note.index,
+		noteIndex: noteIndex,
+		voiceName: note.voiceName
+	};
+}
+
 Editor.prototype.exportMusicXML = function() {
 	var a = document.createElement('a');
 	a.setAttribute('download', 'music.xml');
@@ -305,14 +445,18 @@ Editor.prototype.shakeScore = function(err){
 	sweetAlert('Oops...', err, 'error');
 }
 
-Editor.prototype.ajaxRequest = function(url, data, cleanVars) {
+Editor.prototype.ajaxRequest = function(url, data, func=null) {
 	var editor = this;
+	this.selectedNotes = [];
 	$.ajax({
 		type: 'post',
 		url: url,
 		data: data,
 		dataType: 'JSON',
-		success: function(data) { editor.lastUpdate=Date.now(); editor.renderer.updateComposition(data, cleanVars); },
+		success: (func != null ? func : function(data) {
+			editor.lastUpdate=Date.now();
+			editor.renderer.updateComposition(data);
+		}),
 		error: function( XMLHttpRequest, textStatus, errorThrown ){
 			OW.error(textStatus);
 		},
