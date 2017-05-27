@@ -5,7 +5,6 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 	private $service;
 	private $updateInterval;
 	private $memory;
-	private $threshold;
 	
 	public function __construct() {
 		$this->service = SOMUSIC_BOL_Service::getInstance();
@@ -17,7 +16,6 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		//$this->updateInterval = 60*60*24;
 		//$this->updateInterval = 60*60;
 		$this->updateInterval = 0;
-		$this->threshold = 0.05;
 		$this->memory = new Memcached ();
 		$this->memory->addServer("localhost", 11211);
 	}
@@ -36,6 +34,9 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 	}
 	
 	private function updateUser($userId) {
+		$userCompositions = $this->service->getAllCompositions($userId);
+		$melodicRepresentation = $this->getMelodicRepresentation($userCompositions);
+		$melodicLength = strlen($melodicRepresentation);
 		foreach ($this->idList as $uid) {
 			if($uid==$userId)
 				continue;
@@ -52,24 +53,23 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 			}
 			else $ucs = (object)$ucs;
 			if(time()-$ucs->last_update>=$this->updateInterval) {
-				$value = $this->calculatesSimilarity($userId, $uid);
+				$userCompositions1 = $this->service->getAllCompositions($uid);
+				$melodicRepresentation1 = $this->getMelodicRepresentation($userCompositions1);
+				$value = $this->calculateMelodicSimilarity($melodicRepresentation, $melodicRepresentation1);
 				if($toUpdate)
-					$this->service->updateUsersCompositionsSimilarity($userId, $uid, $value);
+					$this->service->updateUsersCompositionsSimilarity($userId, $uid, $value, $melodicLength+strlen($melodicRepresentation1));
 				else $this->service->addUsersCompositionsSimilarity($userId, $uid, $value);
 			}
 		}
 	}
 	
-	private function calculatesSimilarity($userId1, $userId2) {
-		$compositions1 = $this->service->getAllCompositions($userId1);
-		$compositions2 = $this->service->getAllCompositions($userId2);
-		if(count($compositions1)==0 || count($compositions2)==0)
+	private function calculateMelodicSimilarity($melodicRepresentation1, $melodicRepresentation2) {
+		if(strlen($melodicRepresentation1)<1 || strlen($melodicRepresentation2)<1)
 			return 0;
-		$melodicRepresentation1 = $this->getMelodicRepresentation($compositions1);
-		$melodicRepresentation2 = $this->getMelodicRepresentation($compositions2);
-		$spaceSaved1 = $this->getSpaceSaved($melodicRepresentation1, $melodicRepresentation2);
-		$spaceSaved2 = $this->getSpaceSaved($melodicRepresentation2, $melodicRepresentation1);
-		return ($spaceSaved1+$spaceSaved2)/2;
+		$distance = $this->calculateDistance($melodicRepresentation1, $melodicRepresentation2);
+		if($distance<0)
+			return 0;
+		return 1/$distance;
 	}
 	
 	private function getMelodicRepresentation($compositions) {
@@ -93,6 +93,16 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		return 1-$comp/$indComp;
 	}
 	
+	private function calculateDistance($x, $y) {
+		$lzw = new SOMUSIC_CLASS_Lzw();
+		$Cxy = strlen($lzw->compress($x.$y));
+		$lzw = new SOMUSIC_CLASS_Lzw();
+		$Cx = strlen($lzw->compress($x));
+		$lzw = new SOMUSIC_CLASS_Lzw();
+		$Cy = strlen($lzw->compress($y));
+		return ($Cxy-min($Cx,$Cy))/max($Cx,$Cy);
+	}
+	
 	private function updateGraph() {
 		$graph = new \Fhaculty\Graph\Graph();
 		$userService = BOL_UserService::getInstance();
@@ -101,13 +111,23 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 			$v = $graph->createVertex($userId);
 			$v->setAttribute("username", $user->username);
 		}
+		$sum = 0;
+		$div = 0;
+		$maxML = $this->service->getMaxMelodicLengthUsersCompositionSimilarity();
 		$list = $this->service->getAllUsersCompositionsSimilarity();
 		foreach ($list as $ucs) {
-			if($ucs->value>$this->threshold) {
-				$v1 = $graph->getVertex($ucs->userId1);
-				$v2 = $graph->getVertex($ucs->userId2);
-				$e = $v1->createEdge($v2);
-				$e->setWeight($ucs->value*10);
+			$sum += $ucs->value*($ucs->melodic_length/$maxML);
+			$div += $ucs->melodic_length/$maxML;
+		}
+		if($div!=0) {
+			$threshold = $sum/$div;
+			foreach ($list as $ucs) {
+				if($ucs->value>=$threshold) {
+					$v1 = $graph->getVertex($ucs->userId1);
+					$v2 = $graph->getVertex($ucs->userId2);
+					$e = $v1->createEdge($v2);
+					$e->setWeight($ucs->value*10);
+				}
 			}
 		}
 		$this->memory->set("graphSimilarity", $graph);

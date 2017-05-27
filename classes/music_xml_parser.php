@@ -1,11 +1,10 @@
 <?php
 
 class SOMUSIC_CLASS_MusicXmlParser {
-	private $xmlString;
-	private $composition;
 	private $instrumentsName;
 	private $major;
 	private $minor;
+	//private $debug  = false;
 	
 	
 	public function __construct($instrumentsName) {
@@ -21,9 +20,6 @@ class SOMUSIC_CLASS_MusicXmlParser {
 	
 	
 	public function parseMusicXML($xmlString) {
-		if(isset($this->composition) && isset($this->xmlString) && $this->xmlString==$xmlString)
-			return $this->composition;
-		$this->xmlString = $xmlString;
 		$doc = simplexml_load_string($xmlString);
 		
 		$parts = array();
@@ -31,7 +27,7 @@ class SOMUSIC_CLASS_MusicXmlParser {
 		foreach ($scoreParts as $i=>$scoreP) 
 			array_push($parts, array("id"=>$scoreP["id"]->__toString(), "name"=>$scoreP->xpath("./part-name")[0]->__toString()));
 		$instrumentsUsed = $this->getInstrumentsUsed($doc, $parts);
-
+		
 		$instrumentsScore = array();
 		for($i=0; $i<count($parts); $i++) {
 			$part = $doc->xpath("//part[@id='".$parts[$i]["id"]."']")[0];
@@ -39,8 +35,7 @@ class SOMUSIC_CLASS_MusicXmlParser {
 			for($j=0; $j<count($is); $j++)
 				array_push($instrumentsScore, $is[$j]);
 		}
-		$this->composition = new SOMUSIC_CLASS_Composition(-1, "", -1, time(), -1, time(), $instrumentsScore, $instrumentsUsed);
-		return $this->composition;
+		return new SOMUSIC_CLASS_Composition(-1, "", -1, time(), -1, time(), $instrumentsScore, $instrumentsUsed);
 	}
 	
 	public function parseComposition($composition) {
@@ -123,23 +118,20 @@ class SOMUSIC_CLASS_MusicXmlParser {
 							$text = "";
 							for($m=0; $m<count($voice[$l]->step); $m++) {
 								$note = $measure->addChild("note");
-								if($m>1)								//TODO: controlalre chord
+								if($m>0)
 									$note->addChild("chord");
-								//if(count($voice[$l]->step)>0) {		//TODO: controllare
-									$pitch = $note->addChild("pitch");
-									$pitch->addChild("step", strtoupper($voice[$l]->step[$m]));
-									$pitch->addChild("octave", $voice[$l]->octave[$m]);
-							//	}
-								//else $note->addChild("rest");
+								$pitch = $note->addChild("pitch");
+								$pitch->addChild("step", strtoupper($voice[$l]->step[$m]));
+								$pitch->addChild("octave", $voice[$l]->octave[$m]);
 								$note->addChild("duration", $voice[$l]->duration);
 								$note->addChild("voice", $n);
 								$note->addChild("staff", $k+1);
 									
-								if($voice[$l]->isTieStart) {
+								if($voice[$l]->isTieStart>=0) {
 									$tie = $note->addChild("tie");
 									$tie->addAttribute("type", "start");
 								}
-								if($voice[$l]->isTieEnd) {
+								if($voice[$l]->isTieEnd>=0) {
 									$tie = $note->addChild("tie");
 									$tie->addAttribute("type", "stop");
 								}
@@ -223,18 +215,23 @@ class SOMUSIC_CLASS_MusicXmlParser {
 				$lastDivisions = $this->getDivisions($part->measure[$j], $lastDivisions);
 				$lastBeats = $this->getBeats($part->measure[$j], $lastBeats);
 				array_push($is->measures, $measure);
-				$ts = $this->getTieTyped($part->measure[$j], "start", $i);
+
+				$ts = $this->getTieTyped($part->measure[$j], "start");
 				for($k=0; $k<count($ts); $k++)
-					array_push($tieStart, new SOMUSIC_CLASS_Tie($j, $ts[$k], null, null));
-				$tieEnd = $this->getTieTyped($part->measure[$j], "end", $i);
-				while (count($tieEnd)>0) {
-					$tie = array_pop($tieStart);
-					$tie->lastMeasure = $j;
-					$tie->lastNote = array_pop($tieEnd);
+					array_push($tieStart, array($j, $ts[$k]));
+				$tieEnd = $this->getTieTyped($part->measure[$j], "stop", $i);
+				
+				while (count($tieEnd)>0 && count($tieStart)>0) {
+					$tieS = array_splice($tieStart, 0, 1)[0];
+					
+					$tie = new SOMUSIC_CLASS_Tie($tieS[0], $tieS[1], $j, array_splice($tieEnd, 0, 1)[0]);
 					$nTie = count($is->ties);
-					$is->measures[$tie->firstMeasure]->voices[0][$tieStart]->isTieStart = $nTie;
-					$is->measures[$tie->lastMeasure]->voices[0][$tieStart]->isTieEnd = $nTie;
+					$is->measures[$tie->firstMeasure]->voices[0][$tie->firstNote]->isTieStart = $nTie;
+					$is->measures[$tie->lastMeasure]->voices[0][$tie->lastNote]->isTieEnd = $nTie;
 					array_push($is->ties, $tie);
+					/*if($j==1) {
+						exit(json_encode($is));
+					}*/
 				}
 			}
 		}
@@ -242,7 +239,7 @@ class SOMUSIC_CLASS_MusicXmlParser {
 	}
 	
 	private function getDivisions($measureXML, $divisions = null) {
-		if(isset($measureXML->attributes))
+		if(isset($measureXML->attributes) && isset($measureXML->attributes->divisions))
 			$divisions = intval($measureXML->attributes->divisions->__toString());
 		return $divisions;
 	}
@@ -290,14 +287,14 @@ class SOMUSIC_CLASS_MusicXmlParser {
 				$beats = round(intval($measureXML->xpath(".//beat-type")[0])/intval($measureXML->attributes->time->beats->__toString()));
 		}
 		$measure = new SOMUSIC_CLASS_Measure($clef, $keySignature, $timeSignature, array());
-		$indexs = $this->getMeasureStaveIndexs($measureXML, $scoreIndex, $nScorePart, $divisions);
+		$indexs = $this->getMeasureStaveIndexs($measureXML, $scoreIndex, $nScorePart, $divisions, $beats);
 		for($i=0; $i<count($indexs); $i++) {
 			$voice = array();
 			$start = $this->getMeasureNoteStart($measureXML, $indexs[$i], $beats*$divisions*4);
 			$end = $this->getMeasureNoteEnd($measureXML, $start, $beats*$divisions*4);
 			for($j=$start; $j<$end; $j++) {
 				$note = $this->getNote($measureXML->note[$j], $divisions);
-				if(isset($measureXML->note[$j]->chord)) {
+				if(isset($measureXML->note[$j]->chord) && isset($voice[count($voice)-1])) {
 					array_push($voice[count($voice)-1]->octave, $note->octave[0]);
 					array_push($voice[count($voice)-1]->step, $note->step[0]);
 					array_push($voice[count($voice)-1]->accidental, $note->accidental[0]);
@@ -309,14 +306,14 @@ class SOMUSIC_CLASS_MusicXmlParser {
 		return $measure;
 	}
 	
-	private function getMeasureStaveIndexs($measureXML, $scoreIndex, $nScorePart, $divisions) {
-		if((isset($measureXML->backup) && count($measureXML->backup)==$nScorePart-1)
-				|| (!isset($measureXML->backup) && $scoreIndex==$nScorePart-1))
+	private function getMeasureStaveIndexs($measureXML, $scoreIndex, $nScorePart, $divisions, $beats) {
+		if(/*(isset($measureXML->backup) && count($measureXML->backup)==$nScorePart-1)
+				|| */(!isset($measureXML->backup) && $scoreIndex==$nScorePart-1))
 			return array($scoreIndex);
 		$toReturn = array();
 		for($i=0; $i<count($measureXML->backup)+1; $i++) {
-			$start = $this->getMeasureNoteStart($measureXML, $i, $divisions);
-			if(isset($measureXML->note[$start]->staff) && intval($measureXML->note[$start]->staff->__toString())-1==$scoreIndex)
+			$start = $this->getMeasureNoteStart($measureXML, $i, $beats*$divisions*4);
+			if(isset($measureXML->note[$start]->staff) && intval($measureXML->note[$start]->staff->__toString())-1==$scoreIndex) 
 				array_push($toReturn, $i);
 		}
 		return $toReturn;
@@ -330,9 +327,12 @@ class SOMUSIC_CLASS_MusicXmlParser {
 			$totDuration = 0;
 			$find = false;
 			for($i=$start; $i<$end && !$find; $i++) {
-				$totDuration += $measureXML->note[$i]->duration;
+				if(!isset($measureXML->note[$i]->chord))
+					$totDuration += $measureXML->note[$i]->duration;
 				if($totDuration>=$maxDuration) {
 					$start = $i+1;
+					while($i<$end && isset($measureXML->note[$start]->chord))
+						$start++;
 					$find = true;
 					$si++;
 				}
@@ -348,8 +348,12 @@ class SOMUSIC_CLASS_MusicXmlParser {
 		$totDuration = 0;
 		for($i=$start; $i<$end; $i++) {
 			$totDuration += intval($measureXML->note[$i]->duration->__toString());
-			if($totDuration>=$maxDuration) 
-				return $i+1;
+			if($totDuration>=$maxDuration) {
+				$i++;
+				while($i<$end && isset($measureXML->note[$i]->chord))
+					$i++;
+					return $i;
+			}
 		}
 		return $end;
 	}
@@ -394,12 +398,23 @@ class SOMUSIC_CLASS_MusicXmlParser {
 	private function getTieTyped($measureXML, $type) {
 		$toReturn = array();
 		$index = 0;
+		$lastVoice = null;
 		for($i=0; $i<count($measureXML->note); $i++) {
 			$noteXML = $measureXML->note[$i];
-			if(isset($noteXML->tie) && $noteXML->tie["type"]==$type) 
-				array_push($toReturn, $index);
-			if(!isset($noteXML->chord))
+			if(isset($noteXML->voice)) {
+				if(isset($lastVoice) && $lastVoice!=$noteXML->voice->__toString())
+					$index = 0;
+				$lastVoice = $noteXML->voice->__toString();
+			}
+			if(!isset($noteXML->chord)) {
+				if(isset($noteXML->tie)) {
+					for($j=0; $j<count($noteXML->tie); $j++) {
+						if($noteXML->tie[$j]["type"]==$type && !in_array($index, $toReturn))
+							array_push($toReturn, $index);
+					}
+				}
 				$index++;
+			}
 		}
 		return $toReturn;
 	}

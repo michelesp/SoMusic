@@ -37,16 +37,22 @@ class SOMUSIC_BOL_UsersCompositionsSimilarityDao extends OW_BaseDao {
 		return $this->findObjectByExample($example);
 	}
 	
-	public function updateUsersCompositionsSimilarity($userId1, $userId2, $value) {
+	public function updateUsersCompositionsSimilarity($userId1, $userId2, $value, $melodicLength) {
 		$query = 'UPDATE '.$this->getTableName().
-				' SET value = :value, last_update = CURRENT_TIMESTAMP '.
+				' SET value = :value, last_update = CURRENT_TIMESTAMP, melodic_length = :melodicLength '.
 				' WHERE (userId1 = :userId1 AND userId2 = :userId2) OR '.
 						'(userId2 = :userId1 AND userId1 = :userId2)';
 		$this->dbo->query($query, array(
 				"value" => $value,
 				"userId1" => $userId1,
-				"userId2" => $userId2
+				"userId2" => $userId2,
+				"melodicLength" => $melodicLength
 		));
+	}
+	
+	public function getMaxMelodicLengthUsersCompositionSimilarity() {
+		$query = 'SELECT MAX(melodic_length) FROM ow_somusic_users_compositions_similarity';
+		return $this->dbo->queryForRow($query)[0];
 	}
 	
 }

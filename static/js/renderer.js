@@ -22,6 +22,9 @@ Renderer.prototype.updateComposition = function(data) {
 		var m = new Measure(i, timeSignature[0], timeSignature[1], instrumentsScore[0].measures[0].keySignature, data.instrumentsUsed);
 		for(var j=0; j<instrumentsScore.length; j++) {
 			var m1 = instrumentsScore[j].measures[i];
+			//console.log(i, j, m1.voices);
+			if(m1.voices.length==0)
+				continue;
 			var voice = m1.voices[0];
 			for(var k=0; k<voice.length; k++) {
 				var note = voice[k];

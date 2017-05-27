@@ -119,14 +119,7 @@ class SOMUSIC_BOL_Service {
 		$this->assignmentExecutionDao->setExecutionComment($idExecution, $comment);
 	}
 	
-	//TODO: verificare
 	public function getUsersCompositionsSimilarity($userId1, $userId2) {
-		/*$dbo = OW::getDbo ();
-		$query = "SELECT *
-                  FROM ow_somusic_users_compositions_similarity
-				  WHERE (userId1 = ".$userId1." AND userId2 = ".$userId2.") OR
-				  		(userId2 = ".$userId1." AND userId1 = ".$userId2.");";
-		return $dbo->queryForRow($query);*/
 		return $this->usersCompositionsSimilarityDao->getUsersCompositionsSimilarity($userId1, $userId2);
 	}
 	
@@ -138,19 +131,21 @@ class SOMUSIC_BOL_Service {
 		$this->usersCompositionsSimilarityDao->save($ucs);
 	}
 	
-	//TODO: verificare
-	public function updateUsersCompositionsSimilarity($userId1, $userId2, $value) {
-		/*$dbo = OW::getDbo();
-		$query = "UPDATE ow_somusic_users_compositions_similarity ".
-				"SET value = '".$value."', last_update = CURRENT_TIMESTAMP ".
-				"WHERE (userId1 = ".$userId1." AND userId2 = ".$userId2.") OR ".
-				"(userId2 = ".$userId1." AND userId1 = ".$userId2.");";
-		$dbo->query($query);*/
-		$this->usersCompositionsSimilarityDao->updateUsersCompositionsSimilarity($userId1, $userId2, $value);
+	public function updateUsersCompositionsSimilarity($userId1, $userId2, $value, $melodicLength) {
+		/*$ucs = $this->getUsersCompositionsSimilarity($userId1, $userId2);
+		$ucs->value = $value;
+		$ucs->melodic_length = $melodicLength;
+		$ucs->last_update = date("F j, Y \a\t g:ia");
+		$this->usersCompositionsSimilarityDao->save($ucs);*/
+		$this->usersCompositionsSimilarityDao->updateUsersCompositionsSimilarity($userId1, $userId2, $value, $melodicLength);
 	}
 	
 	public function getAllUsersCompositionsSimilarity() {
 		return $this->usersCompositionsSimilarityDao->findAll();
+	}
+	
+	public function getMaxMelodicLengthUsersCompositionSimilarity() {
+		return $this->usersCompositionsSimilarityDao->getMaxMelodicLengthUsersCompositionSimilarity();
 	}
 	
 	public function getInstrumentGroups() {

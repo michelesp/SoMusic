@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS `'.$prefix.'users_compositions_similarity` (
 	`userId1` INT NOT NULL,
 	`userId2` INT NOT NULL,
 	`value` FLOAT NOT NULL,
+	`melodic_length` INT NOT NULL DEFAULT "0",
 	`last_update` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`)
 ) ENGINE = MyISAM;';

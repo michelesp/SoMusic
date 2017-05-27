@@ -77,15 +77,15 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 				$is = new SOMUSIC_CLASS_InstrumentScore($instrument["scoresClef"][$i], $instrument["labelName"]."#score".$i, array(), array(), $instrument["name"], $instrument["user"]);
 				array_push($this->instrumentsScore, $is);
 				array_push($is->measures, $this->newMeasure($instrument["scoresClef"][$i], explode("/", $timeSignature), $keySignature));
-			//	$this->cache->set($this->id."#instrumentScore#".$i, $is, time()+60*60);
+				$this->cache->set($this->id."#instrumentScore#".$i, $is, time()+60*60);	//TODO: rimuovere
 			}
 		}
 		$this->composition->instrumentsScore = $this->instrumentsScore;
-		/*for($i=0; $i<count($this->instrumentsScore); $i++) {
+		for($i=0; $i<count($this->instrumentsScore); $i++) {
 			$this->cache->set($this->id."#instrumentScore#".$i, $this->instrumentsScore[$i], time()+60*60);
 			$this->composition->instrumentsScore[$i] = $this->instrumentsScore[$i];
-		}*/
-		//OW::getSession()->set($this->id, serialize($this->composition), time()+60*60);
+		}
+		OW::getSession()->set($this->id, serialize($this->composition), time()+60*60);
 		return $this->composition;
 	}
 
