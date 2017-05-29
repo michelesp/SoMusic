@@ -18,16 +18,6 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		else $this->id = OW::getSession()->get("editorId");
 		if(!isset($this->id))
 			$this->id = "userId#".$this->userId;
-		/*$assignment = json_decode(OW::getSession()->get("newAssignment"));
-		if($assignment==null)
-			$assignment = json_decode(OW::getSession()->get("assignment"));
-		if(isset($assignment)){
-			$this->assignment = (object)$assignment;
-			if($this->assignment->group_id==null || $this->assignment->name==null || (isset($this->assignment->is_multi_user)?$this->assignment->is_multi_user:$this->assignment->mode)==null)
-				$this->id = "userId#".$this->userId;
-			else $this->id = json_encode((object)array("groupId"=>$this->assignment->group_id, "name"=>$this->assignment->name));
-		}
-		else $this->id = "userId#".$this->userId;*/
 		if($loadData) 
 			$this->loadDataFromCache();
 	}
@@ -50,8 +40,6 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			$this->composition = $composition;
 		else
 			$this->composition = unserialize(OW::getSession()->get($this->id));
-		//if(!is_object($this->composition))
-		//	$this->composition = $this->getCompositionObject((array)$this->composition);
 		$nMeasures = 0;
 		for($i=0; $i<count($this->composition->instrumentsScore); $i++) {
 			array_push($this->instrumentsScore, $this->cache->get($this->id."#instrumentScore#".$i));
@@ -114,9 +102,20 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		if($instrumentScore->user!=$userId && $instrumentScore->user!=-1)
 			$this->error("permission denied");
 		$measure = $instrumentScore->measures[$measureIndex];
-		$note = $measure->voices [0] [$noteIndex];
-		if ($duration > $note->duration)
-			$this->error("error note duration");
+		$note = $measure->voices[0][$noteIndex];
+		if ($duration > $note->duration) {
+			$ni = $noteIndex+1;
+			$duration1 = $note->duration;
+			while(count($note->step)==0 && $ni<count($measure->voices[0]) && count($measure->voices[0][$ni]->step)==0) {
+				$duration1 += $measure->voices[0][$ni]->duration;
+				$ni++;
+			}
+			if($duration<=$duration1) {
+				$note->duration = $duration1;
+				array_splice($measure->voices[0], $noteIndex+1, ($ni-$noteIndex));
+			}
+			else $this->error("error note duration");
+		}
 		$durationDif = $note->duration - $duration;
 		if (count($note->step)==0) {
 			$toAdd = array ();
@@ -162,7 +161,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			$this->error("error notes deletion");
 		foreach ($_REQUEST ["toRemove"] as $obj) {
 			$is = $this->instrumentsScore[$obj["staveIndex"]];
-			if($is->user!=$this->userId && $this->instrumentsScore[$i]->user!=-1)
+			if($is->user!=$this->userId && $is->user!=-1)
 				continue;
 			$m = $is->measures [$obj ["measureIndex"]];
 			$note = $m->voices [0] [$obj ["noteIndex"]];
@@ -322,8 +321,40 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			if($note->dots>0)
 				$duration = $note->duration*(2*$note->dots)/(pow(2, $note->dots+1)-1);
 			else $duration = $note->duration;
-			$note->dots += intval($_REQUEST["dotValue"]);
-			$note->duration = $duration*(pow(2, $note->dots+1)-1)/(2*$note->dots);
+			$dots = $note->dots+intval($_REQUEST["dotValue"]);
+			if($dots>0)
+				$noteValue = $note->duration + $duration*(pow(2, $note->dots+1)-1)/(2*$dots);
+			else $noteValue = $duration;
+			if(intval($_REQUEST["dotValue"])>0) {
+				$restIndex = null;
+				for($i=intval($obj["noteIndex"])+1; $i<count($m->voices[0]) && !isset($restIndex); $i++) {
+					if(count($m->voices[0][$i]->step)==0)
+						$restIndex = $i;
+				}
+				$diff = $noteValue-$note->duration;
+				if(!isset($restIndex) || $m->voices[0][$restIndex]->duration<$diff)
+					continue;
+				$durationDif = $m->voices[0][$restIndex]->duration - $diff;
+				$toAdd = array ();
+				while($durationDif>0) {
+					$max = $this->getMax2Pow($durationDif);
+					array_unshift($toAdd, new SOMUSIC_CLASS_Note($max, array(), array(), array()));
+					$durationDif -= $max;
+				}
+				array_splice($m->voices[0], $restIndex, 1, $toAdd);
+			}
+			else {
+				$toAdd = array();
+				$diff = $note->duration - $duration;
+				while($diff>0) {
+					$max = $this->getMax2Pow($diff);
+					array_unshift($toAdd, new SOMUSIC_CLASS_Note($max, array(), array(), array()));
+					$diff -= $max;
+				}
+				array_splice($m->voices[0], intval($obj["noteIndex"])+1, 0, $toAdd);
+			}
+			$note->dots = $dots;
+			$note->duration = $noteValue;
 		}
 		$this->composition->instrumentsScore = $this->instrumentsScore;
 		exit(json_encode($this->composition));

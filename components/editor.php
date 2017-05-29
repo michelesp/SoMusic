@@ -41,18 +41,22 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 	private function makeForm() {
 		$imgUrl =  OW::getPluginManager()->getPlugin('somusic')->getStaticUrl()."img/";
 		$notes = array(
-				"1"=>$imgUrl."whole-note.png",
-				"2"=>$imgUrl."half-note.png",
-				"4"=>$imgUrl."quarter-note.png",
-				"8"=>$imgUrl."eighth-note.png",
-				"16"=>$imgUrl."sixteenth-note.png"
+				"1" => $imgUrl."whole-note.png",
+				"2" => $imgUrl."half-note.png",
+				"4" => $imgUrl."quarter-note.png",
+				"8" => $imgUrl."eighth-note.png",
+				"16" => $imgUrl."sixteenth-note.png",
+				"32" => $imgUrl."thirty-two.png",
+				"64" => $imgUrl."sixty-fourth.png"
 		);
 		$rests = array(
-				"1r"=>$imgUrl."whole-rest.png",
-				"2r"=>$imgUrl."half-rest.png",
-				"4r"=>$imgUrl."quarter-rest.png",
-				"8r"=>$imgUrl."eighth-rest.png",
-				"16r"=>$imgUrl."sixteenth-rest.png"
+				"1r" => $imgUrl."whole-rest.png",
+				"2r" => $imgUrl."half-rest.png",
+				"4r" => $imgUrl."quarter-rest.png",
+				"8r" => $imgUrl."eighth-rest.png",
+				"16r" => $imgUrl."sixteenth-rest.png",
+				"32r" => $imgUrl."thirty-two-rest.png",
+				"64r" => $imgUrl."sixty-fourth-rest.png"
 		);
 		$accidentals = array(
 				"clear"=>$imgUrl."clear.png",

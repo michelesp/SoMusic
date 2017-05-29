@@ -125,7 +125,7 @@ Measure.prototype.computeScale = function () {
 			if(isNaN(noteDuration.charAt(noteDuration.length-1)))
 				noteDuration = parseInt(noteDuration.substring(0, noteDuration.length-1));
 			else noteDuration = parseInt(noteDuration);
-			widths[voiceName] += 10*noteDuration;
+			widths[voiceName] += (noteDuration>8?noteDuration:2*noteDuration);
 			if (noteDuration > this.minNote)
 				this.minNote = noteDuration;
 		}

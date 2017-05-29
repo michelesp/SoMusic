@@ -91,6 +91,8 @@ Preview.prototype.importMusicXML = function(fileInput) {
 		        dataType: 'JSON',
 		        success: function(data){
 					console.log(data);
+					var fb = SoMusic.floatBox.pop();
+					fb.floatBox.close();
 					SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor', {},
 							{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})})
 				},
