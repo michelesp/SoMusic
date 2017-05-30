@@ -65,8 +65,14 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 				"n"=>$imgUrl."restore.png"
 		);
 		$additional = array(
-				"tie"=>$imgUrl."tie.png",
-				"dot"=>$imgUrl."dot.png"
+				"delete" => $imgUrl."delete.png",
+				"tie" => $imgUrl."tie.png",
+				"dot" => $imgUrl."dot.png",
+				"double-dot" => $imgUrl."double-dot.png"
+		);
+		$voice = array(
+				"0" => 1,
+				"1" => 2
 		);
 		$form = new Form("editor_form");
 		$notesField = new RadioField("notes");
@@ -85,6 +91,10 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		foreach ($additional as $key=>$value)
 			$additionalField->addOption($key, "<img src='$value' id='$key' class='noteImg'/>");
 		$form->addElement($additionalField);
+		$voiceField = new RadioField("voice");
+		foreach ($voice as $key=>$value)
+			$voiceField->addOption($key, $value);
+		$form->addElement($voiceField);
 		return $form;
 	}
 	

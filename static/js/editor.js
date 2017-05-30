@@ -1,5 +1,5 @@
 
-function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,composition,
+function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton, composition,
 		deteleNotesURL, addTieURL, addNoteURL,getCompositionURL, accidentalUpdateURL, 
 		closeURL, removeInstrumentURL, exportURL, dotsUpdateURL, moveNotesURL, setNoteAnnotationTextURL) {
 	var editor = this;
@@ -17,6 +17,7 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,comp
 	this.setNoteAnnotationTextURL = setNoteAnnotationTextURL;
 	this.lastUpdate = Date.now();
 	this.selectedNotes = [];
+	//this.voiceIndex = 0;
 	this.interval = setInterval(() => {
 		if(Date.now()>editor.lastUpdate-5000 && this.selectedNotes.length==0)
 			editor.ajaxRequest(editor.getCompositionURL, {});
@@ -40,9 +41,14 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,comp
 			editor.accidentalUpdate(this.value);
 		});
 	});
+	/*voiceButton.forEach(function(element, index){
+		element.addEventListener("click", function(){
+			editor.changeVoice(this.value);
+		});
+	});*/
 	this.renderer = new Renderer(this.canvas, composition.instrumentsUsed);
 	this.canvas.addEventListener("click", function(e) {editor.processClick(e);}, false);
-	document.getElementById("del").addEventListener("click", function (e) {
+	document.getElementById("delete").parentNode.addEventListener("click", function (e) {
 		editor.delNotes(e);
 	}, false);
 	document.getElementById("tie").parentNode.addEventListener("click", function (e) {
@@ -51,6 +57,9 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,comp
 	document.getElementById("dot").parentNode.addEventListener("click", function (e) {
 		editor.dotsUpdate(1);
 	}, false);
+	document.getElementById("double-dot").parentNode.addEventListener("click", function (e) {
+		editor.dotsUpdate(2);
+	}, false);
 	addButton.addEventListener("click", function() {
 		SoMusic.save(editor.renderer.composition);
 		var fb = SoMusic.floatBox.pop();
@@ -58,6 +67,7 @@ function Editor(notesInput, restsInput, accidentalsInput, canvas, addButton,comp
 	}, false);
 	notesInput[2].click();
 	accidentalsInput[0].click();
+	//voiceButton[0].click();
 	window.onkeyup = function(e) {
 	    var key = e.keyCode ? e.keyCode : e.which;
 	    if(key == 37)
@@ -83,8 +93,8 @@ Editor.prototype.processClick = function (e) {
 	var found = false; //set to true if a note is clicked
 	var staveIndex = this.renderer.measures[0].getStaveIndex(y);
 	var measureIndex = this.getMeasureIndex(x);
-	var voice = this.renderer.measures[measureIndex].voicesName[staveIndex];
-	var notes = this.renderer.measures[measureIndex].notesArr[voice];
+	var voice = this.renderer.measures[measureIndex].instrumentsName[staveIndex];
+	var notes = this.renderer.measures[measureIndex].notes[voice];
 	var noteIndex = this.getNoteIndex(x, notes);
 	var pitch = this.calculatePitch(e);
 	var found = false;
@@ -319,7 +329,7 @@ Editor.prototype.moveNotes = function(value) {
 		editor.renderer.updateComposition(data);
 		selected.forEach(function(item, index, array){
 			editor.selectedNotes.push(item);
-			editor.renderer.measures[item.measureIndex].notesArr[item.voiceName][item.noteIndex].setStyle({fillStyle: "red"});
+			editor.renderer.measures[item.measureIndex].notes[item.voiceName][item.noteIndex].setStyle({fillStyle: "red"});
 		});
 		editor.renderer.renderAndDraw();
 		console.log(selected);
@@ -331,13 +341,13 @@ Editor.prototype.changeNoteSelection = function(value) {
 	var editor = this;
 	var selectedNotes = [];
 	this.selectedNotes.forEach(function(item, index){
-		var notes = editor.renderer.measures[item.measureIndex].notesArr[item.voiceName];
+		var notes = editor.renderer.measures[item.measureIndex].notes[item.voiceName];
 		notes[item.noteIndex].setStyle({fillStyle: "black"});
 		var notePos = editor.getCloseNote(item, value);
 		if(notePos.measureIndex>=0 && notePos.measureIndex<editor.renderer.measures.length && 
-				notePos.noteIndex>=0 && notePos.noteIndex<=editor.renderer.measures[notePos.measureIndex].notesArr[item.voiceName].length) {
+				notePos.noteIndex>=0 && notePos.noteIndex<=editor.renderer.measures[notePos.measureIndex].notes[item.voiceName].length) {
 			selectedNotes.push({
-				note: editor.renderer.measures[notePos.measureIndex].notesArr[item.voiceName][notePos.noteIndex],
+				note: editor.renderer.measures[notePos.measureIndex].notes[item.voiceName][notePos.noteIndex],
 				voiceName: item.voiceName,
 				index: item.index,
 				measureIndex: notePos.measureIndex,
@@ -361,7 +371,7 @@ Editor.prototype.addAnnotationLetter = function(letter) {
 		return;
 	console.log(instrument);
 	var editor = this;
-	var notes = this.renderer.measures[this.selectedNotes[0].measureIndex].notesArr[this.selectedNotes[0].voiceName];
+	var notes = this.renderer.measures[this.selectedNotes[0].measureIndex].notes[this.selectedNotes[0].voiceName];
 	var note = notes[this.selectedNotes[0].noteIndex];
 	var text = "";
 	note.modifiers.forEach(function(item, index){
@@ -386,7 +396,7 @@ Editor.prototype.addAnnotationLetter = function(letter) {
 		if(letter==" ") {
 			var closeNote = this.getCloseNote(selectedNotes[0], 1);
 			if(closeNote.measureIndex>=0 && closeNote.measureIndex<editor.renderer.measures.length && 
-					closeNote.noteIndex>=0 && closeNote.noteIndex<=editor.renderer.measures[closeNote.measureIndex].notesArr[closeNote.voiceName].length) {
+					closeNote.noteIndex>=0 && closeNote.noteIndex<=editor.renderer.measures[closeNote.measureIndex].notes[closeNote.voiceName].length) {
 				editor.selectedNotes = [closeNote];
 				closeNote.note.setStyle({fillStyle: "red"});
 			}
@@ -404,10 +414,10 @@ Editor.prototype.getCloseNote = function(note, steps) {
 			(steps>0?i++:i--)) {
 		if(i==note.measureIndex)
 			j = note.noteIndex+steps;
-		else (steps>0 ? j=0 : j=this.renderer.measures[i].notesArr[note.voiceName].length-1);
-		for(; (steps>0 && n>0 && j<this.renderer.measures[i].notesArr[note.voiceName].length) 
+		else (steps>0 ? j=0 : j=this.renderer.measures[i].notes[note.voiceName].length-1);
+		for(; (steps>0 && n>0 && j<this.renderer.measures[i].notes[note.voiceName].length) 
 				|| (steps<0 && n<0 && j>=0); (steps>0?j++:j--)) {
-			note1 = this.renderer.measures[i].notesArr[note.voiceName][j];
+			note1 = this.renderer.measures[i].notes[note.voiceName][j];
 			if(note1.noteType=="n") {
 				(steps>0 ? n-- : n++);
 				if(n==0){
@@ -424,6 +434,11 @@ Editor.prototype.getCloseNote = function(note, steps) {
 		noteIndex: noteIndex,
 		voiceName: note.voiceName
 	};
+}
+
+Editor.prototype.changeVoice = function(value) {
+	this.voiceIndex = voice;
+	this.ajaxRequest(this.changeVoiceURL, {"voice":voice});
 }
 
 Editor.prototype.exportMusicXML = function() {

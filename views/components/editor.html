@@ -20,6 +20,13 @@ label {
 .floatbox_body {
 	overflow-x: hidden;
 }
+#voiceDiv {
+	line-height: 32px;
+}
+#voiceDiv label {
+	width: 32px;
+	text-align: center;
+}
 {/style}
 
 {form name='editor_form'}
@@ -44,6 +51,9 @@ label {
 			<div class="row">
 				{input name='accidentals'}
 			</div>
+			<!-- <div class="row" id="voiceDiv">
+				Voice: {input name='voice'}
+			</div> -->
 		</div>
 		<div class="col-md-1"> &nbsp; </div>
 		<div class="col-md-3">
@@ -61,18 +71,18 @@ label {
 			</div>
 		</div>
 	</div>
-	<div class="row" style="padding-bottom: 0px">
+	<div class="row">
 		<div class="container">
-			<button type="button" class="btn btn-danger" id="del">Delete</button>
-			<button type="button" class="btn btn-warning" id="visualMelody">Visual Melody</button>
-			<!-- <button type="button" class="btn btn-success" id="tie">Tie</button> -->
+			<!-- <button type="button" class="btn btn-danger" id="del">Delete</button>
+			<button type="button" class="btn btn-warning" id="visualMelody">Visual Melody</button> -->
 			{if $isClose==1}
 			<button onclick='{literal}SoMusic.floatBox.push({"name":"CompositionSettings", "floatBox":OW.ajaxFloatBox("SOMUSIC_CMP_CompositionSettings", {"instrumentsUsed":{/literal}{$instrumentsUsed}{literal}}, {top:"calc(5vh)", width:"calc(50vw)", height:"calc(50vh)", iconClass: "ow_ic_add", title: ""})});{/literal}' type="button" class="btn btn-success" id="settings">Settings</button>
 			{/if}
+			<button type="button" class="btn" style="visibility:hidden;"> &nbsp; </button>
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-4"> <br><a onclick="SoMusic.editor.exportMusicXML();">Export MusicXML</a> </div>
+		<div class="col-md-4"><a onclick="SoMusic.editor.exportMusicXML();">Export MusicXML</a> </div>
 		<div class="col-md-4"> &nbsp; </div>
 		<div class="col-md-4">
 			<span class="rounded_attachment_btn">
@@ -90,6 +100,7 @@ label {
 			document.getElementsByName("accidentals"),
 			document.getElementById("score"),
 			document.getElementById("add"),
+			//document.getElementsByName("voice"),
 			{$composition},
 			"{$deleteNotesURL}",
 			"{$addTieURL}",

@@ -50,7 +50,7 @@ Renderer.prototype.updateComposition = function(data) {
 							note1.addAccidental(l, new Vex.Flow.Accidental(note.accidental[l]));
 				if(note.text!=null)
 					note1.addModifier(0, new Vex.Flow.Annotation(note.text).setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.TOP));
-				if(note.dots>0)
+				for(var d=0; d<note.dots; d++)
 					note1.addDotToAll();
 				m.addNote(note1, instrumentsScore[j].name, k);
 			}
@@ -62,8 +62,8 @@ Renderer.prototype.updateComposition = function(data) {
 		for(var j=0; j<instrumentScore.ties.length; j++) {
 			var tie = instrumentScore.ties[j];
 			this.ties.push([new Vex.Flow.StaveTie({
-				first_note: this.measures[tie.firstMeasure].notesArr[instrumentScore.name][tie.firstNote],
-				last_note: this.measures[tie.lastMeasure].notesArr[instrumentScore.name][tie.lastNote]
+				first_note: this.measures[tie.firstMeasure].notes[instrumentScore.name][tie.firstNote],
+				last_note: this.measures[tie.lastMeasure].notes[instrumentScore.name][tie.lastNote]
 			}), instrumentScore.name, tie.firstMeasure, tie.firstNote, tie.lastMeasure, tie.lastNote]);
 		}
 	}

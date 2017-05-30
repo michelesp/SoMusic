@@ -5,21 +5,25 @@ class SOMUSIC_CLASS_Tie implements Serializable, JsonSerializable {
 	public $firstNote;
 	public $lastMeasure;
 	public $lastNote;
+	public $voiceIndex;
 	
-	public function __construct($firstMeasure, $firstNote, $lastMeasure, $lastNote) {
+	public function __construct($firstMeasure, $firstNote, $lastMeasure, $lastNote, $voiceIndex = 0) {
 		$this->firstMeasure = $firstMeasure;
 		$this->firstNote = $firstNote;
 		$this->lastMeasure = $lastMeasure;
 		$this->lastNote = $lastNote;
+		$this->voiceIndex = $voiceIndex;
 	}
 	
 	
 	public function serialize() {
-		return serialize([$this->firstMeasure, $this->firstNote, $this->lastMeasure, $this->lastNote]);
+		return serialize([$this->firstMeasure, $this->firstNote, 
+				$this->lastMeasure, $this->lastNote, $this->voiceIndex]);
 	}
 	
 	public function unserialize($data) {
-		list($this->firstMeasure, $this->firstNote, $this->lastMeasure, $this->lastNote) = unserialize($data);
+		list($this->firstMeasure, $this->firstNote, $this->lastMeasure,
+				$this->lastNote, $this->voiceIndex) = unserialize($data);
 	}
 	
 	public function jsonSerialize () {

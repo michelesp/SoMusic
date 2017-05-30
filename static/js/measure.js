@@ -1,37 +1,28 @@
 function Measure(index, beatNum, beatValue, keySign, instrumentsUsed) {
 	this.index = index;
-	this.notesArr = [];
+	this.notes = [];
 	this.staves = [];
 	this.beatNum = beatNum;
 	this.beatValue = beatValue;
 	this.keySign = keySign;
 	this.instrumentsUsed = instrumentsUsed;
-	/*setMode(3) allows to insert notes inside the measure even if the measure is not complete, but
-     throws an exception if the duration of the inserted notes exceeds the time signature*/
-	this.voicesName = this.getVoicesName(this.instrumentsUsed);
-	this.voices = [];
-	for(var i=0; i<this.voicesName.length; i++) {
-		this.notesArr[this.voicesName[i]] = [];
-		this.voices[this.voicesName[i]]=new Vex.Flow.Voice({
+	this.instrumentsName = this.getInstrumentsName(this.instrumentsUsed);
+	this.instruments = [];
+	for(var i=0; i<this.instrumentsName.length; i++) {
+		this.notes[this.instrumentsName[i]] = [];
+		this.instruments[this.instrumentsName[i]]=new Vex.Flow.Voice({
 			num_beats: this.beatNum, beat_value: this.beatValue,
 			resolution: Vex.Flow.RESOLUTION
 		});
-		this.voices[this.voicesName[i]].setMode(3);
+		this.instruments[this.instrumentsName[i]].setMode(3);
+		/*setMode(3) allows to insert notes inside the measure even if the measure is not complete, but
+	     throws an exception if the duration of the inserted notes exceeds the time signature*/
 	}
-	//array of ties inside the measure
-	this.minNote = 1; //1 is w, 2 is h, 3 is q, 4 is 8, 5 is 16
 	this.width;
 	this.computeScale();
 }
 
-Measure.prototype.getNoteIndex = function(voice, note) {
-	var notesArr = this.notesArr[voice];
-	for(var i=0; i<notesArr.length; i++)
-		if(notesArr[i]==note)
-			return i;
-}
-
-Measure.prototype.getVoicesName = function(instrumentsUsed) {
+Measure.prototype.getInstrumentsName = function(instrumentsUsed) {
 	var toReturn = [];
 	for(var i=0; i<instrumentsUsed.length; i++) {
 		var instrument = instrumentsUsed[i];
@@ -45,29 +36,23 @@ Measure.prototype.getVoicesName = function(instrumentsUsed) {
 /*adds a note in the measure
  in case adding the note generates an error (the new inserted note exceeds the time signature),
  the voice is restored to the previous state*/
-Measure.prototype.addNote = function (note, voiceName, index) {
-	this.notesArr[voiceName].splice(index, 0, note);
-	var toReturn = 'success';
+Measure.prototype.addNote = function (note, instrumentName, index) {
+	this.notes[instrumentName].splice(index, 0, note);
 	try {
-		//if (voiceName == "basso" || voiceName == "alto")
-		//	note.setStemDirection(-1);
-		this.voices[voiceName] = new Vex.Flow.Voice({
+		this.instruments[instrumentName] = new Vex.Flow.Voice({
 			num_beats: this.beatNum, beat_value: this.beatValue,
 			resolution: Vex.Flow.RESOLUTION
 		}).setMode(3);
-		this.voices[voiceName].addTickables(this.notesArr[voiceName]);
+		this.instruments[instrumentName].addTickables(this.notes[instrumentName]);
 	}
 	catch (err) {
-		this.notesArr[voiceName].splice(index, 1);
-		this.voices[voiceName] = new Vex.Flow.Voice({
+		console.log(err);
+		this.notes[instrumentName].splice(index, 1);
+		this.instruments[instrumentName] = new Vex.Flow.Voice({
 			num_beats: this.beatNum, beat_value: this.beatValue,
 			resolution: Vex.Flow.RESOLUTION
 		}).setMode(3);
-		this.voices[voiceName].addTickables(this.notesArr[voiceName]);
-		toReturn = 'err';
-	}
-	finally {
-		return toReturn;
+		this.instruments[instrumentName].addTickables(this.notes[instrumentName]);
 	}
 }
 
@@ -86,7 +71,9 @@ Measure.prototype.render = function (ctx, x) {
 			end = k*80;
 			var stave = new Vex.Flow.Stave(x, end, this.width);
 			if(this.index==0)
-				stave.addClef(inst.scoresClef[j]).addTimeSignature(this.beatNum+"/"+this.beatValue).addKeySignature(this.keySign);
+				stave.addClef(inst.scoresClef[j])
+						.addTimeSignature(this.beatNum+"/"+this.beatValue)
+						.addKeySignature(this.keySign);
 			this.staves.push(stave);
 		}
 		if(this.index==0){
@@ -109,69 +96,60 @@ Measure.prototype.render = function (ctx, x) {
 }
 
 Measure.prototype.renderEndLine = function (ctx) {
+	new Vex.Flow.StaveConnector(this.staves[0], this.staves[0]).setType(6).setContext(ctx).draw();
 	for(var i=1; i<this.staves.length; i++) 
 		new Vex.Flow.StaveConnector(this.staves[i-1], this.staves[i]).setType(6).setContext(ctx).draw();
 }
 
-//calculate the width of the stave based on the note with the minimum duration
 Measure.prototype.computeScale = function () {
-	this.restoreVoices();
 	var widths = [];
-	for (var voiceName in this.notesArr)
-		widths[voiceName] = 70;
-	for (var voiceName in this.notesArr) {
-		for (var i = 0; i < this.notesArr[voiceName].length; i++) {
-			var noteDuration = this.notesArr[voiceName][i].duration;
+	for (var instrumentName in this.notes)
+		widths[instrumentName] = 70;
+	for (var instrumentName in this.notes) {
+		for (var i=0; i<this.notes[instrumentName].length; i++) {
+			var noteDuration = this.notes[instrumentName][i].duration;
 			if(isNaN(noteDuration.charAt(noteDuration.length-1)))
 				noteDuration = parseInt(noteDuration.substring(0, noteDuration.length-1));
 			else noteDuration = parseInt(noteDuration);
-			widths[voiceName] += (noteDuration>8?noteDuration:2*noteDuration);
-			if (noteDuration > this.minNote)
-				this.minNote = noteDuration;
+			widths[instrumentName] += (noteDuration>8?noteDuration:2*noteDuration);
+			var noteModifiers = this.notes[instrumentName][i].modifiers;
+			for(var j=0; j<noteModifiers.length; j++)
+				widths[instrumentName] += noteModifiers[j].width;
 		}
 	}
 	this.width = 70;
-	for (var voiceName in this.notesArr)
-		if(this.width<widths[voiceName])
-			this.width = widths[voiceName];
+	for (var instrumentName in this.notes)
+		if(this.width<widths[instrumentName])
+			this.width = widths[instrumentName];
 	if(this.index==0)
-		this.width+=40;
-}
-
-//check if the given voice is full or not
-Measure.prototype.isComplete = function (voiceName) {
-	for (var i in this.voices[voiceName].getTickables())
-		if (this.voices[voiceName].getTickables()[i] instanceof Vex.Flow.GhostNote)
-			return false;
+		this.width+=40+this.getArmatureAlterations()*20;
 }
 
 Measure.prototype.getEndX = function () {
 	return this.staves[0].getX() + this.staves[0].getWidth();
 }
 
-//draw the notes on the staves
 Measure.prototype.drawNotes = function (ctx) {
-	for (var voice in this.voices) {
+	for (var instrumentName in this.instruments) {
 		var fillStyles = [];
-		for(var i=0; i<this.voices[voice].tickables.length; i++) {
-			var note = this.voices[voice].tickables[i];
+		for(var i=0; i<this.instruments[instrumentName].tickables.length; i++) {
+			var note = this.instruments[instrumentName].tickables[i];
 			fillStyles[i] = [];
 			for(var j=0; j<note.note_heads.length; j++)
 				fillStyles[i][j] = (typeof note.note_heads[j].style!=="undefined"?note.note_heads[j].style:"");
 		}
-		var beams = Vex.Flow.Beam.generateBeams(this.voices[voice].tickables);
-		for(var i=0; i<this.voices[voice].tickables.length; i++) {
-			for(var j=0; j<this.voices[voice].tickables[i].note_heads.length; j++)
-				this.voices[voice].tickables[i].note_heads[j].style = fillStyles[i][j];
+		var beams = Vex.Flow.Beam.generateBeams(this.instruments[instrumentName].tickables);
+		for(var i=0; i<this.instruments[instrumentName].tickables.length; i++) {
+			for(var j=0; j<this.instruments[instrumentName].tickables[i].note_heads.length; j++)
+				this.instruments[instrumentName].tickables[i].note_heads[j].style = fillStyles[i][j];
 		}
-		Vex.Flow.Formatter.FormatAndDraw(ctx,  this.getStaveToDraw(voice), this.voices[voice].tickables);
+		Vex.Flow.Formatter.FormatAndDraw(ctx,  this.getStaveToDraw(instrumentName), this.instruments[instrumentName].tickables);
 		beams.forEach(function(b) { b.setContext(ctx).draw(); });
-		//this.voices[voice].draw(ctx, this.getStaveToDraw(voice));
 	}
 }
 
-Measure.prototype.getStaveToDraw = function (voice) {
-	var str = voice.split("#score");
+Measure.prototype.getStaveToDraw = function (instrumentName) {
+	var str = instrumentName.split("#score");
 	var n = 0;
 	for(var i=0; i<this.instrumentsUsed.length; i++) {
 		var instrument = this.instrumentsUsed[i];
@@ -195,21 +173,46 @@ Measure.prototype.getStaveIndex = function (height) {
 	return scoreClose;
 }
 
-//add ghostNotes to the voice until it's complete (allows proper formatting)
-Measure.prototype.completeVoices = function () {
-	for (var voice in this.voices)
-		while (!this.voices[voice].isComplete())
-			this.voices[voice].addTickable(new Vex.Flow.GhostNote({clef: "bass", keys: ["e/2"], duration: "16"}));
-}
-
-//remove ghostNotes from the voices
-Measure.prototype.restoreVoices = function () {
-	for (var voice in this.voices) {
-		this.voices[voice] = new Vex.Flow.Voice({
-			num_beats: this.beatNum, beat_value: this.beatValue,
-			resolution: Vex.Flow.RESOLUTION
-		}).setMode(3);
-		this.voices[voice].addTickables(this.notesArr[voice]);
+Measure.prototype.getArmatureAlterations = function () {
+	switch(this.keySign) {
+	case "C":
+	case "Am":
+		return 0;
+	case "G":
+	case "Em":
+	case "F":
+	case "Dm":
+		return 1;
+	case "D":
+	case "Bm":
+	case "Bb":
+	case "Gm":
+		return 2;
+	case "A":
+	case "F#m":
+	case "Eb":
+	case "Cm":
+		return 3;
+	case "E":
+	case "C#m":
+	case "Ab":
+	case "Fm":
+		return 4;
+	case "B":
+	case "G#m":
+	case "Db":
+	case "Bbm":
+		return 5;
+	case "F#":
+	case "D#m":
+	case "Gb":
+	case "Ebm":
+		return 6;
+	case "C#":
+	case "A#m":
+	case "Cb":
+	case "Abm":
+		return 7;
 	}
 }
 
