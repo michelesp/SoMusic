@@ -484,6 +484,57 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		exit(json_encode(true));
 	}
 	
+	public function changeNoteDuration() {
+		if(!isset($_REQUEST["toChange"]) || !isset($_REQUEST["duration"]))
+			$this->error("error change note duration");
+		$duration = 64/intval($_REQUEST["duration"]);
+		$toChange = $_REQUEST["toChange"];
+		foreach ($toChange as $obj) {
+			$is = $this->instrumentsScore[$obj["staveIndex"]];
+			if($is->user!=$this->userId && $is->user!=-1)
+				continue;
+			$m = $is->measures[$obj["measureIndex"]];
+			$note = $m->voices[0][$obj["noteIndex"]];
+			if($note->duration<$duration) {
+				$restIndex = null;
+				for($i=intval($obj["noteIndex"])+1; $i<count($m->voices[0]) && !isset($restIndex); $i++) {
+					if(count($m->voices[0][$i]->step)==0)
+						$restIndex = $i;
+				}
+				$diff = $duration - $note->duration;
+				if(isset($restIndex) && $m->voices[0][$restIndex]->duration<$diff)
+					$this->mergeRests($m->voices[0], $restIndex, $diff);
+				if(!isset($restIndex) || $m->voices[0][$restIndex]->duration<$diff)
+					continue;
+				$note->duration += $diff;
+				$m->voices[0][$restIndex]->duration -= $diff;
+				//$this->error($diff." ".$note->duration." ".$m->voices[0][$restIndex]->duration);
+				if($m->voices[0][$restIndex]->duration>0) {
+					/*$toAdd = array ();
+					while($diff>0) {
+						$max = $this->getMax2Pow($diff);
+						array_unshift($toAdd, new SOMUSIC_CLASS_Note($max, array(), array(), array()));
+						$diff -= $max;
+					}
+					array_splice($m->voices[0], $restIndex, 1, $toAdd);*/
+				}
+				else array_splice($m->voices[0], $restIndex, 1);
+			}
+			else {
+				$diff = $note->duration - $duration;
+				$note->duration = $duration;
+				$toAdd = array();
+				while($diff>0) {
+					$max = $this->getMax2Pow($diff);
+					array_unshift($toAdd, new SOMUSIC_CLASS_Note($max, array(), array(), array()));
+					$diff -= $max;
+				}
+				array_splice($m->voices[0], intval($obj["noteIndex"])+1, 0, $toAdd);
+			}
+		}
+		exit(json_encode($this->composition));
+	}
+	
 	private function mergeRests(&$voice, $index, $duration) {
 		$i = $index+1;
 		$note = $voice[$index];
@@ -494,7 +545,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		}
 		if($duration<=$duration1) {
 			$note->duration = $duration1;
-			array_splice($voice, $index+1, ($i-$index));
+			array_splice($voice, $index+1, ($i-$index-1));
 			return true;
 		}
 		return false;

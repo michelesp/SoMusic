@@ -51,8 +51,8 @@ class SOMUSIC_BOL_UsersCompositionsSimilarityDao extends OW_BaseDao {
 	}
 	
 	public function getMaxMelodicLengthUsersCompositionSimilarity() {
-		$query = 'SELECT MAX(melodic_length) FROM ow_somusic_users_compositions_similarity';
-		return $this->dbo->queryForRow($query)[0];
+		$query = 'SELECT MAX(melodic_length) as max FROM ow_somusic_users_compositions_similarity';
+		return intval($this->dbo->queryForRow($query)["max"]);
 	}
 	
 }

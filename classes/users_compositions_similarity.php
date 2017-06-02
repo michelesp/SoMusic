@@ -116,8 +116,10 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		$maxML = $this->service->getMaxMelodicLengthUsersCompositionSimilarity();
 		$list = $this->service->getAllUsersCompositionsSimilarity();
 		foreach ($list as $ucs) {
-			$sum += $ucs->value*($ucs->melodic_length/$maxML);
-			$div += $ucs->melodic_length/$maxML;
+			if($ucs->value!=0) {
+				$sum += $ucs->value*($ucs->melodic_length/$maxML);
+				$div += $ucs->melodic_length/$maxML;
+			}
 		}
 		if($div!=0) {
 			$threshold = $sum/$div;

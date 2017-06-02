@@ -36,6 +36,7 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$this->assign("dotsUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'dotsUpdate'));
 		$this->assign("moveNotesURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'moveNotes'));
 		$this->assign("setNoteAnnotationTextURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'setNoteAnnotationText'));
+		$this->assign("changeNoteDurationURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'changeNoteDuration'));
 	}
 	
 	private function makeForm() {

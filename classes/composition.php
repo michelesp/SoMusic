@@ -26,53 +26,28 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 		$this->accidentalValue = array("b"=>-1, "clear"=>0, "#"=>1);
 	}
 	
-	public static function getCompositionObject($compositionDB) {
-		$composition = new SOMUSIC_CLASS_Composition($compositionDB->id, $compositionDB->name, $compositionDB->user_c, $compositionDB->timestamp_c, $compositionDB->user_m, $compositionDB->timestamp_m, array(), json_decode($compositionDB->instrumentsUsed));
-		$instrumentsScoreArray = json_decode($compositionDB->instrumentsScore);
-		foreach ($instrumentsScoreArray as $instrumentScoreArray) {
-			if(!is_object($instrumentScoreArray)) {
-				$instrumentScore = new SOMUSIC_CLASS_InstrumentScore($instrumentScoreArray["default_clef"], $instrumentScoreArray["name"], array(), array(), $instrumentScoreArray["instrument"], $instrumentScoreArray["user"]);
-				foreach ($instrumentScoreArray["measures"] as $measureArray) {
-					$voices = array();
-					foreach ($measureArray["voices"] as $voiceArray) {
-						$voice = array();
-						foreach ($voiceArray as $noteArray)
-							array_push($voice, new SOMUSIC_CLASS_Note($noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["duration"], $noteArray["isRest"], $noteArray["isTieStart"], $noteArray["isTieEnd"], $noteArray["dots"]));
-							array_push($voices, $voice);
-					}
-					$measure = new SOMUSIC_CLASS_Measure($measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
-					array_push($instrumentScore->measures, $measure);
+	public static function getCompositionObject($compositionArray) {
+		$composition = new SOMUSIC_CLASS_Composition($compositionArray->id, $compositionArray->name, $compositionArray->user_c, $compositionArray->timestamp_c, $compositionArray->user_m, $compositionArray->timestamp_m, array(), json_decode($compositionArray->instrumentsUsed));
+		$instrumentsScore = json_decode($compositionArray->instrumentsScore);
+		foreach ($instrumentsScore as $instrumentScoreArray) {
+			$instrumentScore = new SOMUSIC_CLASS_InstrumentScore($instrumentScoreArray->default_clef, $instrumentScoreArray->name, array(), array(), $instrumentScoreArray->instrument, $instrumentScoreArray->user);
+			foreach ($instrumentScoreArray->measures as $measureArray) {
+				$voices = array();
+				foreach ($measureArray->voices as $voiceArray) {
+					$voice = array();
+					foreach ($voiceArray as $noteArray)
+						array_push($voice, new SOMUSIC_CLASS_Note($noteArray->duration, $noteArray->step, $noteArray->octave, $noteArray->accidental, $noteArray->isTieStart, $noteArray->isTieEnd));
+						array_push($voices, $voice);
 				}
-				foreach ($instrumentScoreArray["ties"] as $tieArray)
-					array_push($instrumentScore->ties, new SOMUSIC_CLASS_Tie($tieArray["firstMeasure"], $tieArray["firstNote"], $tieArray["lastMeasure"], $tieArray["lastNote"]));
-				array_push($composition->instrumentsScore, $instrumentScore);
+				$measure = new SOMUSIC_CLASS_Measure($measureArray->clef, $measureArray->keySignature, $measureArray->timeSignature, $voices);
+				array_push($instrumentScore->measures, $measure);
 			}
-			else array_push($composition->instrumentsScore, $instrumentScoreArray);
+			foreach ($instrumentScoreArray->ties as $tieArray)
+				array_push($instrumentScore->ties, new SOMUSIC_CLASS_Tie($tieArray->firstMeasure, $tieArray->firstNote, $tieArray->lastMeasure, $tieArray->lastNote));
+				array_push($composition->instrumentsScore, $instrumentScore);
 		}
 		return $composition;
 	}
-	
-	/*public static function getCompositionObject($compositionArray) {
-		$composition = new SOMUSIC_CLASS_Composition($compositionArray["id"], $compositionArray["name"], $compositionArray["user_c"], $compositionArray["timestamp_c"], $compositionArray["user_m"], $compositionArray["timestamp_m"], array(), $compositionArray["instrumentsUsed"]);
-		foreach ($compositionArray["instrumentsScore"] as $instrumentScoreArray) {
-			$instrumentScore = new SOMUSIC_CLASS_InstrumentScore($instrumentScoreArray["default_clef"], $instrumentScoreArray["name"], array(), array(), $instrumentScoreArray["instrument"], $instrumentScoreArray["user"]);
-			foreach ($instrumentScoreArray["measures"] as $measureArray) {
-				$voices = array();
-				foreach ($measureArray["voices"] as $voiceArray) {
-					$voice = array();
-					foreach ($voiceArray as $noteArray)
-						array_push($voice, new SOMUSIC_CLASS_Note($noteArray["id"], $noteArray["step"], $noteArray["octave"], $noteArray["accidental"], $noteArray["duration"], $noteArray["isRest"], $noteArray["isTieStart"], $noteArray["isTieEnd"]));
-					array_push($voices, $voice);
-				}
-				$measure = new SOMUSIC_CLASS_Measure($measureArray["id"], $measureArray["clef"], $measureArray["keySignature"], $measureArray["timeSignature"], $voices);
-				array_push($instrumentScore->measures, $measure);
-			}
-			foreach ($instrumentScoreArray["ties"] as $tieArray)
-				array_push($instrumentScore->ties, new SOMUSIC_CLASS_Tie($tieArray["firstMeasure"], $tieArray["firstNote"], $tieArray["lastMeasure"], $tieArray["lastNote"]));
-				array_push($composition->instrumentsScore, $instrumentScore);
-		}
-		return $composition;
-	}*/
 
 			
 	public function getId() {
@@ -97,7 +72,7 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 			$this->timestamp_m, $this->instrumentsScore, $this->instrumentsUsed) = unserialize($data);
 	}
 	
-	public function jsonSerialize () {
+	public function jsonSerialize() {
 		$vars = get_object_vars($this);
 		unset($vars["stepValue"]);
 		unset($vars["accidentalValue"]);
@@ -112,7 +87,7 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 			$voice = $measures[$i]->voices[0];			//TODO: extends to all voices
 			for($j=0; $j<count($voice); $j++) {
 				$note = $voice[$j];
-				if(!$note->isRest) {
+				if(count($note->step)>0) {
 					$noteArr = array("octave"=>$note->octave[0], "step"=>$note->step[0], "accidental"=>(isset($note->accidental[0])?$note->accidental[0]:"clear"));
 					$noteRepresentation = $this->getNoteDistance($noteArr, $modalNote);
 					$melodicRepresentation.=($noteRepresentation>=0?'+'.$noteRepresentation:$noteRepresentation);
@@ -132,7 +107,7 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 			$voice = $measures[$i]->voices[0];			//TODO: extends to all voices
 			for($j=0; $j<count($voice); $j++) {
 				$note = $voice[$j];
-				if(!$note->isRest) {
+				if(count($note->step)>0) {
 					$noteArr = array("octave"=>$note->octave[0], "step"=>$note->step[0], "accidental"=>(isset($note->accidental[0])?$note->accidental[0]:"clear"));
 					if(isset($lastNote))
 						$noteRepresentation = $this->getNoteDistance($noteArr, $lastNote);
@@ -204,7 +179,7 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 			$voice = $measures[$i]->voices[0];			//TODO: extends to all voices
 			for($j=0; $j<count($voice); $j++) {
 				$note = $voice[$j];
-				if(!$note->isRest) {
+				if(count($note->step)>0) {
 					$noteArr = array("octave"=>$note->octave[0], "step"=>$note->step[0], "accidental"=>(isset($note->accidental[0])?$note->accidental[0]:"clear"));
 					$noteName = json_encode($noteArr);
 					if(isset($occurrences[$noteName]))

@@ -9,12 +9,14 @@ function Measure(index, beatNum, beatValue, keySign, instrumentsUsed) {
 	this.instrumentsName = this.getInstrumentsName(this.instrumentsUsed);
 	this.instruments = [];
 	for(var i=0; i<this.instrumentsName.length; i++) {
-		this.notes[this.instrumentsName[i]] = [];
-		this.instruments[this.instrumentsName[i]]=new Vex.Flow.Voice({
-			num_beats: this.beatNum, beat_value: this.beatValue,
-			resolution: Vex.Flow.RESOLUTION
-		});
-		this.instruments[this.instrumentsName[i]].setMode(3);
+		this.notes[this.instrumentsName[i]] = [[]];
+		this.instruments[this.instrumentsName[i]]=[
+			new Vex.Flow.Voice({
+				num_beats: this.beatNum, beat_value: this.beatValue,
+				resolution: Vex.Flow.RESOLUTION
+			})
+		];
+		this.instruments[this.instrumentsName[i]][0].setMode(3);
 		/*setMode(3) allows to insert notes inside the measure even if the measure is not complete, but
 	     throws an exception if the duration of the inserted notes exceeds the time signature*/
 	}
@@ -36,14 +38,20 @@ Measure.prototype.getInstrumentsName = function(instrumentsUsed) {
 /*adds a note in the measure
  in case adding the note generates an error (the new inserted note exceeds the time signature),
  the voice is restored to the previous state*/
-Measure.prototype.addNote = function (note, instrumentName, index) {
-	this.notes[instrumentName].splice(index, 0, note);
+Measure.prototype.addNote = function (note, instrumentName, index, nVoice) {
+	while(this.notes[instrumentName].length<=nVoice) {
+		this.notes[instrumentName].push([]);
+		this.instruments[instrumentName].push(new Vex.Flow.Voice({
+				num_beats: this.beatNum, beat_value: this.beatValue,
+				resolution: Vex.Flow.RESOLUTION}));
+	}
+	this.notes[instrumentName][nVoice].splice(index, 0, note);
 	try {
-		this.instruments[instrumentName] = new Vex.Flow.Voice({
+		this.instruments[instrumentName][nVoice] = new Vex.Flow.Voice({
 			num_beats: this.beatNum, beat_value: this.beatValue,
 			resolution: Vex.Flow.RESOLUTION
 		}).setMode(3);
-		this.instruments[instrumentName].addTickables(this.notes[instrumentName]);
+		this.instruments[instrumentName][nVoice].addTickables(this.notes[instrumentName][nVoice]);
 	}
 	catch (err) {
 		console.log(err);
@@ -107,22 +115,28 @@ Measure.prototype.computeScale = function () {
 		widths[instrumentName] = 70;
 	for (var instrumentName in this.notes) {
 		for (var i=0; i<this.notes[instrumentName].length; i++) {
-			var noteDuration = this.notes[instrumentName][i].duration;
-			if(isNaN(noteDuration.charAt(noteDuration.length-1)))
-				noteDuration = parseInt(noteDuration.substring(0, noteDuration.length-1));
-			else noteDuration = parseInt(noteDuration);
-			widths[instrumentName] += (noteDuration>8?noteDuration:2*noteDuration);
-			var noteModifiers = this.notes[instrumentName][i].modifiers;
-			for(var j=0; j<noteModifiers.length; j++)
-				widths[instrumentName] += noteModifiers[j].width;
+			var width = 0;
+			for(var j=0; j<this.notes[instrumentName][i].length; j++) {
+				var noteDuration = this.notes[instrumentName][i][j].duration;
+				if(isNaN(noteDuration.charAt(noteDuration.length-1)))
+					noteDuration = parseInt(noteDuration.substring(0, noteDuration.length-1));
+				else noteDuration = parseInt(noteDuration);
+				//width += (noteDuration>8?noteDuration:2*noteDuration);
+				width += (noteDuration<16?noteDuration:noteDuration/2);
+				var noteModifiers = this.notes[instrumentName][i][j].modifiers;
+				for(var k=0; k<noteModifiers.length; k++)
+					width += noteModifiers[k].width;
+			}
+			if(widths[instrumentName]<(width+70))
+				widths[instrumentName] = width+70;
 		}
 	}
-	this.width = 70;
+	this.width = 80;
 	for (var instrumentName in this.notes)
 		if(this.width<widths[instrumentName])
 			this.width = widths[instrumentName];
 	if(this.index==0)
-		this.width+=40+this.getArmatureAlterations()*20;
+		this.width += 60+this.getArmatureAlterations()*20;
 }
 
 Measure.prototype.getEndX = function () {
@@ -130,20 +144,31 @@ Measure.prototype.getEndX = function () {
 }
 
 Measure.prototype.drawNotes = function (ctx) {
+	this.computeScale();
 	for (var instrumentName in this.instruments) {
-		var fillStyles = [];
-		for(var i=0; i<this.instruments[instrumentName].tickables.length; i++) {
-			var note = this.instruments[instrumentName].tickables[i];
-			fillStyles[i] = [];
-			for(var j=0; j<note.note_heads.length; j++)
-				fillStyles[i][j] = (typeof note.note_heads[j].style!=="undefined"?note.note_heads[j].style:"");
+		for(var i=0; i<this.instruments[instrumentName].length; i++) {
+			var fillStyles = [];
+			for(var j=0; j<this.instruments[instrumentName][i].tickables.length; j++) {
+				var note = this.instruments[instrumentName][i].tickables[j];
+				fillStyles[j] = [];
+				for(var k=0; k<note.note_heads.length; k++)
+					fillStyles[j][k] = (typeof note.note_heads[k].style!=="undefined"?note.note_heads[k].style:"");
+			}
+			var beams = Vex.Flow.Beam.generateBeams(this.instruments[instrumentName][i].tickables);
+			for(var j=0; j<this.instruments[instrumentName][i].tickables.length; j++) {
+				for(var k=0; k<this.instruments[instrumentName][i].tickables[j].note_heads.length; k++)
+					this.instruments[instrumentName][i].tickables[j].note_heads[k].style = fillStyles[j][k];
+			}
 		}
-		var beams = Vex.Flow.Beam.generateBeams(this.instruments[instrumentName].tickables);
-		for(var i=0; i<this.instruments[instrumentName].tickables.length; i++) {
-			for(var j=0; j<this.instruments[instrumentName].tickables[i].note_heads.length; j++)
-				this.instruments[instrumentName].tickables[i].note_heads[j].style = fillStyles[i][j];
-		}
-		Vex.Flow.Formatter.FormatAndDraw(ctx,  this.getStaveToDraw(instrumentName), this.instruments[instrumentName].tickables);
+		//Vex.Flow.Formatter.FormatAndDraw(ctx,  this.getStaveToDraw(instrumentName), this.instruments[instrumentName][0].tickables);
+		var width = this.width;
+		if(this.index==0)
+			width-=(60+this.getArmatureAlterations()*20);
+		width -= 20;
+		var formatter = new Vex.Flow.Formatter().joinVoices(this.instruments[instrumentName]).format(this.instruments[instrumentName], width);
+		var measure = this;
+		this.instruments[instrumentName].forEach(function(v) { v.draw(ctx, measure.getStaveToDraw(instrumentName)); })
+		
 		beams.forEach(function(b) { b.setContext(ctx).draw(); });
 	}
 }
@@ -215,4 +240,5 @@ Measure.prototype.getArmatureAlterations = function () {
 		return 7;
 	}
 }
+
 

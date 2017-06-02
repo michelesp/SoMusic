@@ -239,7 +239,7 @@ class SOMUSIC_BOL_Service {
 		$toReturn = array();
 		foreach ($compositions as $i=>$composition)
 			array_push($toReturn, SOMUSIC_CLASS_Composition::getCompositionObject($composition));
-			return $toReturn;
+		return $toReturn;
 	}
 	
 	public function addMelodyOnPost($name, $id_post, $instrumentsScore, $instrumentsUsed) {
