@@ -19,6 +19,13 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 			$editor->loadDataFromCache();
 			$composition = $editor->getComposition();
 		}
+		
+		if(OW::getSession()->get("isClose")!=null) {
+			$isClose = OW::getSession()->get("isClose");
+			OW::getSession()->delete("isClose");
+		}
+		else $isClose = 0;
+		
 		$this->assign("composition", json_encode($composition));
 		$this->assign("instrumentsUsed", json_encode($composition->instrumentsUsed));
 		
@@ -29,7 +36,7 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$this->assign("addNoteURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'addNote'));
 		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getJSONComposition'));
 		$this->assign("accidentalUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'accidentalUpdate'));
-		$this->assign("isClose", 0);		//TODO: passare qualcosa come parametro
+		$this->assign("isClose", $isClose);
 		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'close'));
 		$this->assign("removeInstrumentURL", OW::getRouter()->urlFor( 'SOMUSIC_CTRL_Editor', 'removeInstrument'));
 		$this->assign("exportURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'exportMusicXML'));

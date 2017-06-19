@@ -43,7 +43,6 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 			$ucs = $this->service->getUsersCompositionsSimilarity($userId, $uid);
 			$toUpdate = true;
 			if(count($ucs)==0) {
-			//if(!isset($ucs)==0) {
 				$ucs = new SOMUSIC_BOL_UsersCompositionsSimilarity();
 				$ucs->userId1 = $userId;
 				$ucs->userId2 = $uid;
@@ -58,7 +57,7 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 				$value = $this->calculateMelodicSimilarity($melodicRepresentation, $melodicRepresentation1);
 				if($toUpdate)
 					$this->service->updateUsersCompositionsSimilarity($userId, $uid, $value, $melodicLength+strlen($melodicRepresentation1));
-				else $this->service->addUsersCompositionsSimilarity($userId, $uid, $value);
+				else $this->service->addUsersCompositionsSimilarity($userId, $uid, $value, $melodicLength+strlen($melodicRepresentation1));
 			}
 		}
 	}
@@ -123,6 +122,7 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		}
 		if($div!=0) {
 			$threshold = $sum/$div;
+			//var_dump($threshold);
 			foreach ($list as $ucs) {
 				if($ucs->value>=$threshold) {
 					$v1 = $graph->getVertex($ucs->userId1);

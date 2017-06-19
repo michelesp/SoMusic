@@ -45,7 +45,7 @@ AssignmentManager.prototype.viewComment = function(executionId, comment) {
 }
 
 AssignmentManager.prototype.saveComment = function(comment) {
-	this.ajaxRequest(this.saveCommentURL, {"id": this.assignmentId, "comment": comment}, function(result) {
+	this.ajaxRequest(this.saveCommentURL, {"id": this.executionId, "comment": comment}, function(result) {
 		if(result)
 			setTimeout(function(){ location.reload(); }, 50);
 	});
@@ -106,7 +106,7 @@ AssignmentManager.prototype.setAssignmentId = function (assignmentId) {
 AssignmentManager.prototype.openNewAssignment = function () {
 	SoMusic.floatBox.push({
 		'name': 'NewAssignment',
-		'floatBox': OW.ajaxFloatBox('SOMUSIC_CMP_NewAssignment', {'groupId':this.groupId}, {top:'calc(5vh)', width:'calc(30vw)', height:'calc(50vh)', iconClass: 'ow_ic_add', title: ''})});
+		'floatBox': OW.ajaxFloatBox('SOMUSIC_CMP_NewAssignment', {'groupId':this.groupId}, {top:'calc(5vh)', width:'calc(30vw)', height:'calc(30vh)', iconClass: 'ow_ic_add', title: ''})});
 }
 
 AssignmentManager.prototype.newAssignment = function(name, multiUserMod) {

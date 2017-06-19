@@ -7,9 +7,9 @@ function load(graph) {
 	height = +svg.attr("height");
 	
 	simulation = d3.forceSimulation()
-			.force("link", d3.forceLink().id(function(d) { return d.id; }))
+			.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.00005))
 			.force("charge", d3.forceManyBody())
-			.force("center", d3.forceCenter(width / 2, height / 2));
+			.force("center", d3.forceCenter(width/2, height/2));
 
 	var link = svg.append("g")
 			.attr("class", "links")
@@ -29,7 +29,7 @@ function load(graph) {
 			.selectAll("circle")
 			.data(graph.nodes)
 			.enter().append("circle")
-			.attr("r", 10)
+			.attr("r", 15)
 			.attr("fill", function(d) {
 				if(typeof d.root !== "undefined")
 					return '#FF0000';
@@ -61,7 +61,7 @@ function load(graph) {
 			.attr("cy", function(d) { return d.y; });
 
 		gnodes.attr("transform", function(d) { 
-			return 'translate(' + [d.x+10, d.y+10] + ')'; 
+			return 'translate(' + [d.x+15, d.y+15] + ')'; 
 		});    
 	}
 }

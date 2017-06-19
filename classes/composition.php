@@ -36,7 +36,7 @@ class SOMUSIC_CLASS_Composition implements Serializable, JsonSerializable {
 				foreach ($measureArray->voices as $voiceArray) {
 					$voice = array();
 					foreach ($voiceArray as $noteArray)
-						array_push($voice, new SOMUSIC_CLASS_Note($noteArray->duration, $noteArray->step, $noteArray->octave, $noteArray->accidental, $noteArray->isTieStart, $noteArray->isTieEnd));
+						array_push($voice, new SOMUSIC_CLASS_Note($noteArray->duration, $noteArray->step, $noteArray->octave, $noteArray->accidental, $noteArray->isTieStart, $noteArray->isTieEnd, $noteArray->dots, $noteArray->text));
 						array_push($voices, $voice);
 				}
 				$measure = new SOMUSIC_CLASS_Measure($measureArray->clef, $measureArray->keySignature, $measureArray->timeSignature, $voices);

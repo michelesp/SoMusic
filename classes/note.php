@@ -1,10 +1,10 @@
 <?php
 
 class SOMUSIC_CLASS_Note implements Serializable, JsonSerializable {
+	public $duration;
 	public $step;
 	public $octave;
 	public $accidental;
-	public $duration;
 	public $isTieStart;
 	public $isTieEnd;
 	public $dots;
@@ -22,7 +22,7 @@ class SOMUSIC_CLASS_Note implements Serializable, JsonSerializable {
 	}
 	
 	public function serialize() {
-		return serialize([$this->duration,$this->step, $this->octave, $this->accidental,
+		return serialize([$this->duration, $this->step, $this->octave, $this->accidental,
 				$this->isTieStart, $this->isTieEnd, $this->dots, $this->text]);
 	}
 	

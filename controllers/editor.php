@@ -25,12 +25,13 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	public function __destruct() {
 		if(!isset($this->composition) || !isset($this->instrumentsScore))
 			return;
-		for($i=0; $i<count($this->instrumentsScore); $i++)
+		for($i=0; $i<count($this->instrumentsScore); $i++) {
 			if($this->instrumentsScore[$i]->user == $this->userId || $this->instrumentsScore[$i]->user==-1) {
 				$this->cache->set($this->id."#instrumentScore#".$i, $this->instrumentsScore[$i], time()+60*60);
 				$this->composition->instrumentsScore[$i] = $this->instrumentsScore[$i];
 			}
 			else $this->composition->instrumentsScore[$i] = $this->cache->get($this->id."#instrumentScore#".$i);
+		}
 		OW::getSession()->set($this->id, serialize($this->composition));
 	}
 	
@@ -267,11 +268,6 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		exit ( json_encode ( $this->composition ) );
 	}
 	
-	public function getJSONComposition() {
-		//exit(json_encode($this->id));
-		exit(json_encode($this->composition));
-	}
-
 	public function getComposition() {
 		/*if (isset($_REQUEST ["id"])) {
 			$id = intval($_REQUEST["id"]);
@@ -290,7 +286,6 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$composition->instrumentsScore = $this->instrumentsScore;
 		for($i=0; $i<count($this->instrumentsScore); $i++)
 			$this->cache->delete($this->id."#instrumentScore#".$i);
-		//OW::getSession()->delete($this->id);
 		OW::getSession()->delete("editorId");
 		$this->instrumentsScore = null;
 		$this->composition = null;
@@ -441,6 +436,10 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	public function getId() {
 		exit(json_encode($this->id));
 	}
+	//TODO: rimuovere
+	public function getJSONComposition() {
+		exit(json_encode($this->composition));
+	}
 	
 	public function moveNotes() {
 		if(!isset($_REQUEST["toUpdate"]) || !isset($_REQUEST["value"]))
@@ -551,6 +550,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		return false;
 	}
 	
+	//TODO: controllare se serve
 	private function getCompositionObject($compositionArray) {
 		$this->composition = new SOMUSIC_CLASS_Composition($compositionArray["id"], $compositionArray["name"], $compositionArray["user_c"], $compositionArray["timestamp_c"], $compositionArray["user_m"], $compositionArray["timestamp_m"], array(), $compositionArray["instrumentsUsed"]);
 		foreach ($compositionArray["instrumentsScore"] as $instrumentScoreArray) {
@@ -652,7 +652,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$max = 1;
 		for($i = 0, $pow = 1; $pow <= $num; $i ++, $pow = pow ( 2, $i ))
 			$max = $pow;
-			return $max;
+		return $max;
 	}
 	
 	private function error($errorMsg) {

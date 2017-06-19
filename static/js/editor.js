@@ -335,7 +335,7 @@ Editor.prototype.moveNotes = function(value) {
 		editor.renderer.updateComposition(data);
 		selected.forEach(function(item, index, array){
 			editor.selectedNotes.push(item);
-			editor.renderer.measures[item.measureIndex].notes[item.voiceName][item.noteIndex].setStyle({fillStyle: "red"});
+			editor.renderer.measures[item.measureIndex].notes[item.voiceName][0][item.noteIndex].setStyle({fillStyle: "red"});
 		});
 		editor.renderer.renderAndDraw();
 		console.log(selected);
@@ -347,13 +347,13 @@ Editor.prototype.changeNoteSelection = function(value) {
 	var editor = this;
 	var selectedNotes = [];
 	this.selectedNotes.forEach(function(item, index){
-		var notes = editor.renderer.measures[item.measureIndex].notes[item.voiceName];
+		var notes = editor.renderer.measures[item.measureIndex].notes[item.voiceName][0];
 		notes[item.noteIndex].setStyle({fillStyle: "black"});
 		var notePos = editor.getCloseNote(item, value);
 		if(notePos.measureIndex>=0 && notePos.measureIndex<editor.renderer.measures.length && 
-				notePos.noteIndex>=0 && notePos.noteIndex<=editor.renderer.measures[notePos.measureIndex].notes[item.voiceName].length) {
+				notePos.noteIndex>=0 && notePos.noteIndex<=editor.renderer.measures[notePos.measureIndex].notes[item.voiceName][0].length) {
 			selectedNotes.push({
-				note: editor.renderer.measures[notePos.measureIndex].notes[item.voiceName][notePos.noteIndex],
+				note: editor.renderer.measures[notePos.measureIndex].notes[item.voiceName][0][notePos.noteIndex],
 				voiceName: item.voiceName,
 				index: item.index,
 				measureIndex: notePos.measureIndex,
@@ -413,6 +413,7 @@ Editor.prototype.addAnnotationLetter = function(letter) {
 	this.renderer.renderAndDraw();
 }
 
+//TODO: close note non funziona più
 Editor.prototype.getCloseNote = function(note, steps) {
 	var note1, measureIndex, noteIndex, j, n = steps;
 	for(var i=note.measureIndex; 
@@ -489,12 +490,7 @@ Editor.prototype.ajaxRequest = function(url, data, func=null) {
 		success: (func != null ? func : function(data) {
 			editor.lastUpdate=Date.now();
 			editor.renderer.updateComposition(data);
-		}),
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		},
-		complete: function(){
-		}
+		})
 	});
 }
 

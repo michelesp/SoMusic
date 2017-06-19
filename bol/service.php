@@ -123,11 +123,12 @@ class SOMUSIC_BOL_Service {
 		return $this->usersCompositionsSimilarityDao->getUsersCompositionsSimilarity($userId1, $userId2);
 	}
 	
-	public function addUsersCompositionsSimilarity($userId1, $userId2, $value) {
+	public function addUsersCompositionsSimilarity($userId1, $userId2, $value, $melodicLength) {
 		$ucs = new SOMUSIC_BOL_UsersCompositionsSimilarity();
 		$ucs->userId1 = $userId1;
 		$ucs->userId2 = $userId2;
 		$ucs->value = $value;
+		$ucs->melodic_length = $melodicLength;
 		$this->usersCompositionsSimilarityDao->save($ucs);
 	}
 	

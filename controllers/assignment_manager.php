@@ -13,7 +13,7 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		//$assignment = new SOMUSIC_CLASS_Assignment($_REQUEST["groupId"], $_REQUEST["name"], $_REQUEST["isMultiUser"]=="true");
 		$assignment = array("group_id"=>$_REQUEST["groupId"], "name"=>$_REQUEST["name"], "is_multi_user"=>intval($_REQUEST["isMultiUser"]));
 		OW::getSession()->set("newAssignment", json_encode($assignment));
-		exit(json_encode($assignment));
+		//exit(json_encode($assignment));
 		exit(json_encode(true));
 	}
 	
@@ -95,8 +95,10 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		else $compositionId = $assignmnet->composition_id;
 		$composition = SOMUSIC_CLASS_Composition::getCompositionObject($this->service->getComposition($compositionId));
 		$id = null;
-		if($assignmnet->mode==1)
-			$id = json_encode((object)array("groupId"=>$assignmnet->group_id, "name"=>$assignmnet->name));
+		if($assignmnet->mode==1) {
+			$id = "groupId#".$assignmnet->group_id;
+			OW::getSession()->set("isClose", $assignmnet->close);
+		}
 		$editor = new SOMUSIC_CTRL_Editor(false, $id);
 		if($assignmnet->mode==1 && $editor->isCompositionInCache($composition))
 			$editor->loadDataFromCache($composition);
