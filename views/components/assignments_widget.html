@@ -9,7 +9,7 @@
 {/style}
 
 {script}
-SoMusic.assignmentManager = new AssignmentManager({$groupId}, "{$closeURL}", "{$removeURL}", "{$saveCommentURL}", "{$newAssignmentURL}", "{$completeAssignmentURL}");
+SoMusic.assignmentManager = new AssignmentManager({$groupId}, {$isAdmin}, "{$closeURL}", "{$removeURL}", "{$saveCommentURL}", "{$newAssignmentURL}", "{$completeAssignmentURL}");
 {/script}
 
 <div id="assignment_list" class="list-group">

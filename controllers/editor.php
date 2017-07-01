@@ -131,7 +131,7 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			}
 			if ($_REQUEST["isPause"] == "true")
 				array_unshift($toAdd, new SOMUSIC_CLASS_Note($duration, array(), array(), array()));
-			else array_unshift($toAdd, new SOMUSIC_CLASS_Note($duration, array($newNote[0]), array($newNote[1]), array($_REQUEST["accidental"])));
+			else array_unshift($toAdd, new SOMUSIC_CLASS_Note($duration, array($newNote[0]), array($newNote[1]), array($_REQUEST["accidental"]), -1, -1, 0, null, (isset($_REQUEST["color"]))?$_REQUEST["color"]:"black"));
 			for($i = $noteIndex+1; $i<count($measure->voices[$voiceIndex]); $i++) {
 				$n = $measure->voices[$voiceIndex][$i];
 				if($n->isTieStart!=-1)
@@ -146,6 +146,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 			array_push($note->octave, $newNote[1]);
 			array_push($note->accidental, $_REQUEST["accidental"]);
 			$this->sortNote($note);
+			if(isset($_REQUEST["color"]) && (!isset($note->color) || $note->color!=""))
+				$note->color = $_REQUEST["color"];
 		}
 		$this->instrumentsScore[$staveIndex] = $instrumentScore;
 		if ($measureIndex == count($this->instrumentsScore[0]->measures)-1) {

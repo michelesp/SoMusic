@@ -65,6 +65,7 @@ class SOMUSIC_CLASS_EventHandler {
 		$jsGenerator->setVariable("SoMusic.saveAssignmentURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'saveNewAssignment'));
 		$jsGenerator->setVariable("SoMusic.commitExecutionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'commitExecution'));
 		$jsGenerator->setVariable("SoMusic.editExecutionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'editExecution'));
+		$jsGenerator->setVariable("SoMusic.makeCorrectionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'makeCorrection'));
 		OW::getDocument()->addOnloadScript($jsGenerator->generateJs());
 	}
 	

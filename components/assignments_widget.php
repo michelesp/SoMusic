@@ -10,7 +10,6 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-grid.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
 		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'bootstrap.min.js', 'text/javascript');
-		//OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'assignments.js', 'text/javascript');
 		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'assignment_manager.js', 'text/javascript');
 		
 		$groupId = $params->additionalParamList["entityId"];
@@ -27,18 +26,12 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 			if(isset($execution->id))
 				$composition = SOMUSIC_CLASS_Composition::getCompositionObject($service->getComposition($execution->composition_id));
 			else $composition = SOMUSIC_CLASS_Composition::getCompositionObject($service->getComposition($a->composition_id));
-			//if(!is_object($composition))
-			//	$composition = $this->getCompositionObject($composition);
 			$timeSignature = $composition->instrumentsScore[0]->measures[0]->timeSignature;
 			$keySignature = $composition->instrumentsScore[0]->measures[0]->keySignature;
 			$instrumentsUsed = $composition->instrumentsUsed;
 			array_push($assignment1, array("id"=>$a->id,
 					"isMultiUser"=>$a->mode,
 					"name"=>$a->name,
-					//"timeSignature"=>$timeSignature,
-					//"keySignature"=>$keySignature,
-					//"instrumentsUsed"=>json_encode($instrumentsUsed),
-					//"composition"=>json_encode($composition),
 					"compositionId"=>$composition->getId(),
 					"close"=>$a->close,
 					"executionId"=>(isset($execution->id)?$execution->id:-1)
@@ -46,7 +39,7 @@ class SOMUSIC_CMP_AssignmentsWidget extends BASE_CLASS_Widget {
 		}
 		
 		$this->assign('assignments', $assignment1);
-		$this->assign("isAdmin", $isAdmin);
+		$this->assign("isAdmin", ($isAdmin?1:0));
 		$this->assign("groupId", $groupId);
 		
 		$this->assign("removeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'removeAssignment'));

@@ -47,6 +47,7 @@ class SOMUSIC_BOL_Service {
 		$assignment->last_user_m = $userId;
 		$assignment->mode = $mode;
 		$assignment->name = $name;
+		$assignment->close = 0;
 		$this->assignmentDao->save($assignment);
 		return $assignment;
 	}

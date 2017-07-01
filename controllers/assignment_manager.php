@@ -107,4 +107,16 @@ class SOMUSIC_CTRL_AssignmentManager extends OW_ActionController {
 		exit(json_encode(true));
 	}
 	
+	public function makeCorrection() {
+		if(!isset($_REQUEST["executionId"]))
+			exit(json_encode(false));
+		$executionId = $_REQUEST["executionId"];
+		$execution = $this->service->getExecution($executionId);
+		$composition = $this->service->getComposition($execution->composition_id);
+		$editor = new SOMUSIC_CTRL_Editor();
+		$newComposition = $editor->getComposition();
+		$this->service->updateComposition($composition->id, json_encode($newComposition->instrumentsScore), json_encode($newComposition->instrumentsUsed));
+		exit(json_encode(true));
+	}
+	
 }

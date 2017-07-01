@@ -1,18 +1,19 @@
 
-function AssignmentManager(groupId, closeURL, removeURL, saveCommentURL, newAssignmentURL, completeAssignmentURL) {
+function AssignmentManager(groupId, isAdmin, closeURL, removeURL, saveCommentURL, newAssignmentURL, completeAssignmentURL) {
 	this.closeURL = closeURL;
 	this.removeURL = removeURL;
 	this.saveCommentURL = saveCommentURL;
 	this.newAssignmentURL = newAssignmentURL;
 	this.completeAssignmentURL = completeAssignmentURL;
 	this.groupId = groupId;
+	this.isAdmin = isAdmin;
 	this.assignmentId = -1;
 	this.executionId = -1;
 }
 
 
 AssignmentManager.prototype.viewAssignmentExecution = function(executionId, compositionId) {
-	var toSend = {"compositionId":compositionId};
+	var toSend = {"compositionId":compositionId, "noteColor":(this.isAdmin?"red":"black")};
 	this.executionId = executionId;
 	SoMusic.floatBox.push({
 		"name": "Editor",

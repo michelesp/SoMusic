@@ -147,6 +147,25 @@ SoMusic.modScore = function (vmData) {
 
 SoMusic.save = function(composition) {
 	if(typeof SoMusic.assignmentManager!=="undefined" && SoMusic.assignmentManager.executionId>=0){
+		if(typeof SoMusic.assignmentManager.isAdmin!=="undefined") {
+			console.log(SoMusic.assignmnetManager);
+			$.ajax({
+				type: 'post',
+				url: SoMusic.makeCorrectionURL,
+				data: {"executionId": SoMusic.assignmentManager.executionId},
+				dataType: 'JSON',
+				success: function(data){
+					console.log(data);
+					if(data)
+						setTimeout(function(){ location.reload(); }, 50);
+				},
+				error: function( XMLHttpRequest, textStatus, errorThrown ){
+					OW.error(textStatus);
+				},
+				complete: function(){ }
+			});
+			return;
+		}
 		$.ajax({
 			type: 'post',
 			url: SoMusic.editExecutionURL,

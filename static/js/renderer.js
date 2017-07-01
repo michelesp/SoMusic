@@ -67,6 +67,8 @@ Renderer.prototype.updateComposition = function(data) {
 						note1.addModifier(0, new Vex.Flow.Annotation(note.text).setVerticalJustification(Vex.Flow.Annotation.VerticalJustify.TOP));
 					for(var d=0; d<note.dots; d++)
 						note1.addDotToAll();
+					if(note.color!=null)
+						note1.setStyle({fillStyle: note.color});
 					m.addNote(note1, instrumentsScore[j].name, k, voiceIndex);
 				}
 			}

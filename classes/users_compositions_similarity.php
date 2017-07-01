@@ -81,17 +81,6 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		return $melodicRepresentation;
 	}
 	
-	private function getSpaceSaved($m1, $m2) {
-		$lzw = new SOMUSIC_CLASS_Lzw();
-		$data = $lzw->compress($m2);
-		$indComp = strlen($data);
-		$lzw = new SOMUSIC_CLASS_LZW();
-		$lzw->compress($m1);
-		$data = $lzw->compress($m2);
-		$comp = strlen($data);
-		return 1-$comp/$indComp;
-	}
-	
 	private function calculateDistance($x, $y) {
 		$lzw = new SOMUSIC_CLASS_Lzw();
 		$Cxy = strlen($lzw->compress($x.$y));

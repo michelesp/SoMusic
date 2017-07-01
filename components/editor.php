@@ -2,7 +2,7 @@
 
 class SOMUSIC_CMP_Editor extends OW_Component {
 	
-	public function __construct($compositionId = -1) {
+	public function __construct($compositionId = -1, $noteColor = "black") {
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-grid.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
@@ -37,6 +37,7 @@ class SOMUSIC_CMP_Editor extends OW_Component {
 		$this->assign("getCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'getJSONComposition'));
 		$this->assign("accidentalUpdateURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'accidentalUpdate'));
 		$this->assign("isClose", $isClose);
+		$this->assign("noteColor", $noteColor);
 		$this->assign("closeURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'close'));
 		$this->assign("removeInstrumentURL", OW::getRouter()->urlFor( 'SOMUSIC_CTRL_Editor', 'removeInstrument'));
 		$this->assign("exportURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_Editor', 'exportMusicXML'));

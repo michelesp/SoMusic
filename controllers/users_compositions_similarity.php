@@ -5,7 +5,7 @@ class SOMUSIC_CTRL_UsersCompositionsSimilarity extends OW_ActionController {
 	
 	public function index() {
 		$this->setPageTitle("Users Compositions Similarity");
-		//$this->setPageHeading("Users Compositions Similarity");
+		
 		$ucs = new SOMUSIC_CLASS_UsersCompositionsSimilarity();
 		$graph = $ucs->getGraph();
 		
