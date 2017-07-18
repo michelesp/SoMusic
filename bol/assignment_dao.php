@@ -36,4 +36,11 @@ class SOMUSIC_BOL_AssignmentDao extends OW_BaseDao {
 		$this->dbo->query($query, array("id"=>$id));
 	}
 	
+	public function getAssignmentByNameAndGroup($id, $name) {
+		$example = new OW_Example();
+		$example->andFieldEqual("group_id", $id);
+		$example->andFieldEqual("name", $name);
+		return $this->findListByExample($example);
+	}
+	
 }

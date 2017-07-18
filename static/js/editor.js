@@ -500,8 +500,14 @@ Editor.prototype.ajaxRequest = function(url, data, func=null) {
 		data: data,
 		dataType: 'JSON',
 		success: (func != null ? func : function(data) {
+			if(typeof data.error!=="undefined")
+				OW.error(data.error);
 			editor.lastUpdate=Date.now();
-			editor.renderer.updateComposition(data);
+			try {
+				editor.renderer.updateComposition(data);
+			} catch(err) {
+				location.reload();
+			}
 		})
 	});
 }

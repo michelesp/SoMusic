@@ -141,7 +141,9 @@ class SOMUSIC_CTRL_Ajax extends NEWSFEED_CTRL_Ajax {
 			$composition = $editor->reset();
 			SOMUSIC_BOL_Service::getInstance ()->addMelodyOnPost (
 					// $clean['title'],
-					$clean ['scoreTitle'], $out ['entityId'], json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
+					//$clean ['scoreTitle'],
+					$composition->name,
+					$out ['entityId'], json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
 		}
 		/* SOMUSIC */
 		

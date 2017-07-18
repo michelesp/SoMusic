@@ -1,0 +1,25 @@
+{style}
+input[type=button] {
+    margin-top: 20px;
+}
+{/style}
+{form name="new_composition_form"}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12 text-center">
+			{label name="name"} {input name="name"}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col text-center">
+			<div class="ow_box_toolbar_cont clearfix">	
+				<ul class="ow_box_toolbar ow_remark ow_bl">    
+    				<li>
+						<a onclick="SoMusic.openPreview(document.getElementsByName('name')[0].value)">Next</a>
+           			 </li>
+    			</ul>
+  		 	</div>
+		</div>
+	</div>
+</div>
+{/form}

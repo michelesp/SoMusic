@@ -31,12 +31,13 @@ class SOMUSIC_CTRL_Preview extends OW_ActionController {
 	public function commitPreview() {
 		if(!isset($_REQUEST["timeSignature"]) || !isset($_REQUEST["keySignature"]) || !isset($_REQUEST["instrumentsUsed"]))
 			exit(json_encode(false));
+		$preview = unserialize(OW::getSession()->get("preview"));
 		$timeSignature = $_REQUEST["timeSignature"];
 		$keySignature = $_REQUEST["keySignature"];
 		$instrumentsUsed = $_REQUEST["instrumentsUsed"];
 		
 		$editor = new SOMUSIC_CTRL_Editor(false);
-		$editor->initEditor($instrumentsUsed, $timeSignature, $keySignature);
+		$editor->initEditor($instrumentsUsed, $timeSignature, $keySignature, $preview->name);
 		
 		exit(json_encode(true));
 	}

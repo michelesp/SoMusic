@@ -57,9 +57,9 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		$this->composition->instrumentsScore = $this->instrumentsScore;
 	}
 
-	public function initEditor($instrumentsUsed, $timeSignature, $keySignature) {
+	public function initEditor($instrumentsUsed, $timeSignature, $keySignature, $name = "") {
 		// TODO: bloccare chiamata rest
-		$this->composition = new SOMUSIC_CLASS_Composition (-1, "", $this->userId, -1, $this->userId, -1, array(), $instrumentsUsed);
+		$this->composition = new SOMUSIC_CLASS_Composition (-1, $name, $this->userId, -1, $this->userId, -1, array(), $instrumentsUsed);
 		$this->instrumentsScore = array();
 		foreach($instrumentsUsed as $instrument) {
 			for($i = 0; $i<count($instrument["scoresClef"]); $i++) {
@@ -434,11 +434,10 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 		exit($parser->parseComposition($this->composition));
 	}
 	
-	//TODO: rimuovere
 	public function getId() {
 		exit(json_encode($this->id));
 	}
-	//TODO: rimuovere
+	
 	public function getJSONComposition() {
 		exit(json_encode($this->composition));
 	}
@@ -659,8 +658,8 @@ class SOMUSIC_CTRL_Editor extends OW_ActionController {
 	
 	private function error($errorMsg) {
 		$composition = (array)$this->composition;
-		 $composition["error"] = $errorMsg;
-		 exit(json_encode((object)$composition));
+		$composition["error"] = $errorMsg;
+		exit(json_encode((object)$composition));
 	}
 	
 	private function sortNote(&$note) {

@@ -1,0 +1,16 @@
+{style}
+#composition_list {
+	height: 150px;
+	overflow-y: auto;
+}
+.composition_item {
+	display: block;
+}
+{/style}
+
+
+<div id="composition_list" class="list-group">
+	{foreach from=$compNames key=$id item=$name}
+   		<a onclick='SoMusic.openComposition({$id})' class='list-group-item assignment_item'>{$name}</a>
+	{/foreach}
+</div>

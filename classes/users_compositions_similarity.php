@@ -13,10 +13,10 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		$this->idList = array();
 		foreach ($users as $user)
 			array_push($this->idList, $user->id);
-		//$this->updateInterval = 60*60*24;
+		$this->updateInterval = 60*60*24;
 		//$this->updateInterval = 60*60;
-		$this->updateInterval = 0;
-		$this->memory = new Memcached ();
+		//$this->updateInterval = 0;
+		$this->memory = new Memcached();
 		$this->memory->addServer("localhost", 11211);
 	}
 	

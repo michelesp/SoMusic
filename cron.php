@@ -1,7 +1,6 @@
 <?php
 
-class SOMUSIC_Cron extends OW_Cron
-{
+class SOMUSIC_Cron extends OW_Cron {
 
 	public function __construct() {
 		parent::__construct();

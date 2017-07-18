@@ -69,6 +69,10 @@ class SOMUSIC_BOL_Service {
 		$this->assignmentDao->closeAssignment($id);
 	}
 	
+	public function isGroupNameUsed($groupId, $name) {
+		return count($this->assignmentDao->getAssignmentByNameAndGroup($groupId, $name))>=1;
+	}
+	
 	public function addAssignmentExecution($assignmentId, $instrumentsScore, $instrumentsUsed) {
 		$userId = OW::getUser()->getId();
 		$composition = new SOMUSIC_BOL_Composition();
@@ -205,28 +209,7 @@ class SOMUSIC_BOL_Service {
 		$this->compositionDao->updateComposition($id, $instrumentsScores, $instrumentsUsed);
 	}
 	
-	//TODO: provare
 	public function getAllCompositions($userId) {
-		/*$dbo = OW::getDbo();
-		$query = "SELECT id, data
-                  FROM ow_somusic
-				  WHERE id_owner = ".$userId.";";
-		$compositions = $dbo->queryForList($query);
-		$executions = $this->getUserAssignmentExecutions($userId);
-		$len = count($compositions);
-		foreach ($executions as $ex) {
-			$deleted = false;
-			for($i=0; $i<count($compositions) && !$deleted; $i++) {
-				if($ex["composition_id"] == $compositions[$i]["id"]) {
-					array_splice($compositions, $i, 1);
-					$deleted = true;
-				}
-			}
-		}
-		$toReturn = array();
-		foreach ($compositions as $i=>$composition)
-			array_push($toReturn, SOMUSIC_CLASS_Composition::getCompositionObject(json_decode($composition["data"], true)));
-			return $toReturn;*/
 		$compositions = $this->compositionDao->getUserCompositions(intval($userId));
 		$executions = $this->getUserAssignmentExecutions($userId);
 		foreach ($executions as $ex) {

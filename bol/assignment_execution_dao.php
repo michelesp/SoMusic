@@ -50,5 +50,4 @@ class SOMUSIC_BOL_AssignmentExecutionDao extends OW_BaseDao {
 				"comment" => $comment
 		));
 	}
-	
 }

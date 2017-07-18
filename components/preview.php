@@ -2,7 +2,7 @@
 
 class SOMUSIC_CMP_Preview extends OW_Component {
 	
-	public function __construct($multiUserMod = false, $groupId = -1) {
+	public function __construct($name="", $multiUserMod = false, $groupId = -1) {
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-grid.min.css');
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
@@ -28,7 +28,7 @@ class SOMUSIC_CMP_Preview extends OW_Component {
 		$instTable = array(array("name"=>$firstInstrument["name"], "type"=>$firstInstrument["optionValue"], "user"=>(count($users)>1?$userId:-1)));
 		$instrumentsTable = new SOMUSIC_CMP_InstrumentsTableContainer($users, $instTable);
 		
-		$preview = new SOMUSIC_CLASS_Preview($timeSignatures[0], $keysignatures[0], $instTable, $multiUserMod, $groupId);
+		$preview = new SOMUSIC_CLASS_Preview($name, $timeSignatures[0], $keysignatures[0], $instTable, $multiUserMod, $groupId);
 		OW::getSession()->set("preview", serialize($preview));
 		
 		$this->assign("instrumentsTable", $instrumentsTable->render());

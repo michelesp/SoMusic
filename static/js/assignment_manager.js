@@ -23,15 +23,17 @@ AssignmentManager.prototype.viewAssignmentExecution = function(executionId, comp
 
 AssignmentManager.prototype.closeAssignment = function() {
 	this.ajaxRequest(this.closeURL, {"id": this.assignmentId}, function(result) {
-		if(result)
+		if(result.status)
 			setTimeout(function(){ location.reload(); }, 50);
+		else OW.error(result.message);
 	});
 }
 
 AssignmentManager.prototype.removeAssignment = function() {
 	this.ajaxRequest(this.removeURL, {"id": this.assignmentId}, function(result) {
-		if(result)
+		if(result.status)
 			setTimeout(function(){ location.reload(); }, 50);
+		else OW.error(result.message);
 	});
 }
 
@@ -47,8 +49,9 @@ AssignmentManager.prototype.viewComment = function(executionId, comment) {
 
 AssignmentManager.prototype.saveComment = function(comment) {
 	this.ajaxRequest(this.saveCommentURL, {"id": this.executionId, "comment": comment}, function(result) {
-		if(result)
+		if(result.status)
 			setTimeout(function(){ location.reload(); }, 50);
+		else OW.error(result.message);
 	});
 	this.executionId = -1;
 }
@@ -63,16 +66,13 @@ AssignmentManager.prototype.completeAssignment = function(assignmentId, executio
 		dataType: 'JSON',
 		success: function(data){
 			console.log(data);
-			if(data)
+			if(data.status)
 				SoMusic.floatBox.push({
 					"name": "Editor",
 					"floatBox": OW.ajaxFloatBox("SOMUSIC_CMP_Editor", {}, {top:"calc(5vh)", width:"calc(80vw)", height:"calc(80vh)", iconClass: "ow_ic_add", title: ""})
 				});
-		},
-		error: function( XMLHttpRequest, textStatus, errorThrown ){
-			OW.error(textStatus);
-		},
-		complete: function(){ }
+			else OW.error(data.message);
+		}
 	});
 }
 
@@ -114,14 +114,15 @@ AssignmentManager.prototype.newAssignment = function(name, multiUserMod) {
 	var assignmentManager = this;
 	this.assignment = { "groupId": this.groupId, "name": name, "isMultiUser": multiUserMod };
 	this.ajaxRequest(this.newAssignmentURL, this.assignment, function(result){
-		if(result){
+		if(result.status){
 			var fb = SoMusic.floatBox.pop();
 			fb.floatBox.close();
 			SoMusic.floatBox.push({
 				"name": "Preview",
-				"floatBox": OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"multiUser":multiUserMod, "groupId":assignmentManager.groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})
+				"floatBox": OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"name":"", "multiUser":multiUserMod, "groupId":assignmentManager.groupId}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})
 			});
 		}
+		else OW.error(result.message);
 	});
 }
 

@@ -156,13 +156,10 @@ SoMusic.save = function(composition) {
 				dataType: 'JSON',
 				success: function(data){
 					console.log(data);
-					if(data)
+					if(data.status)
 						setTimeout(function(){ location.reload(); }, 50);
-				},
-				error: function( XMLHttpRequest, textStatus, errorThrown ){
-					OW.error(textStatus);
-				},
-				complete: function(){ }
+					else OW.error(data.message);
+				}
 			});
 			return;
 		}
@@ -173,13 +170,10 @@ SoMusic.save = function(composition) {
 			dataType: 'JSON',
 			success: function(data){
 				console.log(data);
-				if(data)
+				if(data.status)
 					setTimeout(function(){ location.reload(); }, 50);
-			},
-			error: function( XMLHttpRequest, textStatus, errorThrown ){
-				OW.error(textStatus);
-			},
-			complete: function(){ }
+				else OW.error(data.message);
+			}
 		});
 		return;
 	}
@@ -191,13 +185,10 @@ SoMusic.save = function(composition) {
 			dataType: 'JSON',
 			success: function(data){
 				console.log(data);
-				if(data)
+				if(data.status)
 					setTimeout(function(){ location.reload(); }, 50);
-			},
-			error: function( XMLHttpRequest, textStatus, errorThrown ){
-				OW.error(textStatus);
-			},
-			complete: function(){ }
+				else OW.error(data.message);
+			}
 		});
 		return;
 	}
@@ -209,13 +200,10 @@ SoMusic.save = function(composition) {
 			dataType: 'JSON',
 			success: function(data){
 				console.log(data);
-				if(data)
+				if(data.status)
 					setTimeout(function(){ location.reload(); }, 50);
-			},
-			error: function( XMLHttpRequest, textStatus, errorThrown ){
-				OW.error(textStatus);
-			},
-			complete: function(){ }
+				else OW.error(data.message);
+			}
 		});
 		return;
 	}
@@ -251,5 +239,16 @@ SoMusic.closeAllFloatBox = function() {
 		var fb = SoMusic.floatBox.pop();
 		fb.floatBox.close();
 	}
+}
+
+SoMusic.openPreview = function(name) {
+	var fb = SoMusic.floatBox.pop();
+	fb.floatBox.close();
+	SoMusic.floatBox.push({'name':'Preview', 'floatBox':OW.ajaxFloatBox('SOMUSIC_CMP_Preview', {"name": name}, {top:'calc(5vh)', width:'calc(80vw)', height:'calc(75vh)', iconClass: 'ow_ic_add', title: ''})});
+}
+
+SoMusic.openComposition = function(id) {
+	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor', {compositionId: id},
+			{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})})
 }
 
