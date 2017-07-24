@@ -207,6 +207,23 @@ SoMusic.save = function(composition) {
 		});
 		return;
 	}
+	if(typeof SoMusic.idPost==="undefined") {
+		$.ajax({
+			type: 'post',
+			url: SoMusic.ajax_addComposition,
+			data: {},
+			dataType: 'JSON',
+			success: function(data){
+				console.log(data);
+				if(data.status)
+					setTimeout(function(){ location.reload(); }, 50);
+			},
+			error: function( XMLHttpRequest, textStatus, errorThrown ){
+				OW.error(textStatus);
+			}
+		});
+		return;
+	}
 	if(SoMusic.idPost!=-1) {
 		$.ajax({
 			type: 'post',
@@ -220,8 +237,7 @@ SoMusic.save = function(composition) {
 			},
 			error: function( XMLHttpRequest, textStatus, errorThrown ){
 				OW.error(textStatus);
-			},
-			complete: function(){ }
+			}
 		});
 		return;
 	}
@@ -241,6 +257,10 @@ SoMusic.closeAllFloatBox = function() {
 	}
 }
 
+SoMusic.newComposition = function() {
+	SoMusic.floatBox.push({'name':'NewComposition', 'floatBox':OW.ajaxFloatBox('SOMUSIC_CMP_NewComposition', {}, {top:'calc(20vh)', width:'calc(40vw)', height:'calc(30vh)', iconClass: 'ow_ic_add', title: ''})});
+}
+
 SoMusic.openPreview = function(name) {
 	var fb = SoMusic.floatBox.pop();
 	fb.floatBox.close();
@@ -250,5 +270,33 @@ SoMusic.openPreview = function(name) {
 SoMusic.openComposition = function(id) {
 	SoMusic.floatBox.push({"name":"Editor", "floatBox":OW.ajaxFloatBox('SOMUSIC_CMP_Editor', {compositionId: id},
 			{top:'calc(5vh)', width:'calc(80vw)', height:'calc(85vh)', iconClass: 'ow_ic_add', title: ''})})
+}
+
+SoMusic.removeComposition = function(id) {
+	$.ajax({
+		type: 'post',
+		url: SoMusic.removeCompositionURL,
+		data: { id: id },
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data)
+				setTimeout(function(){ location.reload(); }, 50);
+		}
+	});
+}
+
+SoMusic.shareComposition = function(id) {
+	$.ajax({
+		type: 'post',
+		url: SoMusic.shareCompositionURL,
+		data: { id: id },
+		dataType: 'JSON',
+		success: function(data){
+			console.log(data);
+			if(data)
+				setTimeout(function(){ location.reload(); }, 50);
+		}
+	});
 }
 

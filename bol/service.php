@@ -209,6 +209,10 @@ class SOMUSIC_BOL_Service {
 		$this->compositionDao->updateComposition($id, $instrumentsScores, $instrumentsUsed);
 	}
 	
+	public function removeComposition($id) {
+		$this->compositionDao->deleteById($id);
+	}
+	
 	public function getAllCompositions($userId) {
 		$compositions = $this->compositionDao->getUserCompositions(intval($userId));
 		$executions = $this->getUserAssignmentExecutions($userId);
@@ -227,6 +231,17 @@ class SOMUSIC_BOL_Service {
 		return $toReturn;
 	}
 	
+	public function addComposition($name, $instrumentsScore, $instrumentsUsed) {
+		$userId = OW::getUser()->getId();
+		$composition = new SOMUSIC_BOL_Composition();
+		$composition->name = $name;
+		$composition->user_c = $userId;
+		$composition->user_m = $userId;
+		$composition->instrumentsScore = $instrumentsScore;
+		$composition->instrumentsUsed = $instrumentsUsed;
+		$this->compositionDao->save($composition);
+	}
+	
 	public function addMelodyOnPost($name, $id_post, $instrumentsScore, $instrumentsUsed) {
 		$userId = OW::getUser()->getId();
 		$composition = new SOMUSIC_BOL_Composition();
@@ -241,6 +256,13 @@ class SOMUSIC_BOL_Service {
 		$post->id_post = $id_post;
 		$this->somusicPostDao->save($post);
 		return $composition;
+	}
+	
+	public function addMelodyOnPost1($id_composition, $id_post) {
+		$post = new SOMUSIC_BOL_SomusicPost();
+		$post->id_melody = $id_composition;
+		$post->id_post = $id_post;
+		$this->somusicPostDao->save($post);
 	}
 	
 	public function getScoreByPostId($postId) {

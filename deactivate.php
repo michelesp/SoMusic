@@ -3,7 +3,10 @@
 
 BOL_ComponentAdminService::getInstance()->deleteWidget('SOMUSIC_CMP_AssignmentsWidget');
 BOL_ComponentAdminService::getInstance()->deleteWidget('SOMUSIC_CMP_CompositionWidget');
+BOL_ComponentAdminService::getInstance()->deleteWidget('SOMUSIC_CMP_PercentageOfSimilarityWidget');
 
+
+OW::getNavigation()->deleteMenuItem('somusic', 'main_menu_myspace');
 OW::getNavigation()->deleteMenuItem('somusic', 'main_menu_similarity');
 
 

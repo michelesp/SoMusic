@@ -1,0 +1,87 @@
+{style}
+{literal}
+.gridly {
+	position: relative;
+    width: 960px;
+}
+.brick.small {
+	width: 140px;
+    height: 140px;
+}
+.brick.large {
+	width: 300px;
+    height: 300px;
+}
+.brick img {
+	width: 300px;
+	height: auto;
+}
+.brick div {
+	text-align: center;
+}
+.fubBtn {
+	position: absolute;
+	right: 200px;
+	bottom: 100px;
+}
+.removeBtn {
+	position: relative !important;
+	top: 20px !important;
+	right: -280px !important;
+}
+.shareBtn {
+	position: relative !important;
+	top: 20px !important;
+	right: -190px !important;
+}
+{/literal}
+{/style}
+<div class="gridly">
+	{foreach from=$compositions key=$id item=$name}
+ 	<div class="brick large">
+  		<div class="row center">
+  			<a class="removeBtn btn-floating btn-small waves-effect waves-light red" onclick="SoMusic.removeComposition({$id})">
+ 				<i class="material-icons">remove</i>
+ 			</a>
+ 			<a class="shareBtn btn-floating btn-small waves-effect waves-light green" onclick="SoMusic.shareComposition({$id})">
+ 				<i class="material-icons">share</i>
+ 			</a>
+  			<img src="{$img}" onclick="SoMusic.openComposition({$id})">
+  		</div>
+  		<div class="row">
+  			<h5>{$name}</h5>
+  		</div>
+  	</div>
+  	{/foreach}
+</div>
+ <a class="fubBtn btn-floating btn-large waves-effect waves-light blue" onclick="SoMusic.newComposition()">
+ 	<i class="material-icons">add</i>
+ </a>
+{script}
+SoMusic.floatBox = [];
+$('.gridly').gridly({
+    base: 60, // px 
+    gutter: 20, // px
+    columns: 12
+});
+{/script}
+
+<div class="modal fade" id="postModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Text</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      	<textarea id="postText" style="width:100%"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="">Share</button>
+      </div>
+    </div>
+  </div>
+</div>

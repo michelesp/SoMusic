@@ -60,6 +60,9 @@ class SOMUSIC_CLASS_EventHandler {
 
 		$jsGenerator = UTIL_JsGenerator::newInstance();
 		$jsGenerator->setVariable("SoMusic.ajax_add_comment", OW::getRouter()->urlFor('SOMUSIC_CTRL_Ajax', 'addComment'));
+		$jsGenerator->setVariable("SoMusic.ajax_addComposition", OW::getRouter()->urlFor('SOMUSIC_CTRL_MySpace', 'addScore'));
+		$jsGenerator->setVariable("SoMusic.removeCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_MySpace', 'removeScore'));
+		$jsGenerator->setVariable("SoMusic.shareCompositionURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_MySpace', 'shareScore'));
 		$jsGenerator->setVariable(" SoMusic.ajax_update_status", OW::getRouter()->urlFor('SOMUSIC_CTRL_Ajax', 'statusUpdate'));
 		$jsGenerator->setVariable("SoMusic.ajax_update_score", OW::getRouter()->urlFor('SOMUSIC_CTRL_Ajax', 'updateScore'));
 		$jsGenerator->setVariable("SoMusic.saveAssignmentURL", OW::getRouter()->urlFor('SOMUSIC_CTRL_AssignmentManager', 'saveNewAssignment'));
