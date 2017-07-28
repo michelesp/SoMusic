@@ -11,17 +11,28 @@ class SOMUSIC_CMP_PercentageOfSimilarityWidget extends BASE_CLASS_Widget {
 		OW::getDocument()->addStyleSheet(OW::getPluginManager()->getPlugin('somusic')->getStaticCssUrl().'bootstrap-reboot.min.css');
 		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'bootstrap.min.js', 'text/javascript');
 		OW::getDocument()->addScript(OW::getPluginManager()->getPlugin('somusic')->getStaticJsUrl().'progressbar.min.js', 'text/javascript');
-				
+		
+		$minValue = $service->getMinValueUsersCompositionSimilarity();
+		$maxValue = $service->getMaxValueUsersCompositionSimilarity();
+		
 		$userId = (int) $params->additionalParamList['entityId'];
 		$userId1 = OW::getUser()->getId();
 		if($userId!=$userId1){
 			$ucs = new SOMUSIC_CLASS_UsersCompositionsSimilarity();
 			$graph = $ucs->getGraph();
 			$v = $graph->getVertex($userId);
-			$edge = $v->hasEdgeFrom($graph->getVertex($userId1));
-			if($edge != null)
-				$percentage = $edge->getWeight()*10;
-			else $percentage = 0;
+			$v1 = $graph->getVertex($userId1);
+			//$edge = $v->hasEdgeFrom($v1);
+			$edge = $v1->hasEdgeFrom($v);
+			foreach ($graph->getEdges() as $edge) {
+				if($edge->isConnection($v, $v1)) {
+					//$percentage = $edge->getWeight();
+					//$percentage = ($edge->getWeight()*10<=100?$percentage = $edge->getWeight()*10:100);
+					$percentage = (($edge->getWeight()/10)-$minValue)*100/($maxValue-$minValue);
+					break;
+				}
+				else $percentage = 0;
+			}	
 		}
 		else $percentage = 100;
 		

@@ -98,7 +98,6 @@ class SOMUSIC_BOL_Service {
 		return $this->assignmentExecutionDao->getExecutionByAssignmentAndUser($assignmentId, $userId);
 	}
 	
-	//TODO: verificare
 	public function getAdminGroupIdByExecution($id) {
 		$execution = $this->assignmentExecutionDao->findById($id);
 		$assignment = $this->assignmentDao->findById($execution->assignment_id);
@@ -110,13 +109,7 @@ class SOMUSIC_BOL_Service {
 		return $this->assignmentExecutionDao->getExecutionsByAssignmentId($id);
 	}
 	
-	//TODO: verificare
 	public function getUserAssignmentExecutions($userId) {
-		/*$dbo = OW::getDbo();
-		$query = "SELECT *
-                  FROM ow_assignment_execution
-				  WHERE user_id = ".$userId.";";
-		return $dbo->queryForList($query);*/
 		return $this->assignmentExecutionDao->getUserAssignmentExecutions($userId);
 	}
 	
@@ -138,11 +131,6 @@ class SOMUSIC_BOL_Service {
 	}
 	
 	public function updateUsersCompositionsSimilarity($userId1, $userId2, $value, $melodicLength) {
-		/*$ucs = $this->getUsersCompositionsSimilarity($userId1, $userId2);
-		$ucs->value = $value;
-		$ucs->melodic_length = $melodicLength;
-		$ucs->last_update = date("F j, Y \a\t g:ia");
-		$this->usersCompositionsSimilarityDao->save($ucs);*/
 		$this->usersCompositionsSimilarityDao->updateUsersCompositionsSimilarity($userId1, $userId2, $value, $melodicLength);
 	}
 	
@@ -152,6 +140,14 @@ class SOMUSIC_BOL_Service {
 	
 	public function getMaxMelodicLengthUsersCompositionSimilarity() {
 		return $this->usersCompositionsSimilarityDao->getMaxMelodicLengthUsersCompositionSimilarity();
+	}
+	
+	public function getMaxValueUsersCompositionSimilarity() {
+		return $this->usersCompositionsSimilarityDao->getMaxValueUsersCompositionSimilarity();
+	}
+	
+	public function getMinValueUsersCompositionSimilarity() {
+		return $this->usersCompositionsSimilarityDao->getMinValueUsersCompositionSimilarity();
 	}
 	
 	public function getInstrumentGroups() {

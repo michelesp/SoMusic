@@ -55,4 +55,14 @@ class SOMUSIC_BOL_UsersCompositionsSimilarityDao extends OW_BaseDao {
 		return intval($this->dbo->queryForRow($query)["max"]);
 	}
 	
+	public function getMaxValueUsersCompositionSimilarity() {
+		$query = 'SELECT MAX(value) as max FROM ow_somusic_users_compositions_similarity';
+		return floatval($this->dbo->queryForRow($query)["max"]);
+	}
+	
+	public function getMinValueUsersCompositionSimilarity() {
+		$query = 'SELECT MIN(value) as min FROM ow_somusic_users_compositions_similarity WHERE value>0';
+		return floatval($this->dbo->queryForRow($query)["min"]);
+	}
+	
 }
