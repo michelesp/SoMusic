@@ -6,11 +6,23 @@
 .composition_item {
 	display: block;
 }
+.compIcon {
+	width: 40px;
+	padding-right: 10px;
+}
+.compItem {
+	background-color: #2196F3;
+	color: white !important;
+	margin-bottom: 2px;
+}
 {/style}
 
 
 <div id="composition_list" class="list-group">
 	{foreach from=$compNames key=$id item=$name}
-   		<a onclick='SoMusic.openComposition({$id})' class='list-group-item assignment_item'>{$name}</a>
+   		<a onclick='SoMusic.openComposition({$id})' class='list-group-item compItem'>
+   			<img src="{$imgURL}" class="compIcon">
+   			{$name}
+   		</a>
 	{/foreach}
 </div>

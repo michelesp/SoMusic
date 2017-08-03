@@ -22,6 +22,7 @@ class SOMUSIC_CMP_CompositionWidget extends BASE_CLASS_Widget {
 		foreach ($compositions as $comp)
 			$compNames[$comp->getId()] = ($comp->name==""?"unnamed ".$undCounter++:$comp->name);
 		$this->assign("compNames", $compNames);
+		$this->assign("imgURL", OW::getPluginManager()->getPlugin('somusic')->getStaticUrl()."img/composition_icon1.png");
 	}
 
 	public static function getStandardSettingValueList() {

@@ -4,7 +4,6 @@ class SOMUSIC_CTRL_MySpace extends OW_ActionController {
 	
 	public function index() {
 		$this->setPageTitle("My space");
-		$this->setPageHeading("My space");
 		
 		$userId = OW::getUser()->getId();
 		$compositions = SOMUSIC_BOL_Service::getInstance()->getAllCompositions($userId);

@@ -24,28 +24,37 @@ function load(graph) {
 			.append('g')
 			.classed('gnode', true);
 	
+	gnodes.on("click", click)
+			.call(d3.drag()
+			.on("start", dragstarted)
+			.on("drag", dragged)
+			.on("end", dragended));
+	
 	var node = svg.append("g")
 			.attr("class", "nodes")
 			.selectAll("circle")
 			.data(graph.nodes)
-			.enter().append("circle")
+			.enter()
+			.append("circle")
 			.attr("r", 15)
-			.attr("fill", function(d) {
+			.attr("stroke-width", 2)
+			.attr("stroke", function(d) {
 				if(typeof d.root !== "undefined")
 					return '#FF0000';
 				return '#2196F3';
 			})
-			.on("click", click)
-			.call(d3.drag()
-						.on("start", dragstarted)
-						.on("drag", dragged)
-						.on("end", dragended));
+			.attr("fill", "none");
 
-	node.append("title")
-			.text(function(d) { return d.id; });
-
+	
 	var labels = gnodes.append("text")
 	  		.text(function(d) { return d.id; });
+	
+	var imgs = gnodes.append("image")
+		.attr("href", function(d) { return d.img; })
+		.attr("width", 28)
+		.attr("height", 28)
+		.attr("x", -29)
+		.attr("y", -29);
 	
 	simulation.nodes(graph.nodes).on("tick", ticked);
 
@@ -59,7 +68,7 @@ function load(graph) {
 
 		node.attr("cx", function(d) { return d.x; })
 			.attr("cy", function(d) { return d.y; });
-
+		
 		gnodes.attr("transform", function(d) { 
 			return 'translate(' + [d.x+15, d.y+15] + ')'; 
 		});    

@@ -293,7 +293,7 @@ SoMusic.shareComposition = function(id) {
 		data: { id: id },
 		dataType: 'JSON',
 		success: function(data){
-			console.log(data);
+			OW.info("Shared composition")
 			if(data)
 				setTimeout(function(){ location.reload(); }, 50);
 		}

@@ -111,7 +111,6 @@ class SOMUSIC_CLASS_UsersCompositionsSimilarity {
 		}
 		if($div!=0) {
 			$threshold = $sum/$div;
-			//var_dump($threshold);
 			foreach ($list as $ucs) {
 				if($ucs->value>=$threshold) {
 					$v1 = $graph->getVertex($ucs->userId1);
