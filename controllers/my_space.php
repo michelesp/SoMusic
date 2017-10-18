@@ -30,7 +30,9 @@ class SOMUSIC_CTRL_MySpace extends OW_ActionController {
 	public function addScore() {
 		$editor = new SOMUSIC_CTRL_Editor();
 		$composition = $editor->reset();
-		SOMUSIC_BOL_Service::getInstance()->addComposition($composition->name, json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
+		if(intval($composition->getId())!=-1)
+			SOMUSIC_BOL_Service::getInstance()->updateComposition($composition->getId(), json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
+		else SOMUSIC_BOL_Service::getInstance()->addComposition($composition->name, json_encode($composition->instrumentsScore), json_encode($composition->instrumentsUsed));
 		exit(json_encode(array("status"=>true)));
 	}
 	

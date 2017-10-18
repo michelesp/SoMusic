@@ -50,11 +50,13 @@ function load(graph) {
 	  		.text(function(d) { return d.id; });
 	
 	var imgs = gnodes.append("image")
-		.attr("href", function(d) { return d.img; })
+		//.attr("href", function(d) { return d.img; })
 		.attr("width", 28)
 		.attr("height", 28)
 		.attr("x", -29)
-		.attr("y", -29);
+		.attr("y", -29)
+		.attr("xlink:href", function(d) { return d.img; })
+		.attr("clip-path", "url(#clip)");
 	
 	simulation.nodes(graph.nodes).on("tick", ticked);
 

@@ -33,7 +33,7 @@ class SOMUSIC_CTRL_UsersCompositionsSimilarity extends OW_ActionController {
 			$avatarData[$v->getId()]['src'] = BOL_AvatarService::getInstance()->getAvatarUrl($v->getId(), 1, null, true, false);
 			$default_avatar['src'] = BOL_AvatarService::getInstance()->getDefaultAvatarUrl(1);
 			
-			$node = array("id"=>$username, "url"=>$baseUrl.$username, "img"=>!empty($avatarData[$this->user->id]['src']) ? $avatarData[$this->user->id]["src"] : $default_avatar["src"]);
+			$node = array("id"=>$username, "url"=>$baseUrl.$username, "img"=>!empty($avatarData[$v->getId()]['src']) ? $avatarData[$v->getId()]['src'] : $default_avatar["src"]);
 			if($v->getId()==$userId)
 				$node["root"] = true;
 			array_push($nodes, (object)$node);
